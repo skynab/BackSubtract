@@ -18,9 +18,9 @@ npm run build    # type-check and build to dist/
 
 | Key | Action |
 |---|---|
-| B | Brush |
+| 3 / 4 / B | Magic Wand / Color / Brush |
 | X | Toggle Keep / Remove |
-| [ / ] | Smaller / larger brush |
+| [ / ] | Smaller / larger brush, or lower / raise tolerance |
 | Ctrl+Z / Ctrl+Shift+Z | Undo / redo |
 | Space + drag, middle-drag | Pan |
 | Wheel, pinch | Zoom |

@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { editor } from '../editor/editor';
 import { openImage } from '../session/openImage';
-import { useUI } from '../state/store';
+import { useUI, type ToolId } from '../state/store';
+import { retune } from '../tools/color/pick';
 
 const isEditable = (target: EventTarget | null) =>
   target instanceof HTMLElement &&
@@ -65,10 +66,17 @@ export function useGlobalInput(): void {
         return;
       }
       if (e.altKey || !ui.hasImage) return;
-      if (key === 'b') ui.setTool('brush');
+      const toolKeys: Record<string, ToolId> = { '1': 'auto', '2': 'select', '3': 'wand', '4': 'color', b: 'brush' };
+      if (toolKeys[key]) ui.setTool(toolKeys[key]);
       else if (key === 'x') ui.toggleMode();
-      else if (e.key === '[') ui.setBrushSize(ui.brushSize / 1.25);
-      else if (e.key === ']') ui.setBrushSize(ui.brushSize * 1.25);
+      else if (e.key === '[' || e.key === ']') {
+        const up = e.key === ']';
+        if (ui.tool === 'brush') ui.setBrushSize(up ? ui.brushSize * 1.25 : ui.brushSize / 1.25);
+        else if (ui.tool === 'wand' || ui.tool === 'color') {
+          ui.setTolerance(ui.tool, ui.tolerances[ui.tool] + (up ? 2 : -2));
+          retune(ui.tool);
+        }
+      }
     };
 
     window.addEventListener('dragenter', onDragEnter);

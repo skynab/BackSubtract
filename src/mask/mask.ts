@@ -81,14 +81,50 @@ export class Mask {
     }
   }
 
-  /** Combine a selection laid out over `rect` (rect.w × rect.h values) into the mask. */
+  /** Combine a full-size selection plane into the mask, within `rect`. */
   apply(selection: Uint8Array, rect: Rect, mode: Mode): void {
+    this.combineFrom(this.data, selection, rect, mode);
+  }
+
+  /** Within `rect`, set mask = combine(base, selection). Both are full-size planes. */
+  combineFrom(base: Uint8Array, selection: Uint8Array, rect: Rect, mode: Mode): void {
+    // Same as combine(), unrolled per mode: this runs over millions of pixels per tap.
+    const out = this.data;
     for (let row = 0; row < rect.h; row++) {
-      let i = (rect.y + row) * this.width + rect.x;
-      let s = row * rect.w;
-      for (let col = 0; col < rect.w; col++, i++, s++) {
-        this.data[i] = combine(this.data[i], selection[s], mode);
+      const start = (rect.y + row) * this.width + rect.x;
+      const end = start + rect.w;
+      if (mode === 'keep') {
+        for (let i = start; i < end; i++) {
+          const b = base[i], s = selection[i];
+          out[i] = s > b ? s : b;
+        }
+      } else {
+        for (let i = start; i < end; i++) {
+          const b = base[i], s = 255 - selection[i];
+          out[i] = s < b ? s : b;
+        }
       }
     }
   }
+}
+
+/** Bounding box of all values above `threshold`, or null if there are none. */
+export function boundingBox(data: Uint8Array, width: number, height: number, threshold = 0): Rect | null {
+  let x0 = width, y0 = height, x1 = -1, y1 = -1;
+  for (let y = 0; y < height; y++) {
+    const row = y * width;
+    for (let x = 0; x < width; x++) {
+      if (data[row + x] > threshold) {
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (y < y0) y0 = y;
+        y1 = y;
+      }
+    }
+  }
+  return x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+
+export function padRect(rect: Rect, pad: number): Rect {
+  return { x: rect.x - pad, y: rect.y - pad, w: rect.w + pad * 2, h: rect.h + pad * 2 };
 }

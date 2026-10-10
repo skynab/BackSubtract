@@ -71,5 +71,6 @@ export const GlobeIcon = icon(
     <path d="M3.5 12h17M12 3.5c2.4 2.4 3.6 5.2 3.6 8.5s-1.2 6.1-3.6 8.5c-2.4-2.4-3.6-5.2-3.6-8.5S9.6 5.9 12 3.5z" />
   </>,
 );
-export const PlusIcon = icon(<path d="M12 6v12M6 12h12" />);
+export const ChevronIcon = icon(<path d="M7 10l5 5 5-5" />);
+export const PlusIcon =icon(<path d="M12 6v12M6 12h12" />);
 export const MinusIcon = icon(<path d="M6 12h12" />);

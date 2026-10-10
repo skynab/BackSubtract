@@ -80,13 +80,13 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 ### D. Color
 - Tap a colour to remove **every matching pixel in the whole image**, connected or not. This handles green screens, a sky seen through gaps, or a solid studio backdrop.
 - One tolerance slider, using the same CIELAB matching as the Magic Wand.
-- **Despill**, on by default, removes the coloured fringe that a backdrop leaves on the subject's edges. It applies only to the exported pixels and never changes the original.
+- **Edge colour cleanup** (always on, no button) removes the coloured fringe a backdrop leaves on soft edges. Each partly visible edge pixel is un-mixed from the average colour of the removed pixels next to it. Because nothing is ever deleted, that background colour is always known. It works for every tool, not just Color, and applies only to the exported pixels, never the original.
 - Default mode is **Remove**.
 
 ### Brush (touch-up, always available)
 - A small brush icon sits next to the tool row, with one size slider. It uses the shared Keep / Remove toggle.
 - It covers the last few percent of errors after any tool.
-- **Edge-aware:** the brush's effect is refined with a guided filter against the image, so painting roughly along an edge still follows the real boundary.
+- **Edge-aware:** when a stroke ends, its soft rim snaps to the real edge in the image. Each rim pixel is compared with the average colour just inside the stroke and just outside it. Where those differ, the rim follows the image edge; on flat areas the stroke stays exactly as painted. (A guided filter was tried first, but it blurred strokes on flat areas.)
 
 ## 5. UI layout
 
@@ -143,11 +143,11 @@ src/
     auto/         worker + model wrapper
     select/       SAM worker (encoder/decoder), tap + loop prompts, GrabCut fallback
     wand/         contiguous Lab flood fill
-    color/        global Lab colour key + despill
+    color/        Lab colour distance, wand flood fill, global colour key, tap + re-tune
     brush/        stroke rasterising + edge-aware refine
-  mask/           Mask model, Keep/Remove combine, undo diffs, guided filter
+  mask/           Mask model, Keep/Remove combine, undo diffs, box filter
   session/        IndexedDB auto-save / restore
-  export/         PNG/WebP/JPG encoders, trim
+  export/         PNG/WebP/JPG encoders, trim, edge colour cleanup
   i18n/           react-i18next setup, locale detection, RTL
   locales/        *.json
 public/           icons, manifest
@@ -155,8 +155,10 @@ public/           icons, manifest
 
 ## 9. Milestones
 
-1. **Skeleton (week 1):** Vite + React app, open/drop/paste image, WebGL viewer with zoom/pan, the non-destructive mask model with undo/redo, PNG export, and an i18n scaffold with 2 languages.
-2. **Classic tools (week 2):** Magic Wand, Color with despill, the brush, the ghost preview, IndexedDB auto-save, and all export formats.
+1. ✅ **Skeleton (week 1):** Vite + React app, open/drop/paste image, WebGL viewer with zoom/pan, the non-destructive mask model with undo/redo, PNG export, and an i18n scaffold with 2 languages.
+2. ✅ **Classic tools (week 2):** Magic Wand, Color, edge-snapping brush, edge colour cleanup, ghost preview, IndexedDB auto-save, and PNG/WebP/JPG export with trim.
+   - Measured on a 12.6 MP photo: a tap takes about 0.2–0.3 s, a slider re-tune 0.1–0.2 s, and an export 1.1–1.4 s (mostly encoding).
+   - Follow-up: move tap and export work into a Web Worker so the page never pauses, alongside the ML workers in week 3.
 3. **ML tools (weeks 3–4):** Auto model in a worker, then Select (tap, then loop, then the GrabCut fallback). Add WebGPU/WASM detection, model caching, and progress UI.
 4. **Donations and polish (week 5):** donate dialog, mobile gestures and layout, accessibility (keyboard and screen-reader labels), the remaining translations, PWA/offline, and deploy.
 5. **Testing throughout:**

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { combine, extract, Mask, unionRect } from './mask';
+import { boundingBox, combine, extract, Mask, unionRect } from './mask';
 
 describe('combine', () => {
   it('Keep only ever reveals and Remove only ever hides', () => {
@@ -18,7 +18,8 @@ describe('Mask', () => {
   it('can fully recover an area hidden by Remove using Keep', () => {
     const mask = new Mask(4, 4);
     const rect = { x: 1, y: 1, w: 2, h: 2 };
-    const sel = new Uint8Array(4).fill(255);
+    const sel = new Uint8Array(16);
+    for (const i of [5, 6, 9, 10]) sel[i] = 255;
     mask.apply(sel, rect, 'remove');
     expect([...mask.read(rect)]).toEqual([0, 0, 0, 0]);
     mask.apply(sel, rect, 'keep');
@@ -55,5 +56,15 @@ describe('helpers', () => {
   it('extract copies a sub-rectangle', () => {
     const data = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8]);
     expect([...extract(data, 3, { x: 1, y: 1, w: 2, h: 2 })]).toEqual([4, 5, 7, 8]);
+  });
+});
+
+describe('boundingBox', () => {
+  it('finds the extent of values above the threshold', () => {
+    const data = new Uint8Array(16);
+    data[1 * 4 + 1] = 9;
+    data[2 * 4 + 3] = 9;
+    expect(boundingBox(data, 4, 4)).toEqual({ x: 1, y: 1, w: 3, h: 2 });
+    expect(boundingBox(new Uint8Array(4), 2, 2)).toBeNull();
   });
 });

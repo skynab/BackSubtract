@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { editor } from '../editor/editor';
 import { unionRect, type Rect } from '../mask/mask';
 import { selectMode, useUI } from '../state/store';
+import { pick } from '../tools/color/pick';
 import { cssColor, Renderer } from './renderer';
 import { clamp, fitView, MAX_SCALE, minScale, toImage, zoomAt, type Point, type View } from './view';
 
@@ -113,7 +114,9 @@ export function Viewer() {
     function updateCursor(e: PointerEvent | null, p?: Point) {
       const ui = useUI.getState();
       const brush = ui.tool === 'brush' && !spaceDown;
-      canvas.style.cursor = spaceDown || gesture.kind === 'pan' ? 'grab' : brush ? 'none' : 'default';
+      const tapTool = ui.tool === 'wand' || ui.tool === 'color';
+      canvas.style.cursor =
+        spaceDown || gesture.kind === 'pan' ? 'grab' : brush ? 'none' : tapTool ? 'crosshair' : 'default';
       const showRing = brush && p && e && e.pointerType !== 'touch';
       cursor.hidden = !showRing;
       if (showRing) {
@@ -123,10 +126,18 @@ export function Viewer() {
       }
     }
 
-    function endGesture() {
+    function endGesture(tapped = false) {
       if (gesture.kind === 'stroke') editor.endStroke();
       if (gesture.kind === 'hold') {
         clearTimeout(gesture.timer);
+        // A quick press without moving is a tap; a long one only showed the original.
+        if (tapped && !comparing) {
+          const tool = useUI.getState().tool;
+          if (tool === 'wand' || tool === 'color') {
+            const ip = toImage(view, gesture.start);
+            pick(tool, ip.x, ip.y);
+          }
+        }
         setComparing(false);
       }
       gesture = { kind: 'none' };
@@ -162,7 +173,7 @@ export function Viewer() {
         editor.beginStroke(ip.x, ip.y, ui.brushSize / 2 / view.scale, ui.modes.brush);
         gesture = { kind: 'stroke', id: e.pointerId };
       } else {
-        // Tools without a drag action: dragging pans, press-and-hold shows the original.
+        // Tap tools: a tap acts, dragging pans, press-and-hold shows the original.
         gesture = {
           kind: 'hold',
           id: e.pointerId,
@@ -227,7 +238,7 @@ export function Viewer() {
         if (pointers.size === 0) gesture = { kind: 'none' };
         return;
       }
-      if ('id' in gesture && gesture.id === e.pointerId) endGesture();
+      if ('id' in gesture && gesture.id === e.pointerId) endGesture(e.type === 'pointerup');
       updateCursor(e, local(e));
     }
 

@@ -26,7 +26,6 @@
     "open": "Abrir otra imagen",
     "undo": "Deshacer",
     "redo": "Rehacer",
-    "download": "Descargar PNG",
     "exporting": "Preparando…"
   },
   "viewer": {
@@ -35,7 +34,8 @@
   },
   "confirmReplace": "¿Abrir una imagen nueva? Se perderán los cambios en esta.",
   "notices": {
-    "resized": "Imagen grande reducida a {{max}} px en su lado más largo."
+    "resized": "Imagen grande reducida a {{max}} px en su lado más largo.",
+    "restored": "Bienvenido de nuevo: se restauró tu última imagen."
   },
   "errors": {
     "notImage": "Ese archivo no es una imagen.",
@@ -43,5 +43,28 @@
     "webgl": "Tu navegador no es compatible con WebGL2, que BackSubtract necesita.",
     "export": "No se pudo exportar la imagen."
   },
-  "dismiss": "Cerrar"
+  "dismiss": "Cerrar",
+  "tolerance": "Tolerancia",
+  "download": {
+    "button": "Descargar {{format}}",
+    "options": "Opciones de descarga",
+    "format": "Formato",
+    "formats": {
+      "png": "PNG",
+      "webp": "WebP",
+      "jpg": "JPG"
+    },
+    "hints": {
+      "png": "Fondo transparente",
+      "webp": "Transparente, archivo más pequeño",
+      "jpg": "Color de fondo sólido"
+    },
+    "background": "Fondo",
+    "customColor": "Color personalizado",
+    "trim": "Recortar al sujeto",
+    "colors": {
+      "white": "Blanco",
+      "black": "Negro"
+    }
+  }
 }

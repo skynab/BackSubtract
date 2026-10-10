@@ -412,10 +412,6 @@ button:disabled {
   gap: 4px;
 }
 
-.actions .primary {
-  margin-inline-start: 8px;
-}
-
 @media (max-width: 720px) {
   .bottombar {
     justify-content: center;
@@ -441,7 +437,131 @@ button:disabled {
     width: 100%;
   }
 
-  .actions .primary {
+}
+
+/* Download split button and menu */
+
+.download {
+  position: relative;
+  display: flex;
+  margin-inline-start: 8px;
+}
+
+.download .split-main {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.download .split-toggle {
+  padding: 0 10px;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  border-inline-start: 1px solid color-mix(in srgb, var(--accent-fg) 25%, transparent);
+}
+
+.menu {
+  position: absolute;
+  inset-block-end: calc(100% + 8px);
+  inset-inline-end: 0;
+  z-index: 10;
+  width: 260px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.18);
+}
+
+.menu fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.menu-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.menu-option:hover {
+  background: var(--surface-hover);
+}
+
+.menu-option span {
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-option small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.menu input[type='radio'],
+.menu input[type='checkbox'] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.menu-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px;
+  border-block-start: 1px solid var(--line);
+  margin-block-start: 4px;
+}
+
+.menu-row.check {
+  justify-content: flex-start;
+  cursor: pointer;
+}
+
+.swatches {
+  display: flex;
+  gap: 6px;
+}
+
+.swatch {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.swatch[aria-pressed='true'] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.swatch.custom {
+  background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+  overflow: hidden;
+}
+
+.swatch.custom input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .download {
+    flex: 1;
+  }
+
+  .download .split-main {
     flex: 1;
   }
 }

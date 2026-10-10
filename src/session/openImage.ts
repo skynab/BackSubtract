@@ -1,6 +1,7 @@
 import { editor } from '../editor/editor';
 import { i18n } from '../i18n';
 import { useUI } from '../state/store';
+import { loadSession } from './autosave';
 
 /** Longest side kept in memory; larger photos are scaled down on open. */
 export const MAX_SIDE = 4096;
@@ -28,13 +29,28 @@ export async function openImage(file: File): Promise<void> {
 
   try {
     const { bitmap, resized } = await decodeImage(file);
-    editor.load(bitmap, file.name);
+    editor.load(bitmap, file, file.name);
     useUI.setState({
       hasImage: true,
       notice: resized ? { key: 'notices.resized', params: { max: MAX_SIDE }, tone: 'info' } : null,
     });
   } catch {
     ui.showNotice({ key: 'errors.load', tone: 'error' });
+  }
+}
+
+/** Reopen the image and edits saved from the last visit, if any. */
+export async function restoreSession(): Promise<void> {
+  const saved = await loadSession();
+  if (!saved) return;
+  try {
+    const { bitmap } = await decodeImage(saved.file);
+    // If the image decodes to a different size than before, the saved edits no longer line up.
+    const fits = bitmap.width === saved.width && bitmap.height === saved.height;
+    editor.load(bitmap, saved.file, saved.fileName, fits ? { mask: saved.mask, edits: saved.edits } : undefined);
+    useUI.setState({ hasImage: true, notice: { key: 'notices.restored', tone: 'info' } });
+  } catch {
+    // A saved session that can't be reopened is simply skipped.
   }
 }
 
