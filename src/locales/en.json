@@ -57,10 +57,10 @@
     "hints": {
       "png": "Transparent background",
       "webp": "Transparent, smaller file",
-      "jpg": "Solid background colour"
+      "jpg": "Solid background color"
     },
     "background": "Background",
-    "customColor": "Custom colour",
+    "customColor": "Custom color",
     "trim": "Crop to subject",
     "colors": {
       "white": "White",
@@ -80,5 +80,33 @@
     "auto": "Removing background…",
     "preparing": "Getting ready to select…",
     "selecting": "Selecting…"
+  },
+  "close": "Close",
+  "donate": {
+    "button": "Donate",
+    "title": "Support BackSubtract",
+    "body": "BackSubtract is free, with no ads and no sign-up. If it saved you some time, a small tip helps keep it running.",
+    "other": "Other amount",
+    "note": "Payments are handled securely by Stripe in a new tab. Tips are voluntary and not tax-deductible.",
+    "thanks": "Thank you for supporting BackSubtract!"
+  },
+  "about": {
+    "link": "About",
+    "title": "About BackSubtract",
+    "intro": "A simple, free tool for removing the background from photos. Open an image, remove the background with one of a few tools, and download the result.",
+    "privacy": "Everything happens in your browser. Your images are never uploaded, and nothing is collected. The AI models are downloaded once and kept on your device.",
+    "shortcutsTitle": "Keyboard shortcuts",
+    "creditsTitle": "Built with",
+    "source": "Source code",
+    "contact": "Contact"
+  },
+  "shortcuts": {
+    "tools": "Auto, Select, Magic Wand, Color, Brush",
+    "mode": "Switch between Keep and Remove",
+    "size": "Smaller / larger brush or tolerance",
+    "undo": "Undo / redo",
+    "pan": "Move around the image",
+    "fit": "Fit the image to the screen",
+    "compare": "Hold to see the original"
   }
 }

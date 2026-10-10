@@ -56,6 +56,7 @@ interface UIState {
   models: { auto?: ModelInfo; select?: ModelInfo };
   /** Whether Auto has already run on the current image. */
   autoRan: boolean;
+  dialog: 'donate' | 'about' | null;
   setTool: (tool: ToolId) => void;
   toggleMode: () => void;
   setMode: (mode: Mode) => void;
@@ -85,6 +86,7 @@ export const useUI = create<UIState>()(
       task: null,
       models: {},
       autoRan: false,
+      dialog: null,
       setTool: (tool) => {
         if (AVAILABLE_TOOLS.includes(tool)) set({ tool });
       },

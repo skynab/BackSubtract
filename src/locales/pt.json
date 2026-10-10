@@ -1,0 +1,112 @@
+{
+  "language": "Idioma",
+  "empty": {
+    "title": "Remova o fundo de qualquer foto",
+    "choose": "Escolher imagem",
+    "hint": "ou solte ou cole uma imagem em qualquer lugar",
+    "privacy": "Suas imagens nunca saem do seu dispositivo."
+  },
+  "drop": "Solte para abrir",
+  "tools": {
+    "label": "Ferramentas",
+    "auto": "Auto",
+    "select": "Selecionar",
+    "wand": "Varinha mágica",
+    "color": "Cor",
+    "brush": "Pincel"
+  },
+  "mode": {
+    "label": "Modo",
+    "keep": "Manter",
+    "remove": "Remover"
+  },
+  "brushSize": "Tamanho do pincel",
+  "actions": {
+    "open": "Abrir outra imagem",
+    "undo": "Desfazer",
+    "redo": "Refazer",
+    "exporting": "Preparando…"
+  },
+  "viewer": {
+    "label": "Editor de imagem",
+    "original": "Original"
+  },
+  "confirmReplace": "Abrir uma nova imagem? Suas edições nesta serão perdidas.",
+  "notices": {
+    "resized": "Imagem grande reduzida para {{max}} px no lado maior.",
+    "restored": "Bem-vindo de volta! Sua última imagem foi restaurada."
+  },
+  "errors": {
+    "notImage": "Esse arquivo não é uma imagem.",
+    "load": "Não foi possível abrir essa imagem.",
+    "webgl": "Seu navegador não é compatível com WebGL2, necessário para o BackSubtract.",
+    "export": "Não foi possível exportar a imagem.",
+    "model": "Não foi possível executar o modelo de IA. Verifique sua conexão e tente novamente."
+  },
+  "dismiss": "Fechar",
+  "tolerance": "Tolerância",
+  "download": {
+    "button": "Baixar {{format}}",
+    "options": "Opções de download",
+    "format": "Formato",
+    "formats": {
+      "png": "PNG",
+      "webp": "WebP",
+      "jpg": "JPG"
+    },
+    "hints": {
+      "png": "Fundo transparente",
+      "webp": "Transparente, arquivo menor",
+      "jpg": "Fundo de cor sólida"
+    },
+    "background": "Fundo",
+    "customColor": "Cor personalizada",
+    "trim": "Recortar no objeto",
+    "colors": {
+      "white": "Branco",
+      "black": "Preto"
+    }
+  },
+  "auto": {
+    "run": "Remover fundo",
+    "download": "Remover fundo (download único de {{size}} MB)",
+    "again": "Executar novamente"
+  },
+  "select": {
+    "hint": "Toque em um objeto ou desenhe em volta dele"
+  },
+  "task": {
+    "downloading": "Baixando modelo de IA… {{loaded}} / {{total}} MB (só uma vez)",
+    "auto": "Removendo o fundo…",
+    "preparing": "Preparando a seleção…",
+    "selecting": "Selecionando…"
+  },
+  "close": "Fechar",
+  "donate": {
+    "button": "Doar",
+    "title": "Apoie o BackSubtract",
+    "body": "O BackSubtract é gratuito, sem anúncios e sem cadastro. Se ele economizou seu tempo, uma pequena gorjeta ajuda a mantê-lo funcionando.",
+    "other": "Outro valor",
+    "note": "Os pagamentos são processados com segurança pela Stripe em uma nova aba. As gorjetas são voluntárias e não dedutíveis de impostos.",
+    "thanks": "Obrigado por apoiar o BackSubtract!"
+  },
+  "about": {
+    "link": "Sobre",
+    "title": "Sobre o BackSubtract",
+    "intro": "Uma ferramenta simples e gratuita para remover o fundo de fotos. Abra uma imagem, remova o fundo com uma das ferramentas e baixe o resultado.",
+    "privacy": "Tudo acontece no seu navegador. Suas imagens nunca são enviadas e nada é coletado. Os modelos de IA são baixados uma vez e ficam no seu dispositivo.",
+    "shortcutsTitle": "Atalhos de teclado",
+    "creditsTitle": "Feito com",
+    "source": "Código-fonte",
+    "contact": "Contato"
+  },
+  "shortcuts": {
+    "tools": "Auto, Selecionar, Varinha mágica, Cor, Pincel",
+    "mode": "Alternar entre Manter e Remover",
+    "size": "Pincel ou tolerância menor / maior",
+    "undo": "Desfazer / refazer",
+    "pan": "Mover pela imagem",
+    "fit": "Ajustar a imagem à tela",
+    "compare": "Segure para ver o original"
+  }
+}

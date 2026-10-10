@@ -108,6 +108,7 @@ button:disabled {
   gap: 10px;
   font-weight: 650;
   letter-spacing: -0.01em;
+  color: inherit;
 }
 
 .language {
@@ -658,4 +659,191 @@ button:disabled {
   .spinner {
     animation-duration: 2.4s;
   }
+}
+
+/* Top bar actions */
+
+.brand {
+  border: 0;
+  background: none;
+  padding: 4px 6px;
+  margin-inline-start: -6px;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 650;
+}
+
+.brand:hover {
+  background: var(--surface-hover);
+}
+
+.topbar-end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.donate-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.donate-button:hover {
+  color: #e0245e;
+  border-color: color-mix(in srgb, #e0245e 40%, var(--line));
+}
+
+/* Dialogs */
+
+.modal {
+  width: min(460px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: var(--bg);
+  color: var(--fg);
+  box-shadow: 0 24px 64px rgb(0 0 0 / 0.3);
+}
+
+.modal::backdrop {
+  background: rgb(0 0 0 / 0.45);
+}
+
+.modal-body {
+  padding: 8px 20px 20px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal h2 {
+  margin: 8px 0;
+  font-size: 19px;
+}
+
+.modal h3 {
+  margin: 18px 0 6px;
+  font-size: 14px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.modal p {
+  margin: 8px 0;
+}
+
+.modal a {
+  color: var(--accent);
+}
+
+.donate-heart {
+  width: 40px;
+  height: 40px;
+  color: #e0245e;
+  fill: color-mix(in srgb, #e0245e 20%, transparent);
+}
+
+.donate-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 12px;
+}
+
+.donate-options a {
+  flex: 1 1 80px;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.donate-options a.primary {
+  color: var(--accent-fg);
+}
+
+.donate-options a.secondary {
+  color: var(--fg);
+}
+
+.shortcuts {
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.shortcuts div {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.shortcuts dt {
+  flex: 0 0 150px;
+}
+
+.shortcuts dd {
+  margin: 0;
+}
+
+kbd {
+  font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-block-end-width: 2px;
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.credits {
+  margin: 0;
+  padding-inline-start: 18px;
+  columns: 2;
+  font-size: 14px;
+}
+
+@media (max-width: 480px) {
+  .donate-button span {
+    display: none;
+  }
+
+  .shortcuts dt {
+    flex-basis: 110px;
+  }
+
+  .credits {
+    columns: 1;
+  }
+}
+
+/* Touch polish */
+
+.viewer {
+  /* Long-press shows the original; don't let the phone open its own copy/save menu. */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+button,
+select,
+label,
+a {
+  /* No double-tap-to-zoom delay on controls. */
+  touch-action: manipulation;
+}
+
+/* Direction-specific icons (undo/redo arrows) point the other way in right-to-left languages. */
+[dir='rtl'] .flip-rtl {
+  scale: -1 1;
 }

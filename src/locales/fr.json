@@ -1,0 +1,112 @@
+{
+  "language": "Langue",
+  "empty": {
+    "title": "Supprimez l’arrière-plan de n’importe quelle photo",
+    "choose": "Choisir une image",
+    "hint": "ou déposez ou collez une image n’importe où",
+    "privacy": "Vos images ne quittent jamais votre appareil."
+  },
+  "drop": "Déposez pour ouvrir",
+  "tools": {
+    "label": "Outils",
+    "auto": "Auto",
+    "select": "Sélection",
+    "wand": "Baguette magique",
+    "color": "Couleur",
+    "brush": "Pinceau"
+  },
+  "mode": {
+    "label": "Mode",
+    "keep": "Garder",
+    "remove": "Retirer"
+  },
+  "brushSize": "Taille du pinceau",
+  "actions": {
+    "open": "Ouvrir une autre image",
+    "undo": "Annuler",
+    "redo": "Rétablir",
+    "exporting": "Préparation…"
+  },
+  "viewer": {
+    "label": "Éditeur d’image",
+    "original": "Original"
+  },
+  "confirmReplace": "Ouvrir une nouvelle image ? Vos modifications sur celle-ci seront perdues.",
+  "notices": {
+    "resized": "Grande image réduite à {{max}} px sur son côté le plus long.",
+    "restored": "Bon retour ! Votre dernière image a été restaurée."
+  },
+  "errors": {
+    "notImage": "Ce fichier n’est pas une image.",
+    "load": "Impossible d’ouvrir cette image.",
+    "webgl": "Votre navigateur ne prend pas en charge WebGL2, nécessaire à BackSubtract.",
+    "export": "Impossible d’exporter l’image.",
+    "model": "Le modèle d’IA n’a pas pu s’exécuter. Vérifiez votre connexion et réessayez."
+  },
+  "dismiss": "Fermer",
+  "tolerance": "Tolérance",
+  "download": {
+    "button": "Télécharger en {{format}}",
+    "options": "Options de téléchargement",
+    "format": "Format",
+    "formats": {
+      "png": "PNG",
+      "webp": "WebP",
+      "jpg": "JPG"
+    },
+    "hints": {
+      "png": "Arrière-plan transparent",
+      "webp": "Transparent, fichier plus léger",
+      "jpg": "Arrière-plan de couleur unie"
+    },
+    "background": "Arrière-plan",
+    "customColor": "Couleur personnalisée",
+    "trim": "Recadrer sur le sujet",
+    "colors": {
+      "white": "Blanc",
+      "black": "Noir"
+    }
+  },
+  "auto": {
+    "run": "Supprimer l’arrière-plan",
+    "download": "Supprimer l’arrière-plan (téléchargement unique de {{size}} Mo)",
+    "again": "Relancer"
+  },
+  "select": {
+    "hint": "Touchez un objet ou dessinez autour"
+  },
+  "task": {
+    "downloading": "Téléchargement du modèle d’IA… {{loaded}} / {{total}} Mo (une seule fois)",
+    "auto": "Suppression de l’arrière-plan…",
+    "preparing": "Préparation de la sélection…",
+    "selecting": "Sélection…"
+  },
+  "close": "Fermer",
+  "donate": {
+    "button": "Faire un don",
+    "title": "Soutenir BackSubtract",
+    "body": "BackSubtract est gratuit, sans publicité ni inscription. S’il vous a fait gagner du temps, un petit pourboire aide à le faire vivre.",
+    "other": "Autre montant",
+    "note": "Les paiements sont traités de façon sécurisée par Stripe dans un nouvel onglet. Les dons sont facultatifs et ne sont pas déductibles des impôts.",
+    "thanks": "Merci de soutenir BackSubtract !"
+  },
+  "about": {
+    "link": "À propos",
+    "title": "À propos de BackSubtract",
+    "intro": "Un outil simple et gratuit pour supprimer l’arrière-plan des photos. Ouvrez une image, supprimez l’arrière-plan avec l’un des outils, puis téléchargez le résultat.",
+    "privacy": "Tout se passe dans votre navigateur. Vos images ne sont jamais envoyées et rien n’est collecté. Les modèles d’IA sont téléchargés une fois et conservés sur votre appareil.",
+    "shortcutsTitle": "Raccourcis clavier",
+    "creditsTitle": "Réalisé avec",
+    "source": "Code source",
+    "contact": "Contact"
+  },
+  "shortcuts": {
+    "tools": "Auto, Sélection, Baguette magique, Couleur, Pinceau",
+    "mode": "Basculer entre Garder et Retirer",
+    "size": "Pinceau ou tolérance plus petit / plus grand",
+    "undo": "Annuler / rétablir",
+    "pan": "Se déplacer dans l’image",
+    "fit": "Ajuster l’image à l’écran",
+    "compare": "Maintenir pour voir l’original"
+  }
+}

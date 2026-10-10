@@ -1,0 +1,112 @@
+{
+  "language": "Sprache",
+  "empty": {
+    "title": "Entferne den Hintergrund aus jedem Foto",
+    "choose": "Bild auswählen",
+    "hint": "oder ein Bild irgendwo ablegen oder einfügen",
+    "privacy": "Deine Bilder verlassen nie dein Gerät."
+  },
+  "drop": "Zum Öffnen ablegen",
+  "tools": {
+    "label": "Werkzeuge",
+    "auto": "Auto",
+    "select": "Auswahl",
+    "wand": "Zauberstab",
+    "color": "Farbe",
+    "brush": "Pinsel"
+  },
+  "mode": {
+    "label": "Modus",
+    "keep": "Behalten",
+    "remove": "Entfernen"
+  },
+  "brushSize": "Pinselgröße",
+  "actions": {
+    "open": "Anderes Bild öffnen",
+    "undo": "Rückgängig",
+    "redo": "Wiederholen",
+    "exporting": "Wird vorbereitet…"
+  },
+  "viewer": {
+    "label": "Bildeditor",
+    "original": "Original"
+  },
+  "confirmReplace": "Ein neues Bild öffnen? Deine Änderungen an diesem Bild gehen verloren.",
+  "notices": {
+    "resized": "Großes Bild auf {{max}} px an der längsten Seite verkleinert.",
+    "restored": "Willkommen zurück – dein letztes Bild wurde wiederhergestellt."
+  },
+  "errors": {
+    "notImage": "Diese Datei ist kein Bild.",
+    "load": "Das Bild konnte nicht geöffnet werden.",
+    "webgl": "Dein Browser unterstützt WebGL2 nicht, das BackSubtract benötigt.",
+    "export": "Das Bild konnte nicht exportiert werden.",
+    "model": "Das KI-Modell konnte nicht ausgeführt werden. Prüfe deine Verbindung und versuche es erneut."
+  },
+  "dismiss": "Schließen",
+  "tolerance": "Toleranz",
+  "download": {
+    "button": "Als {{format}} herunterladen",
+    "options": "Download-Optionen",
+    "format": "Format",
+    "formats": {
+      "png": "PNG",
+      "webp": "WebP",
+      "jpg": "JPG"
+    },
+    "hints": {
+      "png": "Transparenter Hintergrund",
+      "webp": "Transparent, kleinere Datei",
+      "jpg": "Einfarbiger Hintergrund"
+    },
+    "background": "Hintergrund",
+    "customColor": "Eigene Farbe",
+    "trim": "Auf Motiv zuschneiden",
+    "colors": {
+      "white": "Weiß",
+      "black": "Schwarz"
+    }
+  },
+  "auto": {
+    "run": "Hintergrund entfernen",
+    "download": "Hintergrund entfernen (einmaliger Download, {{size}} MB)",
+    "again": "Erneut ausführen"
+  },
+  "select": {
+    "hint": "Tippe auf ein Objekt oder umrande es"
+  },
+  "task": {
+    "downloading": "KI-Modell wird geladen… {{loaded}} / {{total}} MB (nur einmal)",
+    "auto": "Hintergrund wird entfernt…",
+    "preparing": "Auswahl wird vorbereitet…",
+    "selecting": "Wird ausgewählt…"
+  },
+  "close": "Schließen",
+  "donate": {
+    "button": "Spenden",
+    "title": "BackSubtract unterstützen",
+    "body": "BackSubtract ist kostenlos, ohne Werbung und ohne Anmeldung. Wenn es dir Zeit gespart hat, hilft ein kleines Trinkgeld, es am Laufen zu halten.",
+    "other": "Anderer Betrag",
+    "note": "Zahlungen werden sicher von Stripe in einem neuen Tab abgewickelt. Trinkgelder sind freiwillig und nicht steuerlich absetzbar.",
+    "thanks": "Danke, dass du BackSubtract unterstützt!"
+  },
+  "about": {
+    "link": "Über",
+    "title": "Über BackSubtract",
+    "intro": "Ein einfaches, kostenloses Werkzeug zum Entfernen von Fotohintergründen. Öffne ein Bild, entferne den Hintergrund mit einem der Werkzeuge und lade das Ergebnis herunter.",
+    "privacy": "Alles passiert in deinem Browser. Deine Bilder werden nie hochgeladen, und es werden keine Daten gesammelt. Die KI-Modelle werden einmal heruntergeladen und auf deinem Gerät gespeichert.",
+    "shortcutsTitle": "Tastenkürzel",
+    "creditsTitle": "Erstellt mit",
+    "source": "Quellcode",
+    "contact": "Kontakt"
+  },
+  "shortcuts": {
+    "tools": "Auto, Auswahl, Zauberstab, Farbe, Pinsel",
+    "mode": "Zwischen Behalten und Entfernen wechseln",
+    "size": "Pinsel oder Toleranz kleiner / größer",
+    "undo": "Rückgängig / wiederholen",
+    "pan": "Im Bild bewegen",
+    "fit": "Bild an den Bildschirm anpassen",
+    "compare": "Gedrückt halten, um das Original zu sehen"
+  }
+}

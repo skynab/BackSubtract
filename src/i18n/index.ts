@@ -6,6 +6,13 @@ import { isRtl, pickLanguage } from './detect';
 export const LANGUAGES = [
   { code: 'en', label: 'English' },
   { code: 'es', label: 'Español' },
+  { code: 'fr', label: 'Français' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'pt', label: 'Português' },
+  { code: 'zh-CN', label: '简体中文' },
+  { code: 'ja', label: '日本語' },
+  { code: 'ar', label: 'العربية' },
+  { code: 'hi', label: 'हिन्दी' },
 ] as const;
 
 const FALLBACK = 'en';

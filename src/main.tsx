@@ -15,10 +15,20 @@ editor.subscribe((event) => {
   }
 });
 
+/** Supporters come back from Stripe to /?thanks: say thank you, then tidy the address bar. */
+function thankSupporter() {
+  const url = new URL(location.href);
+  if (!url.searchParams.has('thanks')) return;
+  url.searchParams.delete('thanks');
+  history.replaceState(null, '', url);
+  useUI.setState({ notice: { key: 'donate.thanks', tone: 'info' } });
+}
+
 async function start() {
   await Promise.all([initI18n(), restoreSession()]);
   // Start saving only after restoring, so the restore itself isn't saved straight back.
   startAutosave();
+  thankSupporter();
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <App />

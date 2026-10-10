@@ -80,5 +80,33 @@
     "auto": "Quitando el fondo…",
     "preparing": "Preparando la selección…",
     "selecting": "Seleccionando…"
+  },
+  "close": "Cerrar",
+  "donate": {
+    "button": "Donar",
+    "title": "Apoya BackSubtract",
+    "body": "BackSubtract es gratis, sin anuncios ni registro. Si te ahorró tiempo, una pequeña propina ayuda a mantenerlo en marcha.",
+    "other": "Otra cantidad",
+    "note": "Stripe procesa los pagos de forma segura en una pestaña nueva. Las propinas son voluntarias y no son deducibles de impuestos.",
+    "thanks": "¡Gracias por apoyar BackSubtract!"
+  },
+  "about": {
+    "link": "Acerca de",
+    "title": "Acerca de BackSubtract",
+    "intro": "Una herramienta sencilla y gratuita para quitar el fondo de las fotos. Abre una imagen, quita el fondo con alguna de sus herramientas y descarga el resultado.",
+    "privacy": "Todo ocurre en tu navegador. Tus imágenes nunca se suben y no se recopila nada. Los modelos de IA se descargan una vez y se guardan en tu dispositivo.",
+    "shortcutsTitle": "Atajos de teclado",
+    "creditsTitle": "Hecho con",
+    "source": "Código fuente",
+    "contact": "Contacto"
+  },
+  "shortcuts": {
+    "tools": "Auto, Seleccionar, Varita mágica, Color, Pincel",
+    "mode": "Cambiar entre Conservar y Quitar",
+    "size": "Pincel o tolerancia más pequeños / más grandes",
+    "undo": "Deshacer / rehacer",
+    "pan": "Moverse por la imagen",
+    "fit": "Ajustar la imagen a la pantalla",
+    "compare": "Mantener para ver el original"
   }
 }

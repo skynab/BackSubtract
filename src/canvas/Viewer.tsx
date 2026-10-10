@@ -283,7 +283,7 @@ export function Viewer() {
     }
 
     function onKeyDown(e: KeyboardEvent) {
-      if (isEditable(e.target) || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (isEditable(e.target) || e.ctrlKey || e.metaKey || e.altKey || document.querySelector('dialog[open]')) return;
       if (e.key === ' ') {
         if (!(e.target instanceof HTMLButtonElement)) e.preventDefault();
         spaceDown = true;

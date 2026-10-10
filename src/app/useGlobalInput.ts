@@ -51,7 +51,7 @@ export function useGlobalInput(): void {
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (isEditable(e.target)) return;
+      if (isEditable(e.target) || document.querySelector('dialog[open]')) return;
       const ui = useUI.getState();
       const key = e.key.toLowerCase();
       if (e.ctrlKey || e.metaKey) {

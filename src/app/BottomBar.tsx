@@ -178,10 +178,10 @@ export function BottomBar() {
           <ImageIcon />
         </button>
         <button type="button" className="icon" title={t('actions.undo')} aria-label={t('actions.undo')} disabled={!canUndo} onClick={() => editor.undo()}>
-          <UndoIcon />
+          <UndoIcon className="flip-rtl" />
         </button>
         <button type="button" className="icon" title={t('actions.redo')} aria-label={t('actions.redo')} disabled={!canRedo} onClick={() => editor.redo()}>
-          <RedoIcon />
+          <RedoIcon className="flip-rtl" />
         </button>
         <DownloadButton />
       </div>
