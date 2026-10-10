@@ -84,6 +84,7 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - Default mode is **Remove**: tap the background to hide it. Tapping in Keep mode brings an area back.
 - Soft edges: alpha falls off across the last few ΔE of the tolerance band, so edges don't look jagged.
 - Changing the slider right after a tap re-runs that tap live and replaces the last step rather than adding a new one. This makes it easy to dial the tolerance in.
+- With a mouse or pen, resting the pointer on the image previews the tap before it happens (Magic Wand and Color): the result is shown as it would be, with the area that would change tinted red (Remove) or green (Keep). Moving away or applying clears it. Touch screens have no hover; there, Undo and the live slider re-tune serve the same purpose.
 
 ### D. Color
 - Tap a colour to remove **every matching pixel in the whole image**, connected or not. This handles green screens, a sky seen through gaps, or a solid studio backdrop.

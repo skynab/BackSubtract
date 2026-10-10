@@ -15,6 +15,8 @@ let width = 0;
 let height = 0;
 /** Colour distances from the last tap, reused when only the tolerance changes. */
 let lastDist: Uint8Array | null = null;
+/** Colour distances for the colour under the pointer, reused while hovering over the same colour. */
+let previewDist: { color: number; dist: Uint8Array } | null = null;
 
 function select(req: PickRequest, dist: Uint8Array): SelectionResult | null {
   const sel =
@@ -29,6 +31,16 @@ function pick(req: PickRequest): SelectionResult | null {
   const p = (req.y * width + req.x) * 4;
   lastDist = distanceMap(pixels, rgbToLab(pixels[p], pixels[p + 1], pixels[p + 2]));
   return select(req, lastDist);
+}
+
+function preview(req: PickRequest): SelectionResult | null {
+  if (!pixels) throw new Error('No image');
+  const p = (req.y * width + req.x) * 4;
+  const color = (pixels[p] << 16) | (pixels[p + 1] << 8) | pixels[p + 2];
+  if (previewDist?.color !== color) {
+    previewDist = { color, dist: distanceMap(pixels, rgbToLab(pixels[p], pixels[p + 1], pixels[p + 2])) };
+  }
+  return select(req, previewDist.dist);
 }
 
 function retune(req: PickRequest): SelectionResult | null {
@@ -48,6 +60,10 @@ self.onmessage = async (event: MessageEvent<CvRequest>) => {
       case 'image':
         ({ pixels, width, height } = req);
         lastDist = null;
+        previewDist = null;
+        break;
+      case 'preview':
+        value = preview(req);
         break;
       case 'pick':
         value = pick(req);

@@ -69,3 +69,17 @@ export async function downloadAndReadAlpha(page: Page, points: [number, number][
     { base64, points },
   );
 }
+
+/** The on-screen RGB colour at an image pixel, read from a screenshot of the page. */
+export async function screenColor(page: Page, x: number, y: number): Promise<[number, number, number]> {
+  const p = await toScreen(page, x, y);
+  const base64 = (await page.screenshot({ clip: { x: Math.round(p.x), y: Math.round(p.y), width: 1, height: 1 } })).toString('base64');
+  return page.evaluate(async (base64) => {
+    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    const bmp = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
+    const ctx = new OffscreenCanvas(1, 1).getContext('2d')!;
+    ctx.drawImage(bmp, 0, 0);
+    const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+    return [r, g, b] as [number, number, number];
+  }, base64);
+}

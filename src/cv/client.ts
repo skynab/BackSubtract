@@ -52,6 +52,11 @@ export function retuneInWorker(req: PickRequest): Promise<SelectionResult | null
   return call({ type: 'retune', ...req });
 }
 
+export function previewInWorker(req: PickRequest): Promise<SelectionResult | null> {
+  ensureImage();
+  return call({ type: 'preview', ...req });
+}
+
 export function exportInWorker(mask: Uint8Array, options: ExportOptions): Promise<Blob> {
   ensureImage();
   // Send a snapshot of the mask, so edits made while encoding don't affect the file.

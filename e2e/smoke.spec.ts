@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { chooseTool, DISK, downloadAndReadAlpha, openTestImage, tapImage, toScreen } from './helpers';
+import { chooseTool, DISK, downloadAndReadAlpha, openTestImage, screenColor, tapImage, toScreen } from './helpers';
 
 test('start screen, language switch and right-to-left layout', async ({ page }) => {
   await page.goto('/');
@@ -110,6 +110,25 @@ test('the view switch toggles between result, overlay and original', async ({ pa
     await view.getByRole('button', { name }).click();
     await expect(view.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'true');
   }
+});
+
+test('hovering with Color previews the change without applying it', async ({ page }) => {
+  test.skip(!!test.info().project.use.hasTouch, 'Touch screens have no hover');
+  await openTestImage(page);
+  await chooseTool(page, 'Color');
+  const before = await screenColor(page, 30, 30);
+
+  // Rest the pointer on the green background: it turns red where a tap would remove it.
+  const p = await toScreen(page, 10, 10);
+  await page.mouse.move(p.x, p.y);
+  await expect.poll(async () => (await screenColor(page, 30, 30))[0]).toBeGreaterThan(before[0] + 40);
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled();
+  // The disk isn't that colour, so it stays as it was.
+  expect(await screenColor(page, DISK.x, DISK.y)).toEqual([220, 40, 40]);
+
+  // Leaving the image hides the preview again.
+  await page.mouse.move(5, 5);
+  await expect.poll(() => screenColor(page, 30, 30)).toEqual(before);
 });
 
 test('a brush stroke hides what it covers', async ({ page }) => {

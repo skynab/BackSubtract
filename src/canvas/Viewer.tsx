@@ -5,6 +5,7 @@ import { editor } from '../editor/editor';
 import { unionRect, type Rect } from '../mask/mask';
 import { selectMode, useUI } from '../state/store';
 import { pick } from '../tools/color/pick';
+import { clearPreview, onPreview, previewAt, type Preview } from '../tools/color/preview';
 import { applyShape } from '../tools/shape/apply';
 import { dragBox } from '../tools/shape/shape';
 import { selectAt, selectLoop } from '../tools/select/select';
@@ -16,6 +17,9 @@ const GHOST = 0.15;
 /** How visible removed areas are in the Overlay view. */
 const OVERLAY = 0.5;
 const HOLD_MS = 450;
+/** Tints for a previewed tap: what it would remove, and what it would bring back. */
+const REMOVE_TINT: [number, number, number] = [1, 0.2, 0.2];
+const KEEP_TINT: [number, number, number] = [0.2, 0.85, 0.4];
 const DRAG_SLOP = 6;
 
 type Gesture =
@@ -60,6 +64,7 @@ export function Viewer() {
     let comparing = false;
     let spaceDown = false;
     let pendingMask: Rect | null = null;
+    let preview: Preview | null = null;
     let frame = 0;
     let gesture: Gesture = { kind: 'none' };
     const pointers = new Map<number, Point>();
@@ -85,7 +90,9 @@ export function Viewer() {
       const ui = useUI.getState();
       const ghost = ui.viewMode === 'overlay' ? OVERLAY : selectMode(ui) === 'keep' ? GHOST : 0;
       const original = comparing || ui.viewMode === 'original' ? 1 : 0;
-      renderer.render({ view, width: size.w, height: size.h, dpr: size.dpr, ghost, original, ...colors });
+      const shownPreview =
+        preview && !comparing ? { mode: preview.mode, tint: preview.mode === 'keep' ? KEEP_TINT : REMOVE_TINT } : null;
+      renderer.render({ view, width: size.w, height: size.h, dpr: size.dpr, ghost, original, preview: shownPreview, ...colors });
     }
 
     function fit() {
@@ -182,6 +189,8 @@ export function Viewer() {
 
     function onPointerDown(e: PointerEvent) {
       if (!editor.image || (e.button !== 0 && e.button !== 1)) return;
+      // Keep the preview through a tap (it is cleared once the tap applies), but not through a pan or pinch.
+      if (e.button !== 0 || spaceDown || pointers.size > 0) clearPreview();
       try {
         canvas.setPointerCapture(e.pointerId);
       } catch {
@@ -231,6 +240,12 @@ export function Viewer() {
     function onPointerMove(e: PointerEvent) {
       const p = local(e);
       updateCursor(e, p);
+      // With a mouse or pen hovering, show what a tap here would do.
+      const tool = useUI.getState().tool;
+      if ((tool === 'wand' || tool === 'color') && e.pointerType !== 'touch' && gesture.kind === 'none' && !spaceDown) {
+        const ip = toImage(view, p);
+        previewAt(tool, ip.x, ip.y);
+      }
       if (!pointers.has(e.pointerId)) return;
       pointers.set(e.pointerId, p);
 
@@ -251,6 +266,7 @@ export function Viewer() {
           if (gesture.id !== e.pointerId || comparing) return;
           if (Math.hypot(p.x - gesture.start.x, p.y - gesture.start.y) > DRAG_SLOP) {
             clearTimeout(gesture.timer);
+            clearPreview();
             // With Select, dragging draws a loop around an object; with other tools it pans.
             gesture =
               useUI.getState().tool === 'select'
@@ -366,7 +382,15 @@ export function Viewer() {
       }
     });
     const stopUI = useUI.subscribe(requestRender);
-    const onLeave = () => (cursor.hidden = true);
+    const stopPreview = onPreview((next) => {
+      preview = next;
+      if (next && editor.image) renderer.setPreview(next.selection.data, editor.image.width, editor.image.height);
+      requestRender();
+    });
+    const onLeave = () => {
+      cursor.hidden = true;
+      if (gesture.kind === 'none') clearPreview();
+    };
     const onBlur = () => {
       spaceDown = false;
       setComparing(false);
@@ -391,6 +415,8 @@ export function Viewer() {
       dark.removeEventListener('change', onTheme);
       stopEditor();
       stopUI();
+      stopPreview();
+      clearPreview();
       canvas.removeEventListener('pointerdown', onPointerDown);
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerup', onPointerUp);
