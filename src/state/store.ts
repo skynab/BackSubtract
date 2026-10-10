@@ -61,6 +61,8 @@ interface UIState {
   brushSize: number;
   /** Brush hardness, 0–100: how much of the brush paints at full strength before it fades. */
   brushHardness: number;
+  /** Paint (Keep / Remove) or Refine (works out hair and fur edges from the colours around them). */
+  brushKind: 'paint' | 'refine';
   /** What the Shape tool draws. */
   shapeKind: ShapeKind;
   tolerances: { wand: number; color: number };
@@ -105,6 +107,7 @@ export const useUI = create<UIState>()(
       modes: { ...DEFAULT_MODES },
       brushSize: 40,
       brushHardness: 60,
+      brushKind: 'paint',
       shapeKind: 'rect',
       tolerances: { wand: 20, color: 15 },
       exportFormat: 'png',
@@ -145,6 +148,7 @@ export const useUI = create<UIState>()(
         tool: s.tool,
         brushSize: s.brushSize,
         brushHardness: s.brushHardness,
+        brushKind: s.brushKind,
         shapeKind: s.shapeKind,
         tolerances: s.tolerances,
         exportFormat: s.exportFormat,

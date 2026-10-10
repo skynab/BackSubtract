@@ -17,7 +17,9 @@
     "shape": "Forma",
     "lasso": "Lazo",
     "ai": "IA",
-    "aiHint": "Usa un modelo de IA que se descarga una sola vez en este dispositivo"
+    "aiHint": "Usa un modelo de IA que se descarga una sola vez en este dispositivo",
+    "edges": "Refinar bordes",
+    "refine": "Refinar borde"
   },
   "mode": {
     "label": "Modo",
@@ -159,5 +161,24 @@
   },
   "lasso": {
     "hint": "Arrastra por el borde de un objeto; la línea se ajusta a él"
+  },
+  "edges": {
+    "title": "Refinar bordes",
+    "shift": "Posición del borde",
+    "shrink": "Reducir",
+    "grow": "Ampliar",
+    "soften": "Suavidad del borde",
+    "crisp": "Nítido",
+    "soft": "Suave",
+    "cleanup": "Limpiar motas",
+    "off": "No",
+    "strong": "Fuerte",
+    "note": "Se aplica a toda la imagen como un solo paso, que Deshacer revierte."
+  },
+  "brushKind": {
+    "label": "Tipo de pincel",
+    "paint": "Pintar",
+    "refine": "Refinar",
+    "hint": "Pinta sobre el pelo o el pelaje para recuperar los mechones finos"
   }
 }

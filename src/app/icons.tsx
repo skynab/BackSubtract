@@ -48,6 +48,22 @@ export const BrushIcon = icon(
     <path d="M10 13.5c-2 0-3.5 1.4-3.5 3.3 0 1.2-.8 2.2-2.5 2.7 4 1.1 8.2-.3 8.2-3.6z" />
   </>,
 );
+/** Hair strands, for the refine brush. */
+export const RefineIcon = icon(
+  <>
+    <path d="M5 20c1-5 0-9-1-14" />
+    <path d="M9 20c1.5-5 1.5-10 .5-15" />
+    <path d="M13 20c1-4.5 2.5-8.5 5-12" />
+    <path d="M17 20c.8-2.5 2-4.5 3.5-6" />
+  </>,
+);
+/** A shape with a soft, adjustable edge. */
+export const EdgesIcon = icon(
+  <>
+    <circle cx="12" cy="12" r="5" />
+    <circle cx="12" cy="12" r="8.5" strokeDasharray="1.5 2.6" />
+  </>,
+);
 export const ShapeIcon = icon(
   <>
     <rect x="3.5" y="5.5" width="11" height="9" rx="1" strokeDasharray="2.5 2.5" />

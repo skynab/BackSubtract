@@ -17,7 +17,9 @@
     "shape": "Forme",
     "lasso": "Lasso",
     "ai": "IA",
-    "aiHint": "Utilise un modèle d'IA, téléchargé une seule fois sur cet appareil"
+    "aiHint": "Utilise un modèle d'IA, téléchargé une seule fois sur cet appareil",
+    "edges": "Affiner les bords",
+    "refine": "Affiner le bord"
   },
   "mode": {
     "label": "Mode",
@@ -159,5 +161,24 @@
   },
   "lasso": {
     "hint": "Faites glisser le long du bord d'un objet ; la ligne s'y colle"
+  },
+  "edges": {
+    "title": "Affiner les bords",
+    "shift": "Position du bord",
+    "shrink": "Réduire",
+    "grow": "Étendre",
+    "soften": "Douceur du bord",
+    "crisp": "Net",
+    "soft": "Doux",
+    "cleanup": "Nettoyer les taches",
+    "off": "Non",
+    "strong": "Fort",
+    "note": "S'applique à toute l'image en une seule étape, qu'Annuler défait."
+  },
+  "brushKind": {
+    "label": "Type de pinceau",
+    "paint": "Peindre",
+    "refine": "Affiner",
+    "hint": "Peignez sur les cheveux ou le pelage pour retrouver les mèches fines"
   }
 }

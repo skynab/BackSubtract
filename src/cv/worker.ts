@@ -4,6 +4,7 @@
  * Color, export encoding) runs here, so the page never freezes.
  */
 import { exportFullSize, exportImage } from '../export/exportImage';
+import { adjustEdges, CLEANUP_MAX, cleanupArea, findSpecks, type Speck } from '../mask/adjust';
 import { distanceMap, rgbToLab } from '../tools/color/lab';
 import { refineEdges, selectContiguous, selectGlobal } from '../tools/color/select';
 import type { CvRequest, CvResponse, PickRequest, SelectionResult } from './protocol';
@@ -13,6 +14,8 @@ declare const self: DedicatedWorkerGlobalScope;
 let pixels: Uint8ClampedArray | null = null;
 let width = 0;
 let height = 0;
+/** Specks found on the mask of the current Edges session (up to the largest clean-up size), the slow part of clean-up. */
+let specks: { key: number; specks: Speck[] } | null = null;
 /** Colour distances from the last tap, reused when only the tolerance changes. */
 let lastDist: Uint8Array | null = null;
 /** Colour distances for the colour under the pointer, reused while hovering over the same colour. */
@@ -70,6 +73,12 @@ self.onmessage = async (event: MessageEvent<CvRequest>) => {
         break;
       case 'retune':
         value = retune(req);
+        break;
+      case 'edges':
+        if (req.adjust.cleanup > 0 && specks?.key !== req.key) {
+          specks = { key: req.key, specks: findSpecks(req.mask, width, height, cleanupArea(CLEANUP_MAX, width, height)) };
+        }
+        value = { data: adjustEdges(req.mask, width, height, req.adjust, specks?.key === req.key ? specks.specks : undefined) };
         break;
       case 'export':
         if (!pixels) throw new Error('No image');

@@ -1,5 +1,6 @@
 /** Messages between the app and the image worker (Magic Wand, Color, export). */
 import type { ExportOptions } from '../export/exportImage';
+import type { EdgeAdjust } from '../mask/adjust';
 import type { Rect } from '../mask/mask';
 
 export type PickTool = 'wand' | 'color';
@@ -30,7 +31,10 @@ export type CvRequest =
   /** What a tap here would select, for showing before it happens. Leaves the last pick alone, so re-tuning still works. */
   | ({ id: number; type: 'preview' } & PickRequest)
   /** With `source`, export at the original file's full size (it was scaled down on opening). */
-  | { id: number; type: 'export'; mask: Uint8Array; options: ExportOptions; source?: Blob };
+  | { id: number; type: 'export'; mask: Uint8Array; options: ExportOptions; source?: Blob }
+  /** Adjust the edges of `mask` (the mask from before the adjustment, so settings don't compound). Returns a new plane. */
+  /** `key` is the same for every request from one Edges panel session (same mask), so the worker can reuse its work. */
+  | { id: number; type: 'edges'; mask: Uint8Array; adjust: EdgeAdjust; key: number };
 
 export type CvResponse =
   | { id: number; type: 'result'; value: unknown }

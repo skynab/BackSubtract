@@ -30,7 +30,8 @@ const LASSO_SPACING = 30;
 
 type Gesture =
   | { kind: 'none' }
-  | { kind: 'stroke'; id: number }
+  /** `trail` (screen points) is drawn for refine strokes, which change nothing until they end. */
+  | { kind: 'stroke'; id: number; trail: Point[] | null }
   | { kind: 'pan'; id: number; last: Point }
   | { kind: 'hold'; id: number; start: Point; timer: number }
   | { kind: 'lasso'; id: number; points: Point[] }
@@ -51,6 +52,7 @@ export function Viewer() {
   const coreRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
   const lassoRef = useRef<SVGPathElement>(null);
+  const trailRef = useRef<SVGPathElement>(null);
 
   useEffect(() => {
     const wrap = wrapRef.current!;
@@ -59,6 +61,7 @@ export function Viewer() {
     const coreRing = coreRef.current!;
     const badge = badgeRef.current!;
     const lasso = lassoRef.current!;
+    const trail = trailRef.current!;
 
     let renderer: Renderer;
     try {
@@ -160,8 +163,13 @@ export function Viewer() {
         // The inner ring marks where the brush starts to fade; it is hidden when there is hardly any fade.
         const core = coreFraction(d / 2 / view.scale, ui.brushHardness / 100) * d;
         coreRing.style.width = coreRing.style.height = `${core}px`;
-        coreRing.hidden = core > d - 4;
+        coreRing.hidden = core > d - 4 || ui.brushKind === 'refine';
       }
+    }
+
+    function drawTrail(points: Point[] | null) {
+      trail.setAttribute('d', points?.length ? `M${points.map((p) => `${p.x},${p.y}`).join('L')}` : '');
+      trail.style.strokeWidth = `${useUI.getState().brushSize}px`;
     }
 
     function drawLasso(points: Point[] | null) {
@@ -201,7 +209,10 @@ export function Viewer() {
     }
 
     function endGesture(tapped = false) {
-      if (gesture.kind === 'stroke') editor.endStroke();
+      if (gesture.kind === 'stroke') {
+        editor.endStroke();
+        drawTrail(null);
+      }
       if (gesture.kind === 'hold') {
         clearTimeout(gesture.timer);
         // A quick press without moving is a tap; a long one only showed the original.
@@ -253,6 +264,7 @@ export function Viewer() {
         if (gesture.kind === 'stroke') editor.cancelStroke();
         if (gesture.kind === 'hold') clearTimeout(gesture.timer);
         drawLasso(null);
+        drawTrail(null);
         setComparing(false);
         const [a, b] = [...pointers.values()];
         gesture = {
@@ -270,8 +282,12 @@ export function Viewer() {
         gesture = { kind: 'pan', id: e.pointerId, last: p };
       } else if (ui.tool === 'brush') {
         const ip = toImage(view, p);
-        editor.beginStroke(ip.x, ip.y, ui.brushSize / 2 / view.scale, ui.modes.brush, ui.brushHardness / 100);
-        gesture = { kind: 'stroke', id: e.pointerId };
+        const refine = ui.brushKind === 'refine';
+        // A refine stroke fades over half its radius, so its edge blends into what was there.
+        const hardness = refine ? 0.5 : ui.brushHardness / 100;
+        editor.beginStroke(ip.x, ip.y, ui.brushSize / 2 / view.scale, ui.modes.brush, hardness, refine);
+        gesture = { kind: 'stroke', id: e.pointerId, trail: refine ? [p] : null };
+        if (refine) drawTrail(gesture.trail);
       } else if (ui.tool === 'lasso') {
         const { width, height } = editor.image;
         const trace = new MagneticTrace(editor.pixels, width, height, imagePixel(p), lassoRadius());
@@ -305,9 +321,15 @@ export function Viewer() {
       switch (gesture.kind) {
         case 'stroke':
           if (gesture.id !== e.pointerId) return;
-          for (const ce of e.getCoalescedEvents?.() ?? [e]) {
+          // Some browsers (and synthetic events) give an empty list; the event itself still counts.
+          const coalesced = e.getCoalescedEvents?.();
+          for (const ce of coalesced?.length ? coalesced : [e]) {
             const ip = toImage(view, local(ce));
             editor.continueStroke(ip.x, ip.y);
+          }
+          if (gesture.trail) {
+            gesture.trail.push(p);
+            drawTrail(gesture.trail);
           }
           return;
         case 'pan':
@@ -505,6 +527,7 @@ export function Viewer() {
       </div>
       <svg className="lasso" aria-hidden="true">
         <path ref={lassoRef} />
+        <path ref={trailRef} className="trail" />
       </svg>
       <ViewSwitch />
       <div className="badge" ref={badgeRef} hidden>

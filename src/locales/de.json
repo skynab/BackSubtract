@@ -17,7 +17,9 @@
     "shape": "Form",
     "lasso": "Lasso",
     "ai": "KI",
-    "aiHint": "Nutzt ein KI-Modell, das einmalig auf dieses Gerät geladen wird"
+    "aiHint": "Nutzt ein KI-Modell, das einmalig auf dieses Gerät geladen wird",
+    "edges": "Kanten verfeinern",
+    "refine": "Kante verfeinern"
   },
   "mode": {
     "label": "Modus",
@@ -159,5 +161,24 @@
   },
   "lasso": {
     "hint": "Ziehe entlang der Kante eines Objekts; die Linie haftet daran"
+  },
+  "edges": {
+    "title": "Kanten verfeinern",
+    "shift": "Kantenposition",
+    "shrink": "Verkleinern",
+    "grow": "Vergrößern",
+    "soften": "Kantenweichheit",
+    "crisp": "Scharf",
+    "soft": "Weich",
+    "cleanup": "Flecken entfernen",
+    "off": "Aus",
+    "strong": "Stark",
+    "note": "Gilt für das ganze Bild als ein Schritt, den Rückgängig zurücknimmt."
+  },
+  "brushKind": {
+    "label": "Pinselart",
+    "paint": "Malen",
+    "refine": "Verfeinern",
+    "hint": "Male über Haare oder Fell, um feine Strähnen zurückzuholen"
   }
 }

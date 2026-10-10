@@ -2,6 +2,7 @@ import { History, makeEdit, type Edit, type StepLabel } from '../mask/history';
 import { extract, Mask, padRect, unionRect, type Mode, type Rect } from '../mask/mask';
 import { snapToEdges, type Plane } from '../mask/snap';
 import { SNAP_MIN_HARDNESS, snapRadius, stampDab, stampSegment } from '../tools/brush/brush';
+import { refineAlpha, refineReach } from '../tools/brush/refine';
 
 export type EditorEvent =
   | { type: 'image' }
@@ -17,6 +18,25 @@ interface Stroke {
   /** 0–1: how much of the radius is painted at full strength. */
   hardness: number;
   mode: Mode;
+  /** A refine stroke (hair and fur): nothing changes while painting; the edge is worked out when it ends. */
+  refine: boolean;
+}
+
+/** Bounding box of the pixels that differ between two planes, or null if none do. */
+function diffRect(a: Uint8Array, b: Uint8Array, width: number, height: number): Rect | null {
+  let x0 = width, y0 = height, x1 = -1, y1 = -1;
+  for (let y = 0; y < height; y++) {
+    const row = y * width;
+    for (let x = 0; x < width; x++) {
+      if (a[row + x] !== b[row + x]) {
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (y < y0) y0 = y;
+        y1 = y;
+      }
+    }
+  }
+  return x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
 }
 
 /**
@@ -101,12 +121,12 @@ export class Editor {
     return this.stroke !== null;
   }
 
-  beginStroke(x: number, y: number, radius: number, mode: Mode, hardness: number): void {
+  beginStroke(x: number, y: number, radius: number, mode: Mode, hardness: number, refine = false): void {
     const mask = this.mask;
     if (!mask) return;
     if (this.stroke) this.endStroke();
     this.coverage ??= { data: new Uint8Array(mask.width * mask.height), width: mask.width, height: mask.height };
-    this.stroke = { snapshot: mask.data.slice(), dirty: null, lastX: x, lastY: y, radius, hardness, mode };
+    this.stroke = { snapshot: mask.data.slice(), dirty: null, lastX: x, lastY: y, radius, hardness, mode, refine };
     this.paint(stampDab(this.coverage, x, y, radius, hardness));
   }
 
@@ -125,6 +145,10 @@ export class Editor {
     const coverage = this.coverage;
     this.stroke = null;
     if (!s?.dirty || !mask || !coverage) return;
+    if (s.refine) {
+      this.endRefine(s, mask, coverage);
+      return;
+    }
 
     const snap = s.hardness >= SNAP_MIN_HARDNESS;
     const r = snap ? snapRadius(s.radius) : 0;
@@ -135,6 +159,20 @@ export class Editor {
     this.emit({ type: 'mask', rect });
 
     const edit = makeEdit(s.snapshot, mask, rect, this.nextTag++, { tool: 'brush', mode: s.mode });
+    if (edit) {
+      this.history.push(edit);
+      this.emit({ type: 'history' });
+    }
+  }
+
+  /** Work out the edge under a refine stroke from the colours around it, as one undo step. */
+  private endRefine(s: Stroke, mask: Mask, coverage: Plane): void {
+    const reach = refineReach(s.radius);
+    const rect = mask.clip(padRect(s.dirty!, reach))!;
+    refineAlpha(this.pixels, s.snapshot, coverage.data, mask.data, mask.width, rect, reach);
+    this.clearCoverage(rect);
+    this.emit({ type: 'mask', rect });
+    const edit = makeEdit(s.snapshot, mask, rect, this.nextTag++, { tool: 'refine' });
     if (edit) {
       this.history.push(edit);
       this.emit({ type: 'history' });
@@ -181,19 +219,26 @@ export class Editor {
     return edit ? tag : null;
   }
 
-  /** Set the whole mask at once (e.g. to the Auto result) as one undo step. */
-  replaceMask(values: Uint8Array, label: StepLabel): void {
+  /**
+   * Set the whole mask at once (e.g. to the Auto result) as one undo step, and return its tag.
+   * Passing the tag of the latest step replaces that step instead (e.g. while a slider moves).
+   * Only the area that changed is kept in the history.
+   */
+  replaceMask(values: Uint8Array, label: StepLabel, replaceTag?: number): number | null {
     const mask = this.mask;
-    if (!mask || this.stroke || values.length !== mask.data.length) return;
+    if (!mask || this.stroke || values.length !== mask.data.length) return null;
+    let dirty: Rect | null = null;
+    if (replaceTag !== undefined && this.history.latestTag === replaceTag) dirty = this.history.discardLatest(mask);
     const snapshot = mask.data.slice();
     mask.data.set(values);
-    const rect = { x: 0, y: 0, w: mask.width, h: mask.height };
-    this.emit({ type: 'mask', rect });
-    const edit = makeEdit(snapshot, mask, rect, this.nextTag++, label);
-    if (edit) {
-      this.history.push(edit);
-      this.emit({ type: 'history' });
-    }
+    const rect = diffRect(snapshot, values, mask.width, mask.height);
+    dirty = unionRect(dirty, rect);
+    if (dirty) this.emit({ type: 'mask', rect: dirty });
+    const tag = this.nextTag++;
+    const edit = rect && makeEdit(snapshot, mask, rect, tag, label);
+    if (edit) this.history.push(edit);
+    if (dirty) this.emit({ type: 'history' });
+    return edit ? tag : null;
   }
 
   undo(): void {
@@ -227,6 +272,10 @@ export class Editor {
   private paint(rect: Rect | null): void {
     const s = this.stroke;
     if (!rect || !s || !this.mask || !this.coverage) return;
+    if (s.refine) {
+      s.dirty = unionRect(s.dirty, rect);
+      return;
+    }
     this.mask.combineFrom(s.snapshot, this.coverage.data, rect, s.mode);
     s.dirty = unionRect(s.dirty, rect);
     this.emit({ type: 'mask', rect });

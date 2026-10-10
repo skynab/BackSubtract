@@ -17,7 +17,9 @@
     "shape": "Shape",
     "lasso": "Lasso",
     "ai": "AI",
-    "aiHint": "Uses an AI model, downloaded once to this device"
+    "aiHint": "Uses an AI model, downloaded once to this device",
+    "edges": "Refine edges",
+    "refine": "Refine edge"
   },
   "mode": {
     "label": "Mode",
@@ -159,5 +161,24 @@
   },
   "lasso": {
     "hint": "Drag along an object's edge; the line snaps to it"
+  },
+  "edges": {
+    "title": "Refine edges",
+    "shift": "Edge position",
+    "shrink": "Shrink",
+    "grow": "Grow",
+    "soften": "Edge softness",
+    "crisp": "Crisp",
+    "soft": "Soft",
+    "cleanup": "Clean up specks",
+    "off": "Off",
+    "strong": "Strong",
+    "note": "Applies to the whole image as one step, which Undo reverts."
+  },
+  "brushKind": {
+    "label": "Brush type",
+    "paint": "Paint",
+    "refine": "Refine",
+    "hint": "Paint over hair or fur to bring back fine strands"
   }
 }

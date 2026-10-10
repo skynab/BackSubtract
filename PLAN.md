@@ -107,6 +107,17 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - A small brush icon sits next to the tool row, with a size slider and a hardness slider (Shift+[ / ]). It uses the shared Keep / Remove toggle.
 - Hardness sets how much of the brush paints at full strength before fading (default 60%). At 50% and above, a stroke's rim snaps to the image's edges when you let go; softer brushes paint a plain fade, since they are for blending across edges. Every brush keeps a small solid core so the stroke's path is always fully painted.
 
+- **Refine** (a Paint | Refine switch next to the brush size; no Keep / Remove, no hardness): for hair and fur. Nothing changes while painting, only a see-through band shows where; on release the edge under the stroke is worked out from the image. Each pixel's colour is treated as a mix of the subject colour F and the background colour B: F is the average of the certainly kept pixels nearby and B of the certainly removed ones, both sampled outside the stroke (the stroke marks where the mask is unsure), within twice the brush radius so both sides are in reach from anywhere in the stroke. α is where the pixel falls on the line from B to F. The averages are gathered on a grid about 1/12 of that reach and interpolated, so wide strokes on large photos stay quick and small. Where F and B look alike the mask is left as it was.
+  - On a 4000×3000 test photo with 900 fine strands cut off by a hard outline, one refine stroke took the error on hair pixels from 0.90 to 0.03 (sky stayed at 0.003), in about 0.3 s.
+
+### Edges (whole image)
+- An **Edges** button next to Undo opens a small panel with three sliders, all starting at zero:
+  - **Edge position**: shrink ↔ grow, up to 8 px. Grey dilation / erosion alternating 3×3 square and plus steps, so the shape grows nearly round and soft edges keep their profile.
+  - **Edge softness**: crisp ↔ soft. Soft blurs the mask (two box blurs); crisp steepens the fade around its middle.
+  - **Clean up specks**: removes small islands and fills small holes (not touching the border), with their soft rims, up to 0.4% of the image at full strength. Islands connect diagonally, holes only through edges.
+- Each opening of the panel is one undo step: every slider move re-runs all three on the mask as it was when the panel opened and replaces that step, so settings never compound. Anything else changing the history (Undo, another tool) closes the panel.
+- The work runs in the image worker, and moves made while it's busy are coalesced. Only 64 px tiles near an edge are processed (flat tiles surrounded by the same value can't change), and specks are found once per panel session by labelling runs of pixels, then cached. On a 12 MP hair-heavy test image a change takes 0.1–0.7 s.
+
 ### Shape (boxes and ellipses)
 - Drag to draw a box or ellipse; it is applied when you let go, with the shared Keep / Remove toggle (Remove by default). Shift makes a square or circle. Edges are anti-aliased but not snapped, so the shape is exactly what you drew.
 - It covers the last few percent of errors after any tool.
@@ -139,6 +150,7 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
   - **Full size**: a photo scaled down to 4096 px on opening still exports at its original size. The original file is decoded again in the image worker, the mask is scaled up, and its hard edges snap to the full-size photo (soft brush edges are wider than the snap radius and stay soft). If the browser can't hold the full size (e.g. iOS canvas limits), the export falls back to the edited size. A checkbox turns this off.
   - **Copy** (PNG to the clipboard; JPG keeps its background colour) and **Share** (the system share sheet, where it takes files) sit at the bottom of the menu.
 - **Gestures:** pinch or wheel to zoom, two-finger drag or space-drag to pan, and press-and-hold to compare with the original. None of these needs a button.
+- **Edges** sits with the actions (next to Undo): see section 4.
 - **Keyboard:** 1–4 pick tools, L the lasso, B the brush, X toggles Keep/Remove, [ and ] change size or tolerance, and Ctrl+Z / Ctrl+Shift+Z undo and redo.
 - Dropping another file anywhere starts a new image after a quick "Replace current image?" confirmation.
 - **Donate:** a small, quiet ♥ in the top bar. See section 10.

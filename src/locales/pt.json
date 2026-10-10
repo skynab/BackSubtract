@@ -17,7 +17,9 @@
     "shape": "Forma",
     "lasso": "Laço",
     "ai": "IA",
-    "aiHint": "Usa um modelo de IA, baixado uma única vez neste dispositivo"
+    "aiHint": "Usa um modelo de IA, baixado uma única vez neste dispositivo",
+    "edges": "Refinar bordas",
+    "refine": "Refinar borda"
   },
   "mode": {
     "label": "Modo",
@@ -159,5 +161,24 @@
   },
   "lasso": {
     "hint": "Arraste pela borda de um objeto; a linha se ajusta a ela"
+  },
+  "edges": {
+    "title": "Refinar bordas",
+    "shift": "Posição da borda",
+    "shrink": "Reduzir",
+    "grow": "Ampliar",
+    "soften": "Suavidade da borda",
+    "crisp": "Nítida",
+    "soft": "Suave",
+    "cleanup": "Limpar manchas",
+    "off": "Não",
+    "strong": "Forte",
+    "note": "Vale para a imagem inteira como um único passo, que Desfazer reverte."
+  },
+  "brushKind": {
+    "label": "Tipo de pincel",
+    "paint": "Pintar",
+    "refine": "Refinar",
+    "hint": "Pinte sobre cabelo ou pelo para recuperar os fios finos"
   }
 }

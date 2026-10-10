@@ -1,5 +1,6 @@
 import { editor } from '../editor/editor';
 import type { ExportOptions } from '../export/exportImage';
+import type { EdgeAdjust } from '../mask/adjust';
 import type { CvRequest, CvResponse, PickRequest, SelectionResult } from './protocol';
 
 type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never;
@@ -55,6 +56,14 @@ export function retuneInWorker(req: PickRequest): Promise<SelectionResult | null
 export function previewInWorker(req: PickRequest): Promise<SelectionResult | null> {
   ensureImage();
   return call({ type: 'preview', ...req });
+}
+
+/** Adjust the edges of `base` (a full-size mask), returning a new plane. */
+export async function adjustInWorker(base: Uint8Array, adjust: EdgeAdjust, key: number): Promise<Uint8Array> {
+  ensureImage();
+  const copy = base.slice();
+  const result = await call<{ data: Uint8Array }>({ type: 'edges', mask: copy, adjust, key }, [copy.buffer]);
+  return result.data;
 }
 
 /** Export the image; passing the original file exports at its full size. */

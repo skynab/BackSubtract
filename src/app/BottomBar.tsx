@@ -15,6 +15,7 @@ import { refreshModelInfo } from '../ml/status';
 import { runAuto } from '../tools/auto/auto';
 import { retune } from '../tools/color/pick';
 import { DownloadButton } from './DownloadButton';
+import { EdgesButton } from './EdgesButton';
 import { HistoryButtons } from './HistoryButtons';
 import {
   AutoIcon,
@@ -26,6 +27,7 @@ import {
   MinusIcon,
   PlusIcon,
   RectIcon,
+  RefineIcon,
   SelectIcon,
   ShapeIcon,
   WandIcon,
@@ -99,6 +101,7 @@ function ToolSlider() {
   const tool = useUI((s) => s.tool);
   const brushSize = useUI((s) => s.brushSize);
   const brushHardness = useUI((s) => s.brushHardness);
+  const brushKind = useUI((s) => s.brushKind);
   const tolerances = useUI((s) => s.tolerances);
 
   if (tool === 'brush') {
@@ -106,8 +109,11 @@ function ToolSlider() {
       <>
         <Slider value={brushSize} min={BRUSH_MIN} max={BRUSH_MAX} label={t('brushSize')}
           onChange={(v) => useUI.getState().setBrushSize(v)} />
-        <Slider value={brushHardness} min={0} max={100} label={t('brushHardness')} soft
-          onChange={(v) => useUI.getState().setBrushHardness(v)} />
+        {/* A refine stroke works its edge out from the image, so hardness doesn't apply. */}
+        {brushKind === 'paint' && (
+          <Slider value={brushHardness} min={0} max={100} label={t('brushHardness')} soft
+            onChange={(v) => useUI.getState().setBrushHardness(v)} />
+        )}
       </>
     );
   }
@@ -196,18 +202,38 @@ function SelectHint() {
   );
 }
 
+function BrushKindToggle() {
+  const { t } = useTranslation();
+  const kind = useUI((s) => s.brushKind);
+  return (
+    <div className="segmented" role="group" aria-label={t('brushKind.label')}>
+      <button type="button" aria-pressed={kind === 'paint'} onClick={() => useUI.setState({ brushKind: 'paint' })}>
+        <BrushIcon width={18} height={18} />
+        {t('brushKind.paint')}
+      </button>
+      <button type="button" aria-pressed={kind === 'refine'} onClick={() => useUI.setState({ brushKind: 'refine' })}>
+        <RefineIcon width={18} height={18} />
+        {t('brushKind.refine')}
+      </button>
+    </div>
+  );
+}
+
 function ContextRow() {
   const { t } = useTranslation();
   const tool = useUI((s) => s.tool);
+  const refining = useUI((s) => s.tool === 'brush' && s.brushKind === 'refine');
   if (tool === 'auto') return <AutoButton />;
   return (
     <>
-      <ModeToggle />
+      {tool === 'brush' && <BrushKindToggle />}
+      {!refining && <ModeToggle />}
       <ToolSlider />
       {tool === 'shape' && <ShapeKindToggle />}
       {tool === 'select' && <SelectHint />}
       {tool === 'lasso' && <span className="hint">{t('lasso.hint')}</span>}
       {tool === 'shape' && <span className="hint">{t('shape.hint')}</span>}
+      {refining && <span className="hint">{t('brushKind.hint')}</span>}
     </>
   );
 }
@@ -235,6 +261,7 @@ export function BottomBar() {
         <button type="button" className="icon" title={t('actions.open')} aria-label={t('actions.open')} onClick={chooseImage}>
           <ImageIcon />
         </button>
+        <EdgesButton />
         <HistoryButtons />
         <DownloadButton />
       </div>

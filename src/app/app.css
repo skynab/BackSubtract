@@ -506,6 +506,52 @@ button:disabled {
   gap: 4px;
 }
 
+/* Edges panel */
+
+.edges {
+  position: relative;
+}
+
+.edges-menu {
+  /* Grows away from the screen edge the button sits near. */
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.edge-slider {
+  display: grid;
+  gap: 2px;
+}
+
+.edge-slider-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.edge-slider input {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.edge-slider-ends {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.edges-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .history-menu {
   /* Grows away from the screen edge the buttons sit near. */
   inset-inline-start: 0;
@@ -765,6 +811,16 @@ button:disabled {
   stroke-dasharray: 6 4;
   stroke-linejoin: round;
   filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.8));
+}
+
+/* A refine brush stroke in progress: a see-through band where the edge will be worked out. */
+.lasso path.trail {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent) 40%, transparent);
+  stroke-dasharray: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: none;
 }
 
 /* Tool context */
