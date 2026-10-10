@@ -482,10 +482,17 @@ button:disabled {
 
 /* View switch, over the top corner of the image */
 
-.view-switch {
+.view-controls {
   position: absolute;
   inset-block-start: 10px;
   inset-inline-end: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.view-switch,
+.checker-button {
   padding: 2px;
   background: color-mix(in srgb, var(--surface) 88%, transparent);
   box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
@@ -496,6 +503,42 @@ button:disabled {
   min-height: 30px;
   padding: 0 10px;
   font-size: 13px;
+}
+
+/* Checkerboard contrast and motion */
+
+.checker-settings {
+  position: relative;
+}
+
+.checker-button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--muted);
+}
+
+.checker-button:hover,
+.checker-button[aria-expanded='true'] {
+  color: var(--fg);
+}
+
+.menu.checker-menu {
+  /* Opens downwards from the top of the image. */
+  inset-block-start: calc(100% + 8px);
+  inset-block-end: auto;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px 6px;
+}
+
+.menu.checker-menu .menu-row {
+  margin: 0 -8px;
 }
 
 /* Undo / redo and the history list */

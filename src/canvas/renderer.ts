@@ -27,6 +27,8 @@ uniform vec3 u_previewTint;
 uniform float u_ghost;
 uniform float u_original;
 uniform float u_checkerSize;
+/** Shifts the checkerboard, in device px, so it can slide. */
+uniform vec2 u_checkerOffset;
 uniform vec3 u_checkerA;
 uniform vec3 u_checkerB;
 out vec4 outColor;
@@ -43,7 +45,7 @@ void main() {
   }
   m = mix(m, 1.0, u_original);
   m = m + (1.0 - m) * u_ghost;
-  vec2 cell = floor(gl_FragCoord.xy / u_checkerSize);
+  vec2 cell = floor((gl_FragCoord.xy + u_checkerOffset) / u_checkerSize);
   vec3 bg = mod(cell.x + cell.y, 2.0) < 1.0 ? u_checkerA : u_checkerB;
   vec3 rgb = mix(bg, color.rgb, color.a * m);
   outColor = vec4(mix(rgb, u_previewTint, change * 0.45), 1.0);
@@ -66,6 +68,8 @@ export interface RenderParams {
   background: RGB;
   checkerA: RGB;
   checkerB: RGB;
+  /** How far the checkerboard has slid, in CSS px. */
+  checkerOffset: [number, number];
 }
 
 function compile(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
@@ -104,7 +108,7 @@ export class Renderer {
     this.program = program;
     for (const name of [
       'u_imageSize', 'u_scale', 'u_offset', 'u_viewport', 'u_image', 'u_mask',
-      'u_ghost', 'u_original', 'u_checkerSize', 'u_checkerA', 'u_checkerB',
+      'u_ghost', 'u_original', 'u_checkerSize', 'u_checkerOffset', 'u_checkerA', 'u_checkerB',
       'u_preview', 'u_previewMode', 'u_previewTint',
     ]) {
       this.uniforms[name] = gl.getUniformLocation(program, name);
@@ -186,6 +190,9 @@ export class Renderer {
     gl.uniform1f(u.u_ghost, p.ghost);
     gl.uniform1f(u.u_original, p.original);
     gl.uniform1f(u.u_checkerSize, 8 * p.dpr);
+    // Kept within one two-cell period, so it never loses precision however long it runs.
+    const period = 16 * p.dpr;
+    gl.uniform2f(u.u_checkerOffset, (p.checkerOffset[0] * p.dpr) % period, (p.checkerOffset[1] * p.dpr) % period);
     gl.uniform3f(u.u_checkerA, ...p.checkerA);
     gl.uniform3f(u.u_checkerB, ...p.checkerB);
 

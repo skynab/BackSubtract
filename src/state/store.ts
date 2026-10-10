@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Aspect, ExportFormat } from '../export/exportImage';
+import { DEFAULT_CONTRAST } from '../canvas/checker';
 import type { Mode } from '../mask/mask';
 import type { ModelInfo } from '../ml/protocol';
 import type { ShapeKind } from '../tools/shape/shape';
@@ -77,6 +78,9 @@ interface UIState {
   canUndo: boolean;
   canRedo: boolean;
   viewMode: ViewMode;
+  /** Transparency checkerboard: contrast 0–100 (DEFAULT_CONTRAST is the theme's own), and whether it slides. */
+  checkerContrast: number;
+  checkerMotion: boolean;
   dragging: boolean;
   notice: Notice | null;
   task: Task | null;
@@ -119,6 +123,8 @@ export const useUI = create<UIState>()(
       canUndo: false,
       canRedo: false,
       viewMode: 'result',
+      checkerContrast: DEFAULT_CONTRAST,
+      checkerMotion: false,
       dragging: false,
       notice: null,
       task: null,
@@ -157,6 +163,8 @@ export const useUI = create<UIState>()(
         margin: s.margin,
         aspect: s.aspect,
         fullSize: s.fullSize,
+        checkerContrast: s.checkerContrast,
+        checkerMotion: s.checkerMotion,
       }),
       merge: (saved, current) => {
         const merged = { ...current, ...(saved as Partial<UIState>) };

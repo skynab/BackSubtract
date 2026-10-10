@@ -112,6 +112,31 @@ test('the view switch toggles between result, overlay and original', async ({ pa
   }
 });
 
+test('the background can be made high-contrast and set moving, and both are remembered', async ({ page }) => {
+  await openTestImage(page);
+  await chooseTool(page, 'Magic Wand');
+  await tapImage(page, 10, 10); // the background is now transparent, showing the checkerboard
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled();
+
+  await page.getByRole('button', { name: 'Background' }).click();
+  const panel = page.getByRole('dialog', { name: 'Background' });
+  await panel.getByRole('slider', { name: 'Contrast' }).fill('100');
+  await panel.getByLabel('Move the background').check();
+
+  // At full contrast the checkerboard is pure white and black.
+  const seen = new Set<string>();
+  for (const [x, y] of [[20, 20], [24, 20], [28, 20], [32, 20], [20, 24], [24, 24], [28, 24], [32, 24]]) {
+    const c = await screenColor(page, x, y);
+    seen.add(c.every((v) => v > 245) ? 'white' : c.every((v) => v < 10) ? 'black' : 'other');
+  }
+  expect(seen.has('white') && seen.has('black')).toBe(true);
+
+  await page.reload();
+  await page.getByRole('button', { name: 'Background' }).click();
+  await expect(page.getByRole('dialog', { name: 'Background' }).getByRole('slider', { name: 'Contrast' })).toHaveValue('100');
+  await expect(page.getByLabel('Move the background')).toBeChecked();
+});
+
 test('hovering with Color previews the change without applying it', async ({ page }) => {
   test.skip(!!test.info().project.use.hasTouch, 'Touch screens have no hover');
   await openTestImage(page);

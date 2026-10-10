@@ -150,6 +150,7 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
   - **Copy** (PNG to the clipboard; JPG keeps its background colour) and **Share** (the system share sheet, where it takes files) sit at the bottom of the menu.
 - **Gestures:** pinch or wheel to zoom, two-finger drag or space-drag to pan, and press-and-hold to compare with the original. None of these needs a button.
 - **Edges** sits with the actions (next to Undo): see section 4.
+- **Background**: a small checkerboard button beside the Result / Overlay / Original switch opens two settings for spotting missed bits, both remembered. **Contrast** runs from one even colour, through the theme's own subtle checkerboard (the default), to black and white. **Move the background** slides the checkerboard slowly (24 px/s), so leftover opaque bits stand still against the motion. It slides rather than flashes, to stay comfortable for people sensitive to flicker, and only redraws while it is on.
 - **Keyboard:** 1–4 pick tools, L the lasso, B the brush, X toggles Keep/Remove, [ and ] change size or tolerance, and Ctrl+Z / Ctrl+Shift+Z undo and redo.
 - Dropping another file anywhere starts a new image after a quick "Replace current image?" confirmation.
 - **Donate:** a small, quiet ♥ in the top bar. See section 10.

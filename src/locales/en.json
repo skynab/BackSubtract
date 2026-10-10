@@ -171,5 +171,12 @@
     "label": "Brush type",
     "paint": "Paint",
     "refine": "Hair"
+  },
+  "checker": {
+    "title": "Background",
+    "contrast": "Contrast",
+    "low": "Low",
+    "high": "High",
+    "motion": "Move the background"
   }
 }

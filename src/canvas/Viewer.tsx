@@ -12,6 +12,7 @@ import { MagneticTrace, type Pixel } from '../tools/lasso/livewire';
 import { applyShape } from '../tools/shape/apply';
 import { dragBox } from '../tools/shape/shape';
 import { selectAt, selectLoop } from '../tools/select/select';
+import { CHECKER_SPEED, checkerColors } from './checker';
 import { cssColor, Renderer } from './renderer';
 import { clamp, fitView, MAX_SCALE, minScale, toImage, zoomAt, type Point, type View } from './view';
 
@@ -106,7 +107,15 @@ export function Viewer() {
       if (gesture.kind === 'trace') followTrace(gesture);
       const shownPreview =
         preview && !comparing ? { mode: preview.mode, tint: preview.mode === 'keep' ? KEEP_TINT : REMOVE_TINT } : null;
-      renderer.render({ view, width: size.w, height: size.h, dpr: size.dpr, ghost, original, preview: shownPreview, ...colors });
+      const [checkerA, checkerB] = checkerColors(colors.checkerA, colors.checkerB, ui.checkerContrast);
+      // A sliding checkerboard makes leftover bits stand out: they stay still while it moves behind them.
+      const slid = ui.checkerMotion ? (performance.now() / 1000) * CHECKER_SPEED : 0;
+      renderer.render({
+        view, width: size.w, height: size.h, dpr: size.dpr, ghost, original, preview: shownPreview,
+        background: colors.background, checkerA, checkerB, checkerOffset: [slid, slid],
+      });
+      // Keep drawing while it moves (the browser pauses this in hidden tabs).
+      if (ui.checkerMotion && editor.image) requestRender();
     }
 
     function fit() {

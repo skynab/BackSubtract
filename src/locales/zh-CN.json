@@ -171,5 +171,12 @@
     "label": "画笔类型",
     "paint": "绘制",
     "refine": "头发"
+  },
+  "checker": {
+    "title": "背景",
+    "contrast": "对比度",
+    "low": "低",
+    "high": "高",
+    "motion": "移动背景"
   }
 }

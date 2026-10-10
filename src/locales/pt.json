@@ -171,5 +171,12 @@
     "label": "Tipo de pincel",
     "paint": "Pintar",
     "refine": "Cabelo"
+  },
+  "checker": {
+    "title": "Fundo",
+    "contrast": "Contraste",
+    "low": "Baixo",
+    "high": "Alto",
+    "motion": "Mover o fundo"
   }
 }

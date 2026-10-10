@@ -171,5 +171,12 @@
     "label": "Type de pinceau",
     "paint": "Peindre",
     "refine": "Cheveux"
+  },
+  "checker": {
+    "title": "Arrière-plan",
+    "contrast": "Contraste",
+    "low": "Faible",
+    "high": "Fort",
+    "motion": "Faire défiler l'arrière-plan"
   }
 }

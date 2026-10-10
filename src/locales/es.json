@@ -171,5 +171,12 @@
     "label": "Tipo de pincel",
     "paint": "Pintar",
     "refine": "Pelo"
+  },
+  "checker": {
+    "title": "Fondo",
+    "contrast": "Contraste",
+    "low": "Bajo",
+    "high": "Alto",
+    "motion": "Mover el fondo"
   }
 }

@@ -64,6 +64,14 @@ export const EdgesIcon = icon(
     <circle cx="12" cy="12" r="8.5" strokeDasharray="1.5 2.6" />
   </>,
 );
+/** A transparency checkerboard. */
+export const CheckerIcon = icon(
+  <>
+    <rect x="4" y="4" width="16" height="16" rx="2" />
+    <path d="M4 12h16M12 4v16" />
+    <path d="M4.8 4.8h7.2v7.2H4.8zM12 12h7.2v7.2H12z" fill="currentColor" stroke="none" />
+  </>,
+);
 export const ShapeIcon = icon(
   <>
     <rect x="3.5" y="5.5" width="11" height="9" rx="1" strokeDasharray="2.5 2.5" />

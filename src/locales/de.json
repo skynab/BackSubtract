@@ -171,5 +171,12 @@
     "label": "Pinselart",
     "paint": "Malen",
     "refine": "Haare"
+  },
+  "checker": {
+    "title": "Hintergrund",
+    "contrast": "Kontrast",
+    "low": "Niedrig",
+    "high": "Hoch",
+    "motion": "Hintergrund bewegen"
   }
 }

@@ -171,5 +171,12 @@
     "label": "ブラシの種類",
     "paint": "ペイント",
     "refine": "髪"
+  },
+  "checker": {
+    "title": "背景",
+    "contrast": "コントラスト",
+    "low": "低",
+    "high": "高",
+    "motion": "背景を動かす"
   }
 }
