@@ -14,8 +14,6 @@ export interface Edit {
   after: Uint8Array;
   /** Identifies the action that made this edit, so it can be re-tuned in place. */
   tag?: number;
-  /** What kind of action made it, e.g. 'select-keep'. */
-  kind?: string;
   /** How to describe this step to the user. Missing on steps saved by older versions. */
   label?: StepLabel;
 }
@@ -31,7 +29,6 @@ export function makeEdit(
   mask: Mask,
   rect: Rect,
   tag?: number,
-  kind?: string,
   label?: StepLabel,
 ): Edit | null {
   // Check for a change before copying anything out.
@@ -46,7 +43,7 @@ export function makeEdit(
       }
     }
   }
-  return changed ? { rect, before: extract(snapshot, width, rect), after: mask.read(rect), tag, kind, label } : null;
+  return changed ? { rect, before: extract(snapshot, width, rect), after: mask.read(rect), tag, label } : null;
 }
 
 export class History {
@@ -69,11 +66,6 @@ export class History {
   /** The tag of the newest edit, if nothing has been undone since. */
   get latestTag(): number | undefined {
     return this.redoStack.length ? undefined : this.undoStack.at(-1)?.tag;
-  }
-
-  /** Whether any step that is currently applied (not undone) is of this kind. */
-  hasKind(kind: string): boolean {
-    return this.undoStack.some((e) => e.kind === kind);
   }
 
   push(edit: Edit): void {

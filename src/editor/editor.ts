@@ -117,7 +117,7 @@ export class Editor {
     this.clearCoverage(rect);
     this.emit({ type: 'mask', rect });
 
-    const edit = makeEdit(s.snapshot, mask, rect, this.nextTag++, undefined, { tool: 'brush', mode: s.mode });
+    const edit = makeEdit(s.snapshot, mask, rect, this.nextTag++, { tool: 'brush', mode: s.mode });
     if (edit) {
       this.history.push(edit);
       this.emit({ type: 'history' });
@@ -144,7 +144,7 @@ export class Editor {
     rect: Rect,
     mode: Mode,
     label: StepLabel,
-    { replaceTag, kind }: { replaceTag?: number; kind?: string } = {},
+    replaceTag?: number,
   ): number | null {
     const mask = this.mask;
     if (!mask || this.stroke) return null;
@@ -158,21 +158,21 @@ export class Editor {
     this.emit({ type: 'mask', rect: dirty });
 
     const tag = this.nextTag++;
-    const edit = makeEdit(snapshot, mask, rect, tag, kind, label);
+    const edit = makeEdit(snapshot, mask, rect, tag, label);
     if (edit) this.history.push(edit);
     this.emit({ type: 'history' });
     return edit ? tag : null;
   }
 
   /** Set the whole mask at once (e.g. to the Auto result) as one undo step. */
-  replaceMask(values: Uint8Array, label: StepLabel, kind?: string): void {
+  replaceMask(values: Uint8Array, label: StepLabel): void {
     const mask = this.mask;
     if (!mask || this.stroke || values.length !== mask.data.length) return;
     const snapshot = mask.data.slice();
     mask.data.set(values);
     const rect = { x: 0, y: 0, w: mask.width, h: mask.height };
     this.emit({ type: 'mask', rect });
-    const edit = makeEdit(snapshot, mask, rect, this.nextTag++, kind, label);
+    const edit = makeEdit(snapshot, mask, rect, this.nextTag++, label);
     if (edit) {
       this.history.push(edit);
       this.emit({ type: 'history' });

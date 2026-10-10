@@ -9,8 +9,6 @@ import { refreshModelInfo, withModelTask } from '../../ml/status';
 import { useUI } from '../../state/store';
 import { bestFit, dilate, loopPrompts, mostConfident, rasterizeLoop } from './loop';
 
-/** The first Keep selection hides everything outside it; later ones add to it. */
-const FIRST_KEEP = 'select-keep';
 /** Below this fit score, no proposal really matches the loop. */
 const MIN_FIT = 0.1;
 
@@ -128,10 +126,11 @@ function apply(image: ImageBitmap, result: MaskResult, clip?: Uint8Array): void 
 
   const mode = useUI.getState().modes.select;
   const label = { tool: 'select', mode };
-  if (mode === 'keep' && !editor.history.hasKind(FIRST_KEEP)) {
-    // First Keep: hide everything that isn't the object (intersect with what's visible now).
+  if (mode === 'keep' && !editor.mask!.hasHidden) {
+    // Keep on an untouched image cuts the object out: hide everything else.
+    // Once anything is hidden, Keep only brings areas back, so it can fix what another tool removed.
     for (let i = 0; i < full.length; i++) full[i] = 255 - full[i];
-    editor.applySelection(full, { x: 0, y: 0, w: W, h: H }, 'remove', label, { kind: FIRST_KEEP });
+    editor.applySelection(full, { x: 0, y: 0, w: W, h: H }, 'remove', label);
   } else {
     editor.applySelection(full, padded, mode, label);
   }

@@ -42,6 +42,13 @@ describe('Mask', () => {
     expect(mask.clip({ x: 20, y: 0, w: 5, h: 5 })).toBeNull();
   });
 
+  it('hasHidden notices any hidden or partly hidden pixel', () => {
+    const mask = new Mask(2, 2);
+    expect(mask.hasHidden).toBe(false);
+    mask.data[3] = 254;
+    expect(mask.hasHidden).toBe(true);
+  });
+
   it('rejects data of the wrong size', () => {
     expect(() => new Mask(2, 2, new Uint8Array(3))).toThrow();
   });

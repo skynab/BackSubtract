@@ -59,6 +59,11 @@ export class Mask {
     }
   }
 
+  /** Whether anything is hidden, even partly. */
+  get hasHidden(): boolean {
+    return this.data.some((v) => v !== VISIBLE);
+  }
+
   /** Clip a rect to the mask bounds, or null if nothing is left. */
   clip(rect: Rect): Rect | null {
     const x0 = Math.max(0, rect.x);

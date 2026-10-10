@@ -76,7 +76,7 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
   Each of SAM's proposals is scored by how much of the loop it fills, minus how far it spills outside. The best one is clipped to the loop, with a little slack.
 - If no proposal fits, for example a loop around plain background, the loop itself is used, and its edge snaps to the image. This replaces the planned OpenCV GrabCut fallback and saves an 8 MB download.
 - Masks come back at about 1024 px. They're upscaled, and their edge snaps to the full-resolution image using the brush's edge snapping, in tiles.
-- Default mode is **Keep**. The first selection hides everything outside it, and later selections add to it. In Remove mode, a tap or loop hides that object instead.
+- Default mode is **Keep**. On an untouched image, the selection hides everything outside it. Once anything is hidden, Keep only brings areas back, so it can restore what another tool removed by mistake. In Remove mode, a tap or loop hides that object instead.
 
 ### C. Magic Wand
 - Tap a pixel to select the **connected region** of similar colour, using a flood fill like Photoshop's Magic Wand.
