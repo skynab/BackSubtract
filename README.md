@@ -11,8 +11,11 @@ Requires Node 20+.
 npm install
 npm run dev      # start the dev server at http://localhost:5173
 npm test         # unit tests
+npm run test:e2e # browser smoke tests (desktop + phone), against a fresh production build
 npm run build    # type-check and build to dist/
 ```
+
+The first time, install the browser for the e2e tests with `npx playwright install chromium`. The e2e tests don't exercise the AI tools, which would download over 100 MB of models on every run.
 
 `npm run preview` serves the production build (with the offline service worker) at http://localhost:4173.
 

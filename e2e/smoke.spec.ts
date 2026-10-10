@@ -1,0 +1,101 @@
+import { expect, test } from '@playwright/test';
+import { chooseTool, DISK, downloadAndReadAlpha, openTestImage, tapImage, toScreen } from './helpers';
+
+test('start screen, language switch and right-to-left layout', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Remove the background from any photo' })).toBeVisible();
+
+  const language = page.getByRole('combobox');
+  await language.selectOption('es');
+  await expect(page.getByRole('heading', { name: 'Quita el fondo de cualquier foto' })).toBeVisible();
+
+  await language.selectOption('ar');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await language.selectOption('en');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+});
+
+test('About opens from the app name and closes with Escape', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'BackSubtract' }).click();
+  const dialog = page.getByRole('dialog', { name: 'About BackSubtract' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('heading', { name: 'Keyboard shortcuts' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+});
+
+test('opening an image shows the editor without horizontal scrolling', async ({ page }) => {
+  await openTestImage(page);
+  await expect(page.getByRole('toolbar', { name: 'Tools' })).toBeVisible();
+  // Auto asks before its first model download instead of starting one.
+  await expect(page.getByRole('button', { name: /Remove background \(\d+ MB one-time download\)/ })).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  expect(overflow).toBe(false);
+});
+
+test('Magic Wand removes the background, and the download is transparent there', async ({ page }) => {
+  await openTestImage(page);
+  await chooseTool(page, 'Magic Wand');
+  await tapImage(page, 10, 10);
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled();
+
+  const [corner, centre] = await downloadAndReadAlpha(page, [[10, 10], [DISK.x, DISK.y]]);
+  expect(corner).toBe(0);
+  expect(centre).toBe(255);
+});
+
+test('Keep brings back what Remove hid; undo and redo work', async ({ page }) => {
+  await openTestImage(page);
+  await chooseTool(page, 'Color');
+  await tapImage(page, 10, 10); // remove the green background everywhere
+  const undo = page.getByRole('button', { name: 'Undo' });
+  const redo = page.getByRole('button', { name: 'Redo' });
+  await expect(undo).toBeEnabled();
+
+  // Keep + tap the same colour restores it.
+  await page.getByRole('button', { name: 'Keep' }).click();
+  await tapImage(page, 10, 10);
+  let [corner] = await downloadAndReadAlpha(page, [[10, 10]]);
+  expect(corner).toBe(255);
+
+  await undo.click();
+  await expect(redo).toBeEnabled();
+  [corner] = await downloadAndReadAlpha(page, [[10, 10]]);
+  expect(corner).toBe(0);
+
+  await redo.click();
+  [corner] = await downloadAndReadAlpha(page, [[10, 10]]);
+  expect(corner).toBe(255);
+});
+
+test('a brush stroke hides what it covers', async ({ page }) => {
+  await openTestImage(page);
+  await chooseTool(page, 'Brush');
+  const from = await toScreen(page, DISK.x - 40, DISK.y);
+  const to = await toScreen(page, DISK.x + 40, DISK.y);
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(to.x, to.y, { steps: 10 });
+  await page.mouse.up();
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled();
+
+  const [stroke, untouched] = await downloadAndReadAlpha(page, [[DISK.x, DISK.y], [10, 10]]);
+  expect(stroke).toBe(0);
+  expect(untouched).toBe(255);
+});
+
+test('work survives a reload', async ({ page }) => {
+  await openTestImage(page);
+  await chooseTool(page, 'Magic Wand');
+  await tapImage(page, 10, 10);
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled();
+  // Autosave runs shortly after each change.
+  await page.waitForTimeout(1500);
+
+  await page.reload();
+  await expect(page.getByText('Welcome back — your last image was restored.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled();
+  const [corner] = await downloadAndReadAlpha(page, [[10, 10]]);
+  expect(corner).toBe(0);
+});

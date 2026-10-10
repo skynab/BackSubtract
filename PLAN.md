@@ -182,7 +182,7 @@ public/           icons, manifest
    - Still open: native-speaker review of the translations, and testing on real phones and other GPUs.
 5. **Testing throughout:**
    - Vitest unit tests for the mask maths: Keep/Remove combine, recovery after removal, undo diffs, flood fill, colour key, export.
-   - Playwright smoke tests on desktop and mobile viewports.
+   - ✅ Playwright smoke tests (`npm run test:e2e`) on Desktop Chrome and a Pixel 7 profile, using real touch taps on the phone. They cover the start screen, language and RTL, About, opening an image, Magic Wand, Color with Keep/Remove, brush, undo/redo, and restoring after a reload. Each checks the downloaded PNG's actual transparency. The AI tools are not covered, because of the model downloads.
    - A small set of golden images for a visual check of each tool.
 
 ## 10. Donations (custom, no third-party donation platform)
