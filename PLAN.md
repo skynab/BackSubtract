@@ -44,7 +44,7 @@ This works like a layer mask in Photoshop, but the user never sees it as one.
 ```
 Original image (never changed)
         │
-Tool (Auto | Select | Magic Wand | Color | Brush) ──► selection S + Keep/Remove
+Tool (Auto | Select | Magic Wand | Color | Brush | Shape) ──► selection S + Keep/Remove
         │
 Hidden mask  ◄── undo/redo diffs, auto-saved
         │
@@ -93,6 +93,9 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 
 ### Brush (touch-up, always available)
 - A small brush icon sits next to the tool row, with one size slider. It uses the shared Keep / Remove toggle.
+
+### Shape (boxes and ellipses)
+- Drag to draw a box or ellipse; it is applied when you let go, with the shared Keep / Remove toggle (Remove by default). Shift makes a square or circle. Edges are anti-aliased but not snapped, so the shape is exactly what you drew.
 - It covers the last few percent of errors after any tool.
 - **Edge-aware:** when a stroke ends, its soft rim snaps to the real edge in the image. Each rim pixel is compared with the average colour just inside the stroke and just outside it. Where those differ, the rim follows the image edge; on flat areas the stroke stays exactly as painted. (A guided filter was tried first, but it blurred strokes on flat areas.)
 

@@ -41,6 +41,14 @@ export const BrushIcon = icon(
     <path d="M10 13.5c-2 0-3.5 1.4-3.5 3.3 0 1.2-.8 2.2-2.5 2.7 4 1.1 8.2-.3 8.2-3.6z" />
   </>,
 );
+export const ShapeIcon = icon(
+  <>
+    <rect x="3.5" y="5.5" width="11" height="9" rx="1" strokeDasharray="2.5 2.5" />
+    <ellipse cx="15" cy="15" rx="5.5" ry="4.5" />
+  </>,
+);
+export const RectIcon = icon(<rect x="4" y="6" width="16" height="12" rx="1" />);
+export const EllipseIcon = icon(<ellipse cx="12" cy="12" rx="8.5" ry="6.5" />);
 export const UndoIcon = icon(
   <>
     <path d="M9 14L4 9l5-5" />

@@ -13,7 +13,8 @@
     "select": "Selecionar",
     "wand": "Varinha mágica",
     "color": "Cor",
-    "brush": "Pincel"
+    "brush": "Pincel",
+    "shape": "Forma"
   },
   "mode": {
     "label": "Modo",
@@ -102,14 +103,15 @@
     "contact": "Contato"
   },
   "shortcuts": {
-    "tools": "Auto, Selecionar, Varinha mágica, Cor, Pincel",
+    "tools": "Auto, Selecionar, Varinha mágica, Cor, Pincel, Forma",
     "mode": "Alternar entre Manter e Remover",
     "size": "Pincel ou tolerância menor / maior",
     "undo": "Desfazer / refazer",
     "pan": "Mover pela imagem",
     "fit": "Ajustar a imagem à tela",
     "compare": "Segure para ver o original",
-    "view": "Mudar a visualização: Resultado, Sobreposto, Original"
+    "view": "Mudar a visualização: Resultado, Sobreposto, Original",
+    "square": "Segure ao arrastar para um quadrado ou um círculo"
   },
   "view": {
     "label": "Visualização",
@@ -128,5 +130,11 @@
     "start": "Imagem aberta",
     "edit": "Edição",
     "step": "{{tool}} · {{mode}}"
+  },
+  "shape": {
+    "label": "Forma",
+    "rect": "Retângulo",
+    "ellipse": "Elipse",
+    "hint": "Arraste para desenhar um retângulo ou uma elipse"
   }
 }

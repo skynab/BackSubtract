@@ -13,7 +13,8 @@
     "select": "Seleccionar",
     "wand": "Varita mágica",
     "color": "Color",
-    "brush": "Pincel"
+    "brush": "Pincel",
+    "shape": "Forma"
   },
   "mode": {
     "label": "Modo",
@@ -102,14 +103,15 @@
     "contact": "Contacto"
   },
   "shortcuts": {
-    "tools": "Auto, Seleccionar, Varita mágica, Color, Pincel",
+    "tools": "Auto, Seleccionar, Varita mágica, Color, Pincel, Forma",
     "mode": "Cambiar entre Conservar y Quitar",
     "size": "Pincel o tolerancia más pequeños / más grandes",
     "undo": "Deshacer / rehacer",
     "pan": "Moverse por la imagen",
     "fit": "Ajustar la imagen a la pantalla",
     "compare": "Mantener para ver el original",
-    "view": "Cambiar vista: Resultado, Superpuesto, Original"
+    "view": "Cambiar vista: Resultado, Superpuesto, Original",
+    "square": "Mantén pulsado al arrastrar para un cuadrado o un círculo"
   },
   "view": {
     "label": "Vista",
@@ -128,5 +130,11 @@
     "start": "Imagen abierta",
     "edit": "Edición",
     "step": "{{tool}} · {{mode}}"
+  },
+  "shape": {
+    "label": "Forma",
+    "rect": "Rectángulo",
+    "ellipse": "Elipse",
+    "hint": "Arrastra para dibujar un rectángulo o una elipse"
   }
 }

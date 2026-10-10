@@ -13,7 +13,8 @@
     "select": "Select",
     "wand": "Magic Wand",
     "color": "Color",
-    "brush": "Brush"
+    "brush": "Brush",
+    "shape": "Shape"
   },
   "mode": {
     "label": "Mode",
@@ -102,14 +103,15 @@
     "contact": "Contact"
   },
   "shortcuts": {
-    "tools": "Auto, Select, Magic Wand, Color, Brush",
+    "tools": "Auto, Select, Magic Wand, Color, Brush, Shape",
     "mode": "Switch between Keep and Remove",
     "size": "Smaller / larger brush or tolerance",
     "undo": "Undo / redo",
     "pan": "Move around the image",
     "fit": "Fit the image to the screen",
     "compare": "Hold to see the original",
-    "view": "Switch view: Result, Overlay, Original"
+    "view": "Switch view: Result, Overlay, Original",
+    "square": "Hold while dragging for a square or circle"
   },
   "view": {
     "label": "View",
@@ -128,5 +130,11 @@
     "start": "Opened image",
     "edit": "Edit",
     "step": "{{tool}} · {{mode}}"
+  },
+  "shape": {
+    "label": "Shape",
+    "rect": "Box",
+    "ellipse": "Ellipse",
+    "hint": "Drag to draw a box or ellipse"
   }
 }

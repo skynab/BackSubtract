@@ -13,7 +13,8 @@
     "select": "Sélection",
     "wand": "Baguette magique",
     "color": "Couleur",
-    "brush": "Pinceau"
+    "brush": "Pinceau",
+    "shape": "Forme"
   },
   "mode": {
     "label": "Mode",
@@ -102,14 +103,15 @@
     "contact": "Contact"
   },
   "shortcuts": {
-    "tools": "Auto, Sélection, Baguette magique, Couleur, Pinceau",
+    "tools": "Auto, Sélection, Baguette magique, Couleur, Pinceau, Forme",
     "mode": "Basculer entre Garder et Retirer",
     "size": "Pinceau ou tolérance plus petit / plus grand",
     "undo": "Annuler / rétablir",
     "pan": "Se déplacer dans l’image",
     "fit": "Ajuster l’image à l’écran",
     "compare": "Maintenir pour voir l’original",
-    "view": "Changer d'affichage : Résultat, Superposé, Original"
+    "view": "Changer d'affichage : Résultat, Superposé, Original",
+    "square": "Maintenir en faisant glisser pour un carré ou un cercle"
   },
   "view": {
     "label": "Affichage",
@@ -128,5 +130,11 @@
     "start": "Image ouverte",
     "edit": "Modification",
     "step": "{{tool}} · {{mode}}"
+  },
+  "shape": {
+    "label": "Forme",
+    "rect": "Rectangle",
+    "ellipse": "Ellipse",
+    "hint": "Faites glisser pour tracer un rectangle ou une ellipse"
   }
 }

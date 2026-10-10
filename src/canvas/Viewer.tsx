@@ -5,6 +5,8 @@ import { editor } from '../editor/editor';
 import { unionRect, type Rect } from '../mask/mask';
 import { selectMode, useUI } from '../state/store';
 import { pick } from '../tools/color/pick';
+import { applyShape } from '../tools/shape/apply';
+import { dragBox } from '../tools/shape/shape';
 import { selectAt, selectLoop } from '../tools/select/select';
 import { cssColor, Renderer } from './renderer';
 import { clamp, fitView, MAX_SCALE, minScale, toImage, zoomAt, type Point, type View } from './view';
@@ -22,6 +24,7 @@ type Gesture =
   | { kind: 'pan'; id: number; last: Point }
   | { kind: 'hold'; id: number; start: Point; timer: number }
   | { kind: 'lasso'; id: number; points: Point[] }
+  | { kind: 'shape'; id: number; start: Point; end: Point; square: boolean }
   | { kind: 'pinch'; startDist: number; startMid: Point; startView: View };
 
 const isEditable = (target: EventTarget | null) =>
@@ -123,7 +126,7 @@ export function Viewer() {
     function updateCursor(e: PointerEvent | null, p?: Point) {
       const ui = useUI.getState();
       const brush = ui.tool === 'brush' && !spaceDown;
-      const tapTool = ui.tool === 'wand' || ui.tool === 'color' || ui.tool === 'select';
+      const tapTool = ui.tool === 'wand' || ui.tool === 'color' || ui.tool === 'select' || ui.tool === 'shape';
       canvas.style.cursor =
         spaceDown || gesture.kind === 'pan' ? 'grab' : brush ? 'none' : tapTool ? 'crosshair' : 'default';
       const showRing = brush && p && e && e.pointerType !== 'touch';
@@ -137,6 +140,16 @@ export function Viewer() {
 
     function drawLasso(points: Point[] | null) {
       lasso.setAttribute('d', points?.length ? `M${points.map((p) => `${p.x},${p.y}`).join('L')}Z` : '');
+    }
+
+    function drawShape(g: Extract<Gesture, { kind: 'shape' }>) {
+      const b = dragBox(g.start, g.end, g.square);
+      if (useUI.getState().shapeKind === 'rect') {
+        lasso.setAttribute('d', `M${b.x0},${b.y0}H${b.x1}V${b.y1}H${b.x0}Z`);
+      } else {
+        const rx = (b.x1 - b.x0) / 2, ry = (b.y1 - b.y0) / 2, cy = b.y0 + ry;
+        lasso.setAttribute('d', `M${b.x0},${cy}A${rx},${ry} 0 1 0 ${b.x1},${cy}A${rx},${ry} 0 1 0 ${b.x0},${cy}Z`);
+      }
     }
 
     function endGesture(tapped = false) {
@@ -154,6 +167,14 @@ export function Viewer() {
       }
       if (gesture.kind === 'lasso') {
         if (tapped && gesture.points.length >= 3) void selectLoop(gesture.points.map((p) => toImage(view, p)));
+        drawLasso(null);
+      }
+      if (gesture.kind === 'shape') {
+        const { start, end, square } = gesture;
+        // A tap without dragging draws nothing.
+        if (tapped && Math.hypot(end.x - start.x, end.y - start.y) > DRAG_SLOP) {
+          applyShape(toImage(view, start), toImage(view, end), square);
+        }
         drawLasso(null);
       }
       gesture = { kind: 'none' };
@@ -193,6 +214,8 @@ export function Viewer() {
         const ip = toImage(view, p);
         editor.beginStroke(ip.x, ip.y, ui.brushSize / 2 / view.scale, ui.modes.brush);
         gesture = { kind: 'stroke', id: e.pointerId };
+      } else if (ui.tool === 'shape') {
+        gesture = { kind: 'shape', id: e.pointerId, start: p, end: p, square: e.shiftKey };
       } else {
         // Tap tools: a tap acts, dragging pans, press-and-hold shows the original.
         gesture = {
@@ -244,6 +267,12 @@ export function Viewer() {
           }
           return;
         }
+        case 'shape':
+          if (gesture.id !== e.pointerId) return;
+          gesture.end = p;
+          gesture.square = e.shiftKey;
+          drawShape(gesture);
+          return;
         case 'pinch': {
           if (pointers.size < 2) return;
           const [a, b] = [...pointers.values()];

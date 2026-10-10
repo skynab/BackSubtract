@@ -4,7 +4,8 @@ import { CREDITS } from './credits';
 import { Modal } from './Modal';
 
 const SHORTCUTS: [string, string][] = [
-  ['1 – 4, B', 'shortcuts.tools'],
+  ['1 – 4, B, M', 'shortcuts.tools'],
+  ['Shift', 'shortcuts.square'],
   ['X', 'shortcuts.mode'],
   ['[  ]', 'shortcuts.size'],
   ['Ctrl+Z / Ctrl+Shift+Z', 'shortcuts.undo'],

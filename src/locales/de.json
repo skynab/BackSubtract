@@ -13,7 +13,8 @@
     "select": "Auswahl",
     "wand": "Zauberstab",
     "color": "Farbe",
-    "brush": "Pinsel"
+    "brush": "Pinsel",
+    "shape": "Form"
   },
   "mode": {
     "label": "Modus",
@@ -102,14 +103,15 @@
     "contact": "Kontakt"
   },
   "shortcuts": {
-    "tools": "Auto, Auswahl, Zauberstab, Farbe, Pinsel",
+    "tools": "Auto, Auswahl, Zauberstab, Farbe, Pinsel, Form",
     "mode": "Zwischen Behalten und Entfernen wechseln",
     "size": "Pinsel oder Toleranz kleiner / größer",
     "undo": "Rückgängig / wiederholen",
     "pan": "Im Bild bewegen",
     "fit": "Bild an den Bildschirm anpassen",
     "compare": "Gedrückt halten, um das Original zu sehen",
-    "view": "Ansicht wechseln: Ergebnis, Überlagert, Original"
+    "view": "Ansicht wechseln: Ergebnis, Überlagert, Original",
+    "square": "Beim Ziehen gedrückt halten für Quadrat oder Kreis"
   },
   "view": {
     "label": "Ansicht",
@@ -128,5 +130,11 @@
     "start": "Bild geöffnet",
     "edit": "Bearbeitung",
     "step": "{{tool}} · {{mode}}"
+  },
+  "shape": {
+    "label": "Form",
+    "rect": "Rechteck",
+    "ellipse": "Ellipse",
+    "hint": "Ziehen, um ein Rechteck oder eine Ellipse zu zeichnen"
   }
 }

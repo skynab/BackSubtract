@@ -37,7 +37,7 @@ See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for the licenses of bundl
 
 | Key | Action |
 |---|---|
-| 1 / 2 / 3 / 4 / B | Auto / Select / Magic Wand / Color / Brush |
+| 1 / 2 / 3 / 4 / B / M | Auto / Select / Magic Wand / Color / Brush / Shape |
 | X | Toggle Keep / Remove |
 | [ / ] | Smaller / larger brush, or lower / raise tolerance |
 | Ctrl+Z / Ctrl+Shift+Z | Undo / redo |
@@ -45,3 +45,6 @@ See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for the licenses of bundl
 | Wheel, pinch | Zoom |
 | 0 | Fit image to screen |
 | Hold C | Show the original |
+| V | Switch view: Result / Overlay / Original |
+| Shift + drag | Shape: square or circle |
+| Hold Undo / Redo, or right-click | List every step and jump to one |

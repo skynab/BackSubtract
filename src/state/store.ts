@@ -3,10 +3,11 @@ import { persist } from 'zustand/middleware';
 import type { ExportFormat } from '../export/exportImage';
 import type { Mode } from '../mask/mask';
 import type { ModelInfo } from '../ml/protocol';
+import type { ShapeKind } from '../tools/shape/shape';
 
-export type ToolId = 'auto' | 'select' | 'wand' | 'color' | 'brush';
+export type ToolId = 'auto' | 'select' | 'wand' | 'color' | 'brush' | 'shape';
 
-export const AVAILABLE_TOOLS: readonly ToolId[] = ['auto', 'select', 'wand', 'color', 'brush'];
+export const AVAILABLE_TOOLS: readonly ToolId[] = ['auto', 'select', 'wand', 'color', 'brush', 'shape'];
 
 /** Each tool starts in the mode it is most often used for. */
 const DEFAULT_MODES: Record<ToolId, Mode> = {
@@ -15,6 +16,7 @@ const DEFAULT_MODES: Record<ToolId, Mode> = {
   wand: 'remove',
   color: 'remove',
   brush: 'remove',
+  shape: 'remove',
 };
 
 /**
@@ -51,6 +53,8 @@ interface UIState {
   modes: Record<ToolId, Mode>;
   /** Brush diameter in screen pixels, so it feels the same at any zoom. */
   brushSize: number;
+  /** What the Shape tool draws. */
+  shapeKind: ShapeKind;
   tolerances: { wand: number; color: number };
   exportFormat: ExportFormat;
   jpgBackground: string;
@@ -86,6 +90,7 @@ export const useUI = create<UIState>()(
       tool: 'auto',
       modes: { ...DEFAULT_MODES },
       brushSize: 40,
+      shapeKind: 'rect',
       tolerances: { wand: 20, color: 15 },
       exportFormat: 'png',
       jpgBackground: '#ffffff',
@@ -120,6 +125,7 @@ export const useUI = create<UIState>()(
       partialize: (s) => ({
         tool: s.tool,
         brushSize: s.brushSize,
+        shapeKind: s.shapeKind,
         tolerances: s.tolerances,
         exportFormat: s.exportFormat,
         jpgBackground: s.jpgBackground,

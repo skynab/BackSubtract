@@ -128,6 +128,31 @@ test('a brush stroke hides what it covers', async ({ page }) => {
   expect(untouched).toBe(255);
 });
 
+test('Shape removes a dragged box and Keep with an ellipse brings part of it back', async ({ page }) => {
+  await openTestImage(page);
+  await chooseTool(page, 'Shape');
+  const drag = async (x0: number, y0: number, x1: number, y1: number) => {
+    const from = await toScreen(page, x0, y0);
+    const to = await toScreen(page, x1, y1);
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(to.x, to.y, { steps: 8 });
+    await page.mouse.up();
+  };
+
+  await drag(DISK.x - 100, DISK.y - 100, DISK.x + 100, DISK.y + 100); // Remove is the default
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled();
+
+  await page.getByRole('button', { name: 'Keep' }).click();
+  await page.getByRole('group', { name: 'Shape' }).getByRole('button', { name: 'Ellipse' }).click();
+  await drag(DISK.x - 30, DISK.y - 30, DISK.x + 30, DISK.y + 30);
+
+  const [centre, inBox, outside] = await downloadAndReadAlpha(page, [[DISK.x, DISK.y], [DISK.x - 80, DISK.y - 80], [10, 10]]);
+  expect(centre).toBe(255);
+  expect(inBox).toBe(0);
+  expect(outside).toBe(255);
+});
+
 test('work survives a reload', async ({ page }) => {
   await openTestImage(page);
   await chooseTool(page, 'Magic Wand');

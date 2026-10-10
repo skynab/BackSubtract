@@ -19,10 +19,13 @@ import {
   AutoIcon,
   BrushIcon,
   ColorIcon,
+  EllipseIcon,
   ImageIcon,
   MinusIcon,
   PlusIcon,
+  RectIcon,
   SelectIcon,
+  ShapeIcon,
   WandIcon,
 } from './icons';
 
@@ -139,6 +142,23 @@ function ModeToggle() {
   );
 }
 
+function ShapeKindToggle() {
+  const { t } = useTranslation();
+  const kind = useUI((s) => s.shapeKind);
+  return (
+    <div className="segmented" role="group" aria-label={t('shape.label')}>
+      <button type="button" aria-pressed={kind === 'rect'} onClick={() => useUI.setState({ shapeKind: 'rect' })}>
+        <RectIcon width={18} height={18} />
+        {t('shape.rect')}
+      </button>
+      <button type="button" aria-pressed={kind === 'ellipse'} onClick={() => useUI.setState({ shapeKind: 'ellipse' })}>
+        <EllipseIcon width={18} height={18} />
+        {t('shape.ellipse')}
+      </button>
+    </div>
+  );
+}
+
 function ContextRow() {
   const { t } = useTranslation();
   const tool = useUI((s) => s.tool);
@@ -147,7 +167,9 @@ function ContextRow() {
     <>
       <ModeToggle />
       <ToolSlider />
+      {tool === 'shape' && <ShapeKindToggle />}
       {tool === 'select' && <span className="hint">{t('select.hint')}</span>}
+      {tool === 'shape' && <span className="hint">{t('shape.hint')}</span>}
     </>
   );
 }
@@ -163,6 +185,7 @@ export function BottomBar() {
         ))}
         <span className="divider" aria-hidden="true" />
         <ToolButton id="brush" Icon={BrushIcon} />
+        <ToolButton id="shape" Icon={ShapeIcon} />
       </div>
 
       <div className="context">
