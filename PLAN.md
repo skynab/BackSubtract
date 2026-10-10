@@ -167,7 +167,7 @@ public/           icons, manifest
 1. ✅ **Skeleton (week 1):** Vite + React app, open/drop/paste image, WebGL viewer with zoom/pan, the non-destructive mask model with undo/redo, PNG export, and an i18n scaffold with 2 languages.
 2. ✅ **Classic tools (week 2):** Magic Wand, Color, edge-snapping brush, edge colour cleanup, ghost preview, IndexedDB auto-save, and PNG/WebP/JPG export with trim.
    - Measured on a 12.6 MP photo: a tap takes about 0.2–0.3 s, a slider re-tune 0.1–0.2 s, and an export 1.1–1.4 s (mostly encoding).
-   - Follow-up: move tap and export work into a Web Worker so the page never pauses, alongside the ML workers in week 3.
+   - ✅ Follow-up done: wand/colour taps, re-tunes and export encoding run in an image worker. Pixels are shared via SharedArrayBuffer when cross-origin isolated, and copied otherwise. The main thread blocks for at most a few ms.
 3. ✅ **ML tools (week 3):** Auto (BiRefNet or IS-Net by device) and Select (SlimSAM taps and loops), both in a Web Worker. Includes WebGPU/WASM detection, model caching, and download/progress UI.
    - Measured on an Intel gen-9 GPU with a 1600×1200 image:
      - Auto: 88 MB download in about 4 s, then about 3 s per run (5 s for the first run after a reload).

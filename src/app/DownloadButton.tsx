@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { editor } from '../editor/editor';
-import { canEncodeWebp, downloadBlob, exportImage, exportName, type ExportFormat } from '../export/exportImage';
+import { exportInWorker } from '../cv/client';
+import { canEncodeWebp, downloadBlob, exportName, type ExportFormat } from '../export/exportImage';
 import { useUI } from '../state/store';
 import { ChevronIcon, DownloadIcon } from './icons';
 
@@ -42,10 +43,9 @@ export function DownloadButton() {
     if (!editor.image || !editor.mask) return;
     setOpen(false);
     setBusy(true);
-    // Let the button repaint before the (synchronous) pixel work starts.
-    await new Promise((r) => requestAnimationFrame(() => setTimeout(r)));
     try {
-      const blob = await exportImage(editor.pixels, editor.mask, { format: active, background, trim });
+      // Encoding runs in the image worker, so the page stays responsive meanwhile.
+      const blob = await exportInWorker(editor.mask.data, { format: active, background, trim });
       downloadBlob(blob, exportName(editor.fileName, active));
     } catch {
       useUI.getState().showNotice({ key: 'errors.export', tone: 'error' });

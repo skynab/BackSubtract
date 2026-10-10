@@ -142,7 +142,7 @@ export function Viewer() {
         if (tapped && !comparing) {
           const tool = useUI.getState().tool;
           const ip = toImage(view, gesture.start);
-          if (tool === 'wand' || tool === 'color') pick(tool, ip.x, ip.y);
+          if (tool === 'wand' || tool === 'color') void pick(tool, ip.x, ip.y);
           else if (tool === 'select') void selectAt(ip.x, ip.y);
         }
         setComparing(false);

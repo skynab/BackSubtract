@@ -1,4 +1,4 @@
-import { boundingBox, type Mask, type Rect } from '../mask/mask';
+import { boundingBox, type Rect } from '../mask/mask';
 import { cleanEdges } from './edges';
 
 export type ExportFormat = 'png' | 'webp' | 'jpg';
@@ -38,31 +38,33 @@ export function canEncodeWebp(): boolean {
   return webpSupport;
 }
 
+/**
+ * Build the final image: the original pixels with the mask applied as transparency
+ * (and edge colours cleaned). Uses OffscreenCanvas, so it runs in the image worker.
+ */
 export async function exportImage(
   pixels: Uint8ClampedArray,
-  mask: Mask,
+  mask: Uint8Array,
+  width: number,
+  height: number,
   options: ExportOptions,
 ): Promise<Blob> {
-  const { width, height } = mask;
+  // A private copy: the original is never modified (and ImageData can't use shared memory).
   const rgba = new Uint8ClampedArray(pixels);
-  cleanEdges(rgba, mask.data, width, height);
-  applyMaskAlpha(rgba, mask.data);
+  cleanEdges(rgba, mask, width, height);
+  applyMaskAlpha(rgba, mask);
 
   const full: Rect = { x: 0, y: 0, w: width, h: height };
-  const crop = (options.trim && boundingBox(mask.data, width, height)) || full;
+  const crop = (options.trim && boundingBox(mask, width, height)) || full;
 
-  const canvas = document.createElement('canvas');
-  canvas.width = crop.w;
-  canvas.height = crop.h;
+  const canvas = new OffscreenCanvas(crop.w, crop.h);
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas 2D is unavailable');
 
   const image = new ImageData(rgba, width, height);
   if (options.format === 'jpg') {
     // putImageData ignores compositing, so go through a second canvas to draw over the colour.
-    const layer = document.createElement('canvas');
-    layer.width = width;
-    layer.height = height;
+    const layer = new OffscreenCanvas(width, height);
     layer.getContext('2d')!.putImageData(image, 0, 0);
     ctx.fillStyle = options.background;
     ctx.fillRect(0, 0, crop.w, crop.h);
@@ -71,14 +73,10 @@ export async function exportImage(
     ctx.putImageData(image, -crop.x, -crop.y);
   }
 
-  const quality = options.format === 'png' ? undefined : 0.92;
-  return new Promise((resolve, reject) =>
-    canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error('Encoding failed'))),
-      MIME[options.format],
-      quality,
-    ),
-  );
+  return canvas.convertToBlob({
+    type: MIME[options.format],
+    quality: options.format === 'png' ? undefined : 0.92,
+  });
 }
 
 export function downloadBlob(blob: Blob, fileName: string): void {

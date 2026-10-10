@@ -59,14 +59,24 @@ export class Editor {
     this.emit({ type: 'history' });
   }
 
-  /** The original image's RGBA pixels, decoded once on first use. */
+  /**
+   * The original image's RGBA pixels, decoded once on first use. When the page is
+   * cross-origin isolated they live in shared memory, so workers can read them without a copy.
+   */
   get pixels(): Uint8ClampedArray {
     if (!this.pixelCache) {
       const image = this.image!;
       const canvas = new OffscreenCanvas(image.width, image.height);
       const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
       ctx.drawImage(image, 0, 0);
-      this.pixelCache = ctx.getImageData(0, 0, image.width, image.height).data;
+      const data = ctx.getImageData(0, 0, image.width, image.height).data;
+      if (globalThis.crossOriginIsolated) {
+        const shared = new Uint8ClampedArray(new SharedArrayBuffer(data.length));
+        shared.set(data);
+        this.pixelCache = shared;
+      } else {
+        this.pixelCache = data;
+      }
     }
     return this.pixelCache;
   }
