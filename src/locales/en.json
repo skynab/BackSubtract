@@ -1,0 +1,70 @@
+{
+  "language": "Language",
+  "empty": {
+    "title": "Remove the background from any photo",
+    "choose": "Choose image",
+    "hint": "or drop or paste an image anywhere",
+    "privacy": "Your images never leave your device."
+  },
+  "drop": "Drop to open",
+  "tools": {
+    "label": "Tools",
+    "auto": "Auto",
+    "select": "Select",
+    "wand": "Magic Wand",
+    "color": "Color",
+    "brush": "Brush",
+    "comingSoon": "{{tool}} — coming soon"
+  },
+  "mode": {
+    "label": "Mode",
+    "keep": "Keep",
+    "remove": "Remove"
+  },
+  "brushSize": "Brush size",
+  "actions": {
+    "open": "Open another image",
+    "undo": "Undo",
+    "redo": "Redo",
+    "exporting": "Preparing…"
+  },
+  "viewer": {
+    "label": "Image editor",
+    "original": "Original"
+  },
+  "confirmReplace": "Open a new image? Your edits to this one will be lost.",
+  "notices": {
+    "resized": "Large image scaled down to {{max}} px on its longest side.",
+    "restored": "Welcome back — your last image was restored."
+  },
+  "errors": {
+    "notImage": "That file isn't an image.",
+    "load": "Couldn't open that image.",
+    "webgl": "Your browser doesn't support WebGL2, which BackSubtract needs.",
+    "export": "Couldn't export the image."
+  },
+  "dismiss": "Dismiss",
+  "tolerance": "Tolerance",
+  "download": {
+    "button": "Download {{format}}",
+    "options": "Download options",
+    "format": "Format",
+    "formats": {
+      "png": "PNG",
+      "webp": "WebP",
+      "jpg": "JPG"
+    },
+    "hints": {
+      "png": "Transparent background",
+      "webp": "Transparent, smaller file",
+      "jpg": "Solid background colour"
+    },
+    "background": "Background",
+    "customColor": "Custom colour",
+    "trim": "Crop to subject",
+    "colors": {
+      "white": "White",
+      "black": "Black"
+    }
+  }
+}
