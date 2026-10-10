@@ -7,6 +7,7 @@ import { initI18n } from './i18n';
 import { startAutosave } from './session/autosave';
 import { restoreSession } from './session/openImage';
 import { useUI } from './state/store';
+import './tools/controller';
 
 editor.subscribe((event) => {
   if (event.type === 'history') {

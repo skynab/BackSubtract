@@ -16,8 +16,7 @@
 | UI | **React 19** | Familiar to most contributors, large ecosystem |
 | App state | **Zustand** | Tiny; easy to share state between React and the canvas/workers |
 | Canvas rendering | **WebGL2** compositor | Redraws image + mask each frame, so edits on large images stay smooth |
-| ML runtime | **Transformers.js / ONNX Runtime Web** | Runs on WebGPU and falls back to WASM; models load from the Hugging Face CDN |
-| Classic CV | **OpenCV.js** (lazy-loaded, about 8 MB) | GrabCut, morphology |
+| ML runtime | **Transformers.js / ONNX Runtime Web** in a Web Worker | Runs on WebGPU and falls back to WASM; models load from the Hugging Face CDN |
 | Heavy work | **Web Workers** | Keeps the UI responsive during inference |
 | Model caching | **Cache API** | Each model downloads once, then works offline |
 | Session saving | **IndexedDB** | Work in progress survives a page refresh (stored on the device only) |
@@ -58,16 +57,25 @@ The tools appear as one row of four large icons. One is always selected, and the
 
 ### A. Auto (default)
 - A model removes the background as soon as the image opens. This covers most cases (people, products, pets).
-- Model: **BiRefNet-lite** (MIT). A second option, **MODNet** (Apache-2.0), is better for portraits and can be added later.
+- Models, chosen per device:
+  - **BiRefNet-lite** (MIT, 115 MB at fp16): best edges. Used only on WebGPU with half precision and a GPU allowing at least 17 storage buffers per shader. Many integrated GPUs allow 16, and BiRefNet fails on them.
+  - **IS-Net** (DIS general-use; MIT-tagged ONNX of Apache-2.0 weights; 88 MB at fp16, 176 MB at fp32): used everywhere else, including the no-WebGPU fallback.
+  - If BiRefNet still fails at run time, the worker switches to IS-Net on the spot, and the app remembers that for later visits.
+- The first run asks first: the button reads "Remove background (88 MB one-time download)". After that, Auto runs on its own whenever an image opens with Auto selected. A restored session never re-runs it over the user's work.
 - Tapping Auto again re-runs it, which resets the mask to the model's result as an undoable step.
 
 ### B. Select (Segment Anything): tap or draw around
 This tool merges the earlier "Tap object" and "Draw around" ideas into one button.
-- Model: **SlimSAM / EfficientSAM / SAM 2-tiny** through Transformers.js (all Apache-2.0).
+- Model: **SlimSAM-77** (Apache-2.0, about 17 MB) through Transformers.js. The image encoder runs on WebGPU and the small prompt decoder on WASM.
 - The image is encoded **once** in a worker, taking about 1–3 s on WebGPU. Each prompt then runs only the small decoder, in about 50 ms.
 - **Tap** an object to select it. Each additional tap refines the selection.
-- **Drag a loop** around an object to send its bounding box plus points sampled inside it to SAM as prompts.
-- If SAM handles a shape poorly, such as hair, fur or an irregular outline, the loop falls back to **OpenCV GrabCut**. Outside the loop counts as background and inside as probable foreground.
+- **Drag a loop** around an object. The SlimSAM ONNX export takes points only, not boxes, so the loop is turned into points:
+  - a few candidate points deep inside the loop, each tried on its own;
+  - background points just outside the loop's bounding box, used with every candidate.
+
+  Each of SAM's proposals is scored by how much of the loop it fills, minus how far it spills outside. The best one is clipped to the loop, with a little slack.
+- If no proposal fits, for example a loop around plain background, the loop itself is used, and its edge snaps to the image. This replaces the planned OpenCV GrabCut fallback and saves an 8 MB download.
+- Masks come back at about 1024 px. They're upscaled, and their edge snaps to the full-resolution image using the brush's edge snapping, in tiles.
 - Default mode is **Keep**. The first selection hides everything outside it, and later selections add to it. In Remove mode, a tap or loop hides that object instead.
 
 ### C. Magic Wand
@@ -127,8 +135,9 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 ## 7. Performance and compatibility
 
 - Detect **WebGPU**, and fall back to WASM with SIMD and threads. That fallback needs COOP/COEP headers for `SharedArrayBuffer`; set them on the host. GitHub Pages can't set headers, so either use Cloudflare Pages or Netlify, or use the `coi-serviceworker` shim.
-- **Lazy-load** each model the first time its tool is used, with a progress bar showing the size, e.g. "Downloading model 38 MB (one time)". Auto's model can preload while the user is choosing a file.
-- Prefer **quantised models** (fp16/int8) to keep downloads under about 50 MB each.
+- **Lazy-load** each model the first time its tool is used, with a progress bar, e.g. "Downloading AI model… 34 / 88 MB (one time)". Models stay in the browser's Cache API.
+- Prefer **half-precision or quantised models**. Quality background models are about 90–115 MB, more than the original 50 MB target, so Auto asks before its first download.
+- The ONNX Runtime WASM file is about 27 MB and ships with the site. That's over Cloudflare Pages' 25 MiB per-file limit, so either host on Netlify or GitHub Pages, or load it from a CDN.
 - Images are decoded with `createImageBitmap`, and EXIF orientation is honoured. HEIC (iPhone) is supported through a lazy-loaded `heic2any`.
 - Memory: cap the working resolution at about 4096 px on the long side and warn above that.
 
@@ -159,7 +168,10 @@ public/           icons, manifest
 2. ✅ **Classic tools (week 2):** Magic Wand, Color, edge-snapping brush, edge colour cleanup, ghost preview, IndexedDB auto-save, and PNG/WebP/JPG export with trim.
    - Measured on a 12.6 MP photo: a tap takes about 0.2–0.3 s, a slider re-tune 0.1–0.2 s, and an export 1.1–1.4 s (mostly encoding).
    - Follow-up: move tap and export work into a Web Worker so the page never pauses, alongside the ML workers in week 3.
-3. **ML tools (weeks 3–4):** Auto model in a worker, then Select (tap, then loop, then the GrabCut fallback). Add WebGPU/WASM detection, model caching, and progress UI.
+3. ✅ **ML tools (week 3):** Auto (BiRefNet or IS-Net by device) and Select (SlimSAM taps and loops), both in a Web Worker. Includes WebGPU/WASM detection, model caching, and download/progress UI.
+   - Measured on an Intel gen-9 GPU with a 1600×1200 image:
+     - Auto: 88 MB download in about 4 s, then about 3 s per run (5 s for the first run after a reload).
+     - Select: about 8.6 s for the first tap (17 MB download plus preparing the image), then about 0.5 s per tap and 0.4 s per loop.
 4. **Donations and polish (week 5):** donate dialog, mobile gestures and layout, accessibility (keyboard and screen-reader labels), the remaining translations, PWA/offline, and deploy.
 5. **Testing throughout:**
    - Vitest unit tests for the mask maths: Keep/Remove combine, recovery after removal, undo diffs, flood fill, colour key, export.
@@ -194,11 +206,11 @@ The site is free, with optional donations. Accepting donations can count as comm
 
 | Component | Licence | Status |
 |---|---|---|
-| BiRefNet-lite (Auto) | MIT | ✅ Use |
+| BiRefNet-lite (Auto, capable GPUs) | MIT | ✅ Use |
+| IS-Net general-use (Auto, everywhere else) | Apache-2.0 weights (DIS); ONNX build tagged MIT | ✅ Use |
 | MODNet (portrait option) | Apache-2.0 | ✅ Optional |
-| SlimSAM / EfficientSAM / SAM 2 (Select) | Apache-2.0 | ✅ Use |
+| SlimSAM-77 (Select) | Apache-2.0 | ✅ Use |
 | Transformers.js, ONNX Runtime Web | Apache-2.0 / MIT | ✅ Use |
-| OpenCV.js (GrabCut) | Apache-2.0 | ✅ Use |
 | React, Zustand, react-i18next, Vite | MIT | ✅ Use |
 | heic2any | MIT | ✅ Use |
 | RMBG-1.4 / 2.0 (BRIA) | Non-commercial (CC BY-NC / BRIA licence) | ❌ Excluded |

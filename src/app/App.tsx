@@ -3,6 +3,7 @@ import { Viewer } from '../canvas/Viewer';
 import { useUI } from '../state/store';
 import { BottomBar } from './BottomBar';
 import { DropZone } from './DropZone';
+import { TaskStatus } from './TaskStatus';
 import { Toast } from './Toast';
 import { TopBar } from './TopBar';
 import { useGlobalInput } from './useGlobalInput';
@@ -19,6 +20,7 @@ export function App() {
       <main className="stage">
         {hasImage ? <Viewer /> : <DropZone />}
         {dragging && <div className="drop-overlay">{t('drop')}</div>}
+        <TaskStatus />
         <Toast />
       </main>
       {hasImage && <BottomBar />}

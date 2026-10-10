@@ -2,11 +2,11 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { ExportFormat } from '../export/exportImage';
 import type { Mode } from '../mask/mask';
+import type { ModelInfo } from '../ml/protocol';
 
 export type ToolId = 'auto' | 'select' | 'wand' | 'color' | 'brush';
 
-/** Tools that are built so far; the rest show as "coming soon". */
-export const AVAILABLE_TOOLS: readonly ToolId[] = ['wand', 'color', 'brush'];
+export const AVAILABLE_TOOLS: readonly ToolId[] = ['auto', 'select', 'wand', 'color', 'brush'];
 
 /** Each tool starts in the mode it is most often used for. */
 const DEFAULT_MODES: Record<ToolId, Mode> = {
@@ -22,6 +22,14 @@ export const BRUSH_MAX = 300;
 /** Colour tolerance range, in ΔE. */
 export const TOLERANCE_MIN = 1;
 export const TOLERANCE_MAX = 100;
+
+/** Something slow in progress, shown above the image. */
+export interface Task {
+  key: string;
+  params?: Record<string, unknown>;
+  /** 0–1 when known, e.g. a model download. */
+  progress?: number;
+}
 
 export interface Notice {
   key: string;
@@ -43,6 +51,11 @@ interface UIState {
   canRedo: boolean;
   dragging: boolean;
   notice: Notice | null;
+  task: Task | null;
+  /** Download size and status of each AI model, once known. */
+  models: { auto?: ModelInfo; select?: ModelInfo };
+  /** Whether Auto has already run on the current image. */
+  autoRan: boolean;
   setTool: (tool: ToolId) => void;
   toggleMode: () => void;
   setMode: (mode: Mode) => void;
@@ -58,7 +71,7 @@ export const useUI = create<UIState>()(
   persist(
     (set) => ({
       hasImage: false,
-      tool: 'wand',
+      tool: 'auto',
       modes: { ...DEFAULT_MODES },
       brushSize: 40,
       tolerances: { wand: 20, color: 15 },
@@ -69,6 +82,9 @@ export const useUI = create<UIState>()(
       canRedo: false,
       dragging: false,
       notice: null,
+      task: null,
+      models: {},
+      autoRan: false,
       setTool: (tool) => {
         if (AVAILABLE_TOOLS.includes(tool)) set({ tool });
       },

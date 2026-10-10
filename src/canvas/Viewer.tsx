@@ -4,6 +4,7 @@ import { editor } from '../editor/editor';
 import { unionRect, type Rect } from '../mask/mask';
 import { selectMode, useUI } from '../state/store';
 import { pick } from '../tools/color/pick';
+import { selectAt, selectLoop } from '../tools/select/select';
 import { cssColor, Renderer } from './renderer';
 import { clamp, fitView, MAX_SCALE, minScale, toImage, zoomAt, type Point, type View } from './view';
 
@@ -17,6 +18,7 @@ type Gesture =
   | { kind: 'stroke'; id: number }
   | { kind: 'pan'; id: number; last: Point }
   | { kind: 'hold'; id: number; start: Point; timer: number }
+  | { kind: 'lasso'; id: number; points: Point[] }
   | { kind: 'pinch'; startDist: number; startMid: Point; startView: View };
 
 const isEditable = (target: EventTarget | null) =>
@@ -29,12 +31,14 @@ export function Viewer() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
+  const lassoRef = useRef<SVGPathElement>(null);
 
   useEffect(() => {
     const wrap = wrapRef.current!;
     const canvas = canvasRef.current!;
     const cursor = cursorRef.current!;
     const badge = badgeRef.current!;
+    const lasso = lassoRef.current!;
 
     let renderer: Renderer;
     try {
@@ -114,7 +118,7 @@ export function Viewer() {
     function updateCursor(e: PointerEvent | null, p?: Point) {
       const ui = useUI.getState();
       const brush = ui.tool === 'brush' && !spaceDown;
-      const tapTool = ui.tool === 'wand' || ui.tool === 'color';
+      const tapTool = ui.tool === 'wand' || ui.tool === 'color' || ui.tool === 'select';
       canvas.style.cursor =
         spaceDown || gesture.kind === 'pan' ? 'grab' : brush ? 'none' : tapTool ? 'crosshair' : 'default';
       const showRing = brush && p && e && e.pointerType !== 'touch';
@@ -126,6 +130,10 @@ export function Viewer() {
       }
     }
 
+    function drawLasso(points: Point[] | null) {
+      lasso.setAttribute('d', points?.length ? `M${points.map((p) => `${p.x},${p.y}`).join('L')}Z` : '');
+    }
+
     function endGesture(tapped = false) {
       if (gesture.kind === 'stroke') editor.endStroke();
       if (gesture.kind === 'hold') {
@@ -133,19 +141,26 @@ export function Viewer() {
         // A quick press without moving is a tap; a long one only showed the original.
         if (tapped && !comparing) {
           const tool = useUI.getState().tool;
-          if (tool === 'wand' || tool === 'color') {
-            const ip = toImage(view, gesture.start);
-            pick(tool, ip.x, ip.y);
-          }
+          const ip = toImage(view, gesture.start);
+          if (tool === 'wand' || tool === 'color') pick(tool, ip.x, ip.y);
+          else if (tool === 'select') void selectAt(ip.x, ip.y);
         }
         setComparing(false);
+      }
+      if (gesture.kind === 'lasso') {
+        if (tapped && gesture.points.length >= 3) void selectLoop(gesture.points.map((p) => toImage(view, p)));
+        drawLasso(null);
       }
       gesture = { kind: 'none' };
     }
 
     function onPointerDown(e: PointerEvent) {
       if (!editor.image || (e.button !== 0 && e.button !== 1)) return;
-      canvas.setPointerCapture(e.pointerId);
+      try {
+        canvas.setPointerCapture(e.pointerId);
+      } catch {
+        // The pointer may already be gone (e.g. released mid-event); the gesture still works without capture.
+      }
       const p = local(e);
       pointers.set(e.pointerId, p);
 
@@ -153,6 +168,7 @@ export function Viewer() {
         // A second finger turns whatever the first one started into a pinch.
         if (gesture.kind === 'stroke') editor.cancelStroke();
         if (gesture.kind === 'hold') clearTimeout(gesture.timer);
+        drawLasso(null);
         setComparing(false);
         const [a, b] = [...pointers.values()];
         gesture = {
@@ -207,9 +223,22 @@ export function Viewer() {
           if (gesture.id !== e.pointerId || comparing) return;
           if (Math.hypot(p.x - gesture.start.x, p.y - gesture.start.y) > DRAG_SLOP) {
             clearTimeout(gesture.timer);
-            gesture = { kind: 'pan', id: e.pointerId, last: p };
+            // With Select, dragging draws a loop around an object; with other tools it pans.
+            gesture =
+              useUI.getState().tool === 'select'
+                ? { kind: 'lasso', id: e.pointerId, points: [gesture.start, p] }
+                : { kind: 'pan', id: e.pointerId, last: p };
           }
           return;
+        case 'lasso': {
+          if (gesture.id !== e.pointerId) return;
+          const last = gesture.points[gesture.points.length - 1];
+          if (Math.hypot(p.x - last.x, p.y - last.y) >= 3) {
+            gesture.points.push(p);
+            drawLasso(gesture.points);
+          }
+          return;
+        }
         case 'pinch': {
           if (pointers.size < 2) return;
           const [a, b] = [...pointers.values()];
@@ -343,6 +372,9 @@ export function Viewer() {
     <div className="viewer" ref={wrapRef}>
       <canvas ref={canvasRef} role="img" aria-label={t('viewer.label')} />
       <div className="brush-cursor" ref={cursorRef} hidden />
+      <svg className="lasso" aria-hidden="true">
+        <path ref={lassoRef} />
+      </svg>
       <div className="badge" ref={badgeRef} hidden>
         {t('viewer.original')}
       </div>

@@ -13,8 +13,7 @@
     "select": "Seleccionar",
     "wand": "Varita mágica",
     "color": "Color",
-    "brush": "Pincel",
-    "comingSoon": "{{tool}}: próximamente"
+    "brush": "Pincel"
   },
   "mode": {
     "label": "Modo",
@@ -41,7 +40,8 @@
     "notImage": "Ese archivo no es una imagen.",
     "load": "No se pudo abrir esa imagen.",
     "webgl": "Tu navegador no es compatible con WebGL2, que BackSubtract necesita.",
-    "export": "No se pudo exportar la imagen."
+    "export": "No se pudo exportar la imagen.",
+    "model": "No se pudo ejecutar el modelo de IA. Revisa tu conexión e inténtalo de nuevo."
   },
   "dismiss": "Cerrar",
   "tolerance": "Tolerancia",
@@ -66,5 +66,19 @@
       "white": "Blanco",
       "black": "Negro"
     }
+  },
+  "auto": {
+    "run": "Quitar fondo",
+    "download": "Quitar fondo (descarga única de {{size}} MB)",
+    "again": "Volver a ejecutar"
+  },
+  "select": {
+    "hint": "Toca un objeto o dibuja a su alrededor"
+  },
+  "task": {
+    "downloading": "Descargando modelo de IA… {{loaded}} / {{total}} MB (solo una vez)",
+    "auto": "Quitando el fondo…",
+    "preparing": "Preparando la selección…",
+    "selecting": "Seleccionando…"
   }
 }

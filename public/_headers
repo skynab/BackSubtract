@@ -1,0 +1,5 @@
+# Static host headers (Cloudflare Pages / Netlify). Cross-origin isolation lets the
+# AI models' WASM fallback use threads; "credentialless" keeps model downloads working.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless

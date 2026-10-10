@@ -1,9 +1,8 @@
-import type { ComponentType, SVGProps } from 'react';
+import { useEffect, type ComponentType, type SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { editor } from '../editor/editor';
 import { chooseImage } from '../session/openImage';
 import {
-  AVAILABLE_TOOLS,
   BRUSH_MAX,
   BRUSH_MIN,
   selectMode,
@@ -12,6 +11,8 @@ import {
   useUI,
   type ToolId,
 } from '../state/store';
+import { refreshModelInfo } from '../ml/status';
+import { runAuto } from '../tools/auto/auto';
 import { retune } from '../tools/color/pick';
 import { DownloadButton } from './DownloadButton';
 import {
@@ -37,15 +38,13 @@ const TOOLS: { id: ToolId; Icon: ComponentType<SVGProps<SVGSVGElement>> }[] = [
 function ToolButton({ id, Icon }: { id: ToolId; Icon: ComponentType<SVGProps<SVGSVGElement>> }) {
   const { t } = useTranslation();
   const active = useUI((s) => s.tool === id);
-  const available = AVAILABLE_TOOLS.includes(id);
   const label = t(`tools.${id}`);
   return (
     <button
       type="button"
       className="tool"
       aria-pressed={active}
-      disabled={!available}
-      title={available ? label : t('tools.comingSoon', { tool: label })}
+      title={label}
       onClick={() => useUI.getState().setTool(id)}
     >
       <Icon />
@@ -102,9 +101,61 @@ function ToolSlider() {
   return null;
 }
 
-export function BottomBar() {
+function AutoButton() {
+  const { t } = useTranslation();
+  const info = useUI((s) => s.models.auto);
+  const ran = useUI((s) => s.autoRan);
+  const busy = useUI((s) => s.task !== null);
+
+  useEffect(() => {
+    if (!info) void refreshModelInfo('auto').catch(() => {});
+  }, [info]);
+
+  const label = ran
+    ? t('auto.again')
+    : info && !info.cached
+      ? t('auto.download', { size: info.sizeMB })
+      : t('auto.run');
+  return (
+    <button type="button" className="secondary" disabled={busy} onClick={() => void runAuto()}>
+      <AutoIcon width={18} height={18} />
+      {label}
+    </button>
+  );
+}
+
+function ModeToggle() {
   const { t } = useTranslation();
   const mode = useUI(selectMode);
+  return (
+    <div className="segmented" role="group" aria-label={t('mode.label')}>
+      <button type="button" aria-pressed={mode === 'keep'} onClick={() => useUI.getState().setMode('keep')}>
+        <PlusIcon width={18} height={18} />
+        {t('mode.keep')}
+      </button>
+      <button type="button" aria-pressed={mode === 'remove'} onClick={() => useUI.getState().setMode('remove')}>
+        <MinusIcon width={18} height={18} />
+        {t('mode.remove')}
+      </button>
+    </div>
+  );
+}
+
+function ContextRow() {
+  const { t } = useTranslation();
+  const tool = useUI((s) => s.tool);
+  if (tool === 'auto') return <AutoButton />;
+  return (
+    <>
+      <ModeToggle />
+      <ToolSlider />
+      {tool === 'select' && <span className="hint">{t('select.hint')}</span>}
+    </>
+  );
+}
+
+export function BottomBar() {
+  const { t } = useTranslation();
   const canUndo = useUI((s) => s.canUndo);
   const canRedo = useUI((s) => s.canRedo);
 
@@ -119,17 +170,7 @@ export function BottomBar() {
       </div>
 
       <div className="context">
-        <div className="segmented" role="group" aria-label={t('mode.label')}>
-          <button type="button" aria-pressed={mode === 'keep'} onClick={() => useUI.getState().setMode('keep')}>
-            <PlusIcon width={18} height={18} />
-            {t('mode.keep')}
-          </button>
-          <button type="button" aria-pressed={mode === 'remove'} onClick={() => useUI.getState().setMode('remove')}>
-            <MinusIcon width={18} height={18} />
-            {t('mode.remove')}
-          </button>
-        </div>
-        <ToolSlider />
+        <ContextRow />
       </div>
 
       <div className="actions">

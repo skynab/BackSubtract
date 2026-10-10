@@ -1,6 +1,7 @@
 import { History, makeEdit, type Edit } from '../mask/history';
 import { extract, Mask, padRect, unionRect, type Mode, type Rect } from '../mask/mask';
-import { snapRadius, snapToEdges, stampDab, stampSegment, type Plane } from '../tools/brush/brush';
+import { snapToEdges, type Plane } from '../mask/snap';
+import { snapRadius, stampDab, stampSegment } from '../tools/brush/brush';
 
 export type EditorEvent =
   | { type: 'image' }
@@ -128,7 +129,7 @@ export class Editor {
    * Passing the tag of the latest step replaces that step instead, which lets a
    * slider re-tune the last tap without piling up history.
    */
-  applySelection(selection: Uint8Array, rect: Rect, mode: Mode, replaceTag?: number): number | null {
+  applySelection(selection: Uint8Array, rect: Rect, mode: Mode, replaceTag?: number, kind?: string): number | null {
     const mask = this.mask;
     if (!mask || this.stroke) return null;
     let dirty: Rect | null = null;
@@ -141,10 +142,25 @@ export class Editor {
     this.emit({ type: 'mask', rect: dirty });
 
     const tag = this.nextTag++;
-    const edit = makeEdit(snapshot, mask, rect, tag);
+    const edit = makeEdit(snapshot, mask, rect, tag, kind);
     if (edit) this.history.push(edit);
     this.emit({ type: 'history' });
     return edit ? tag : null;
+  }
+
+  /** Set the whole mask at once (e.g. to the Auto result) as one undo step. */
+  replaceMask(values: Uint8Array, kind?: string): void {
+    const mask = this.mask;
+    if (!mask || this.stroke || values.length !== mask.data.length) return;
+    const snapshot = mask.data.slice();
+    mask.data.set(values);
+    const rect = { x: 0, y: 0, w: mask.width, h: mask.height };
+    this.emit({ type: 'mask', rect });
+    const edit = makeEdit(snapshot, mask, rect, this.nextTag++, kind);
+    if (edit) {
+      this.history.push(edit);
+      this.emit({ type: 'history' });
+    }
   }
 
   undo(): void {

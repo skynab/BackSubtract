@@ -13,8 +13,7 @@
     "select": "Select",
     "wand": "Magic Wand",
     "color": "Color",
-    "brush": "Brush",
-    "comingSoon": "{{tool}} — coming soon"
+    "brush": "Brush"
   },
   "mode": {
     "label": "Mode",
@@ -41,7 +40,8 @@
     "notImage": "That file isn't an image.",
     "load": "Couldn't open that image.",
     "webgl": "Your browser doesn't support WebGL2, which BackSubtract needs.",
-    "export": "Couldn't export the image."
+    "export": "Couldn't export the image.",
+    "model": "The AI model couldn't run. Check your connection and try again."
   },
   "dismiss": "Dismiss",
   "tolerance": "Tolerance",
@@ -66,5 +66,19 @@
       "white": "White",
       "black": "Black"
     }
+  },
+  "auto": {
+    "run": "Remove background",
+    "download": "Remove background ({{size}} MB one-time download)",
+    "again": "Run again"
+  },
+  "select": {
+    "hint": "Tap an object, or draw around it"
+  },
+  "task": {
+    "downloading": "Downloading AI model… {{loaded}} / {{total}} MB (one time)",
+    "auto": "Removing background…",
+    "preparing": "Getting ready to select…",
+    "selecting": "Selecting…"
   }
 }

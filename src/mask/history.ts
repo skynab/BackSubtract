@@ -7,6 +7,8 @@ export interface Edit {
   after: Uint8Array;
   /** Identifies the action that made this edit, so it can be re-tuned in place. */
   tag?: number;
+  /** What kind of action made it, e.g. 'select-keep'. */
+  kind?: string;
 }
 
 const editBytes = (e: Edit) => e.before.byteLength + e.after.byteLength;
@@ -15,7 +17,7 @@ const editBytes = (e: Edit) => e.before.byteLength + e.after.byteLength;
  * Build an edit from a snapshot of the mask taken before the change.
  * Returns null when nothing actually changed.
  */
-export function makeEdit(snapshot: Uint8Array, mask: Mask, rect: Rect, tag?: number): Edit | null {
+export function makeEdit(snapshot: Uint8Array, mask: Mask, rect: Rect, tag?: number, kind?: string): Edit | null {
   // Check for a change before copying anything out.
   const { data, width } = mask;
   let changed = false;
@@ -28,7 +30,7 @@ export function makeEdit(snapshot: Uint8Array, mask: Mask, rect: Rect, tag?: num
       }
     }
   }
-  return changed ? { rect, before: extract(snapshot, width, rect), after: mask.read(rect), tag } : null;
+  return changed ? { rect, before: extract(snapshot, width, rect), after: mask.read(rect), tag, kind } : null;
 }
 
 export class History {
@@ -51,6 +53,11 @@ export class History {
   /** The tag of the newest edit, if nothing has been undone since. */
   get latestTag(): number | undefined {
     return this.redoStack.length ? undefined : this.undoStack.at(-1)?.tag;
+  }
+
+  /** Whether any step that is currently applied (not undone) is of this kind. */
+  hasKind(kind: string): boolean {
+    return this.undoStack.some((e) => e.kind === kind);
   }
 
   push(edit: Edit): void {

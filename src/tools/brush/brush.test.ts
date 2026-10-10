@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Mask } from '../../mask/mask';
-import { snapToEdges, stampDab, stampSegment, type Plane } from './brush';
+import { snapToEdges, snapToEdgesTiled, type Plane } from '../../mask/snap';
+import { stampDab, stampSegment } from './brush';
 
 const plane = (width: number, height: number): Plane => ({ data: new Uint8Array(width * height), width, height });
 
@@ -79,6 +80,25 @@ describe('snapToEdges', () => {
     expect(p.data[row + 19]).toBe(255); // rim on the stroke's side of the edge: firmed up
     expect(p.data[row + 21]).toBe(0); // rim past the edge: pulled back
     expect(p.data[row + 35]).toBe(0); // outside: unchanged
+  });
+
+  it('the tiled version gives the same result as the single-region one', () => {
+    const w = 600, h = 300;
+    const rgba = new Uint8ClampedArray(w * h * 4);
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        const v = (x - 300) ** 2 + (y - 150) ** 2 < 100 ** 2 ? 220 : 30;
+        rgba.set([v, v, v, 255], (y * w + x) * 4);
+      }
+    const a = plane(w, h);
+    stampDab(a, 300, 150, 108, 0.85);
+    const b = { ...a, data: a.data.slice() };
+    const all = { x: 0, y: 0, w, h };
+    snapToEdges(a, rgba, all, 16);
+    snapToEdgesTiled(b, rgba, all, 16);
+    expect(b.data).toEqual(a.data);
+    expect(a.data[150 * w + 395]).toBe(255); // just inside the circle
+    expect(a.data[150 * w + 405]).toBe(0); // just outside
   });
 
   it('leaves a stroke on a flat area exactly as painted', () => {

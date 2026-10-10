@@ -48,7 +48,8 @@ export async function restoreSession(): Promise<void> {
     // If the image decodes to a different size than before, the saved edits no longer line up.
     const fits = bitmap.width === saved.width && bitmap.height === saved.height;
     editor.load(bitmap, saved.file, saved.fileName, fits ? { mask: saved.mask, edits: saved.edits } : undefined);
-    useUI.setState({ hasImage: true, notice: { key: 'notices.restored', tone: 'info' } });
+    // Don't let Auto overwrite restored work.
+    useUI.setState({ hasImage: true, autoRan: true, notice: { key: 'notices.restored', tone: 'info' } });
   } catch {
     // A saved session that can't be reopened is simply skipped.
   }
