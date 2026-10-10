@@ -4,6 +4,7 @@ import { ViewSwitch } from '../app/ViewSwitch';
 import { editor } from '../editor/editor';
 import { unionRect, type Rect } from '../mask/mask';
 import { selectMode, useUI } from '../state/store';
+import { coreFraction } from '../tools/brush/brush';
 import { pick } from '../tools/color/pick';
 import { clearPreview, onPreview, previewAt, type Preview } from '../tools/color/preview';
 import { applyShape } from '../tools/shape/apply';
@@ -40,6 +41,7 @@ export function Viewer() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
+  const coreRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
   const lassoRef = useRef<SVGPathElement>(null);
 
@@ -47,6 +49,7 @@ export function Viewer() {
     const wrap = wrapRef.current!;
     const canvas = canvasRef.current!;
     const cursor = cursorRef.current!;
+    const coreRing = coreRef.current!;
     const badge = badgeRef.current!;
     const lasso = lassoRef.current!;
 
@@ -130,7 +133,11 @@ export function Viewer() {
       return { x: e.clientX - r.left, y: e.clientY - r.top };
     };
 
+    /** Where the pointer last hovered, so the cursor can follow brush changes made from the keyboard. */
+    let hover: { e: PointerEvent; p: Point } | null = null;
+
     function updateCursor(e: PointerEvent | null, p?: Point) {
+      hover = e && p ? { e, p } : hover;
       const ui = useUI.getState();
       const brush = ui.tool === 'brush' && !spaceDown;
       const tapTool = ui.tool === 'wand' || ui.tool === 'color' || ui.tool === 'select' || ui.tool === 'shape';
@@ -142,6 +149,10 @@ export function Viewer() {
         const d = ui.brushSize;
         cursor.style.width = cursor.style.height = `${d}px`;
         cursor.style.transform = `translate(${p.x - d / 2}px, ${p.y - d / 2}px)`;
+        // The inner ring marks where the brush starts to fade; it is hidden when there is hardly any fade.
+        const core = coreFraction(d / 2 / view.scale, ui.brushHardness / 100) * d;
+        coreRing.style.width = coreRing.style.height = `${core}px`;
+        coreRing.hidden = core > d - 4;
       }
     }
 
@@ -381,7 +392,12 @@ export function Viewer() {
         requestRender();
       }
     });
-    const stopUI = useUI.subscribe(requestRender);
+    const stopUI = useUI.subscribe((s, prev) => {
+      requestRender();
+      if (hover && !cursor.hidden && (s.brushSize !== prev.brushSize || s.brushHardness !== prev.brushHardness)) {
+        updateCursor(hover.e, hover.p);
+      }
+    });
     const stopPreview = onPreview((next) => {
       preview = next;
       if (next && editor.image) renderer.setPreview(next.selection.data, editor.image.width, editor.image.height);
@@ -389,6 +405,7 @@ export function Viewer() {
     });
     const onLeave = () => {
       cursor.hidden = true;
+      hover = null;
       if (gesture.kind === 'none') clearPreview();
     };
     const onBlur = () => {
@@ -433,7 +450,9 @@ export function Viewer() {
   return (
     <div className="viewer" ref={wrapRef}>
       <canvas ref={canvasRef} role="img" aria-label={t('viewer.label')} />
-      <div className="brush-cursor" ref={cursorRef} hidden />
+      <div className="brush-cursor" ref={cursorRef} hidden>
+        <div className="brush-core" ref={coreRef} />
+      </div>
       <svg className="lasso" aria-hidden="true">
         <path ref={lassoRef} />
       </svg>

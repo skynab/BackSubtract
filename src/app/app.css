@@ -161,6 +161,15 @@ button:disabled {
   pointer-events: none;
 }
 
+.brush-core {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  border-radius: 50%;
+  border: 1px dashed #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
+}
+
 .badge {
   position: absolute;
   inset-block-start: 12px;

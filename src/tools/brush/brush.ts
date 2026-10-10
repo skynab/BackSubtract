@@ -13,6 +13,21 @@ export const SNAP_MIN_HARDNESS = 0.5;
 const MIN_CORE = 0.15;
 
 /**
+ * How wide the brush's fading rim is, in image pixels. Always at least a pixel, so even
+ * a fully hard brush has a smooth edge, and never so wide that the solid core is
+ * narrower than half the dab spacing, so a stroke's path is always fully painted.
+ */
+function featherWidth(radius: number, hardness: number): number {
+  return Math.max(1, Math.min(radius * (1 - hardness), radius * (1 - MIN_CORE)));
+}
+
+/** The part of the brush's diameter painted at full strength (0–1), e.g. for drawing the cursor. */
+export function coreFraction(radius: number, hardness: number): number {
+  const r = Math.max(radius, 0.5);
+  return Math.max(0, r - featherWidth(r, hardness)) / r;
+}
+
+/**
  * Add one round, soft-edged dab to a coverage plane. Coverage only ever grows
  * (max), so overlapping dabs in a stroke never build up beyond a single dab.
  */
@@ -24,9 +39,7 @@ export function stampDab(plane: Plane, cx: number, cy: number, radius: number, h
   const y1 = Math.min(plane.height, Math.ceil(cy + r));
   if (x0 >= x1 || y0 >= y1) return null;
 
-  // Always fade over at least a pixel, so even a fully hard brush has a smooth edge. Keep a
-  // solid core wider than half the dab spacing, so a stroke's path is always fully painted.
-  const feather = Math.max(1, Math.min(r * (1 - hardness), r * (1 - MIN_CORE)));
+  const feather = featherWidth(r, hardness);
   const inner = r - feather;
   const { data, width } = plane;
   for (let y = y0; y < y1; y++) {

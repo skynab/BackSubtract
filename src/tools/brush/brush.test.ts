@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Mask } from '../../mask/mask';
 import { snapToEdges, snapToEdgesTiled, type Plane } from '../../mask/snap';
-import { stampDab, stampSegment } from './brush';
+import { coreFraction, stampDab, stampSegment } from './brush';
 
 const plane = (width: number, height: number): Plane => ({ data: new Uint8Array(width * height), width, height });
 
@@ -40,6 +40,16 @@ describe('stamping', () => {
     expect(p.data[29]).toBeGreaterThan(0); // 9.5px out
     expect(p.data[29]).toBeLessThan(255);
     expect(p.data[27]).toBe(255);
+  });
+
+  it('coreFraction matches where a dab stops being solid', () => {
+    expect(coreFraction(10, 0.6)).toBeCloseTo(0.6);
+    expect(coreFraction(10, 1)).toBeCloseTo(0.9); // still fades over the last pixel
+    expect(coreFraction(10, 0)).toBeCloseTo(0.15); // the smallest core
+    const p = plane(40, 1);
+    stampDab(p, 20, 0.5, 10, 0.3);
+    expect(p.data[20 + 2]).toBe(255); // 2.5px out, inside the 3px core
+    expect(p.data[20 + 3]).toBeLessThan(255); // 3.5px out, fading
   });
 
   it('overlapping dabs do not build up', () => {
