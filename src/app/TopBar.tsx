@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES, setLanguage } from '../i18n';
 import { useUI } from '../state/store';
-import { canDonate } from './DonateDialog';
+import { showDonate } from './DonateDialog';
 import { GlobeIcon, HeartIcon } from './icons';
 
 export function TopBar() {
@@ -14,12 +14,6 @@ export function TopBar() {
         <span>BackSubtract</span>
       </button>
       <div className="topbar-end">
-        {canDonate && (
-          <button type="button" className="donate-button" onClick={() => useUI.setState({ dialog: 'donate' })}>
-            <HeartIcon width={18} height={18} />
-            <span>{t('donate.button')}</span>
-          </button>
-        )}
         <label className="language">
           <GlobeIcon />
           <span className="sr-only">{t('language')}</span>
@@ -31,6 +25,18 @@ export function TopBar() {
             ))}
           </select>
         </label>
+        {showDonate && (
+          <button
+            type="button"
+            className="donate-button"
+            aria-label={t('donate.button')}
+            title={t('donate.button')}
+            onClick={() => useUI.setState({ dialog: 'donate' })}
+          >
+            <HeartIcon width={18} height={18} />
+            <span>{t('donate.button')}</span>
+          </button>
+        )}
       </div>
     </header>
   );

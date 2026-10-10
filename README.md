@@ -27,7 +27,7 @@ The site is static: deploy the `dist/` folder.
 - **Headers.** The AI models' WASM fallback needs cross-origin isolation. `public/_headers` sets `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: credentialless`, and Netlify and Cloudflare Pages read that file. GitHub Pages can't set headers.
 - **File size.** The ONNX Runtime WASM file is about 27 MB. That's over Cloudflare Pages' 25 MiB per-file limit, so Netlify (or another host without that limit) is the simplest choice.
 - **Settings.** Copy `.env.example` to `.env.local`, or set the same variables in the host's build settings:
-  - `VITE_DONATE_LINK_*`: Stripe Payment Links for the Donate dialog. The Donate button stays hidden until at least one is set. Set each link's after-payment redirect to `https://<your-site>/?thanks` to show a thank-you message.
+  - `VITE_DONATE_LINK_*`: Stripe Payment Links for the Donate dialog. The Donate button stays hidden until at least one is set (it always shows under `npm run dev`, so you can see it while working). Set each link's after-payment redirect to `https://<your-site>/?thanks` to show a thank-you message.
   - `VITE_CONTACT_EMAIL`: shown on the About page. Stripe requires public contact details, and a refund policy if you have one.
 - **Icons.** `node scripts/make-icons.mjs` regenerates the PNG app icons in `public/`.
 

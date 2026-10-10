@@ -3,7 +3,9 @@ import { DONATE_CURRENCY, DONATE_OPTIONS } from '../config';
 import { HeartIcon } from './icons';
 import { Modal } from './Modal';
 
+/** Whether donations are set up. Without payment links the button stays hidden, except while developing. */
 export const canDonate = DONATE_OPTIONS.length > 0;
+export const showDonate = canDonate || import.meta.env.DEV;
 
 /**
  * The site's own donation dialog. Payment itself happens on Stripe's hosted page
@@ -35,7 +37,15 @@ export function DonateDialog({ onClose }: { onClose: () => void }) {
           </a>
         ))}
       </div>
-      <p className="muted small">{t('donate.note')}</p>
+      {canDonate ? (
+        <p className="muted small">{t('donate.note')}</p>
+      ) : (
+        // Only reachable in development: tell the developer what to configure. Not translated on purpose.
+        <p className="muted small">
+          No payment links are set, so this button is hidden on the live site. Add <code>VITE_DONATE_LINK_*</code> to{' '}
+          <code>.env.local</code> (see <code>.env.example</code>).
+        </p>
+      )}
     </Modal>
   );
 }
