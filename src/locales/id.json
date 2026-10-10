@@ -1,0 +1,182 @@
+{
+  "language": "Bahasa",
+  "empty": {
+    "title": "Hapus latar belakang dari foto apa pun",
+    "choose": "Pilih gambar",
+    "hint": "atau seret atau tempel gambar di mana saja",
+    "privacy": "Gambar Anda tidak pernah keluar dari perangkat Anda."
+  },
+  "drop": "Lepaskan untuk membuka",
+  "tools": {
+    "label": "Alat",
+    "auto": "Otomatis",
+    "select": "Pilih",
+    "wand": "Tongkat Ajaib",
+    "color": "Warna",
+    "brush": "Kuas",
+    "shape": "Bentuk",
+    "lasso": "Laso",
+    "ai": "AI",
+    "aiHint": "Memakai model AI yang diunduh sekali ke perangkat ini",
+    "edges": "Rapikan tepi",
+    "refine": "Rapikan tepi"
+  },
+  "mode": {
+    "label": "Mode",
+    "keep": "Pertahankan",
+    "remove": "Hapus"
+  },
+  "brushSize": "Ukuran kuas",
+  "brushHardness": "Kekerasan",
+  "actions": {
+    "open": "Buka gambar lain",
+    "undo": "Urungkan",
+    "redo": "Ulangi",
+    "exporting": "Menyiapkan…"
+  },
+  "viewer": {
+    "label": "Editor gambar",
+    "original": "Asli"
+  },
+  "confirmReplace": "Buka gambar baru? Hasil edit pada gambar ini akan hilang.",
+  "notices": {
+    "resized": "Gambar besar diperkecil menjadi {{max}} px untuk diedit. Unduhan tetap berukuran penuh.",
+    "restored": "Selamat datang kembali — gambar terakhir Anda telah dipulihkan."
+  },
+  "errors": {
+    "notImage": "File itu bukan gambar.",
+    "load": "Gambar tidak dapat dibuka.",
+    "webgl": "Browser Anda tidak mendukung WebGL2, yang dibutuhkan BackSubtract.",
+    "export": "Gambar tidak dapat diekspor.",
+    "model": "Model AI tidak dapat dijalankan. Periksa koneksi Anda lalu coba lagi.",
+    "heic": "Browser ini tidak dapat membuka foto HEIC dari iPhone. Coba Safari, atau ekspor foto sebagai JPG terlebih dulu (di iPhone: Pengaturan → Kamera → Format → Paling Kompatibel).",
+    "copy": "Gambar tidak dapat disalin. Coba unduh saja.",
+    "share": "Gambar tidak dapat dibagikan."
+  },
+  "dismiss": "Tutup",
+  "tolerance": "Toleransi",
+  "download": {
+    "button": "Unduh {{format}}",
+    "options": "Opsi unduhan",
+    "format": "Format",
+    "formats": {
+      "png": "PNG",
+      "webp": "WebP",
+      "jpg": "JPG",
+      "mask": "Masker"
+    },
+    "hints": {
+      "png": "Latar transparan",
+      "webp": "Transparan, file lebih kecil",
+      "jpg": "Latar warna polos",
+      "mask": "Hitam putih, untuk editor lain"
+    },
+    "background": "Latar",
+    "customColor": "Warna khusus",
+    "trim": "Potong sesuai objek",
+    "colors": {
+      "white": "Putih",
+      "black": "Hitam"
+    },
+    "margin": "Margin",
+    "aspect": "Rasio",
+    "aspectFree": "Pas",
+    "fullSize": "Ukuran penuh ({{width}} × {{height}})",
+    "copy": "Salin",
+    "share": "Bagikan",
+    "copied": "Gambar disalin."
+  },
+  "auto": {
+    "run": "Hapus latar belakang",
+    "download": "Hapus latar belakang (unduhan sekali {{size}} MB)",
+    "again": "Jalankan lagi"
+  },
+  "task": {
+    "downloading": "Mengunduh model AI… {{loaded}} / {{total}} MB (sekali saja)",
+    "auto": "Menghapus latar belakang…",
+    "preparing": "Bersiap memilih…",
+    "selecting": "Memilih…",
+    "cancel": "Batal",
+    "cancelled": "Unduhan dibatalkan. Tidak ada lagi yang diunduh sampai Anda memakai alat AI lagi."
+  },
+  "close": "Tutup",
+  "donate": {
+    "button": "Donasi",
+    "title": "Dukung BackSubtract",
+    "body": "BackSubtract gratis, tanpa iklan dan tanpa daftar. Jika alat ini menghemat waktu Anda, sedikit tip membantu agar tetap berjalan.",
+    "other": "Jumlah lain",
+    "note": "Pembayaran ditangani dengan aman oleh Stripe di tab baru. Tip bersifat sukarela dan tidak dapat mengurangi pajak.",
+    "thanks": "Terima kasih telah mendukung BackSubtract!"
+  },
+  "about": {
+    "link": "Tentang",
+    "title": "Tentang BackSubtract",
+    "intro": "Alat gratis dan sederhana untuk menghapus latar belakang foto. Buka gambar, hapus latar belakangnya dengan salah satu dari beberapa alat, lalu unduh hasilnya.",
+    "privacy": "Semuanya terjadi di browser Anda. Gambar Anda tidak pernah diunggah, dan tidak ada yang dikumpulkan. Model AI diunduh sekali dan disimpan di perangkat Anda.",
+    "shortcutsTitle": "Pintasan keyboard",
+    "creditsTitle": "Dibuat dengan",
+    "source": "Kode sumber",
+    "contact": "Kontak"
+  },
+  "shortcuts": {
+    "tools": "Otomatis, Pilih, Tongkat Ajaib, Warna, Laso, Kuas, Bentuk",
+    "mode": "Beralih antara Pertahankan dan Hapus",
+    "size": "Kuas atau toleransi lebih kecil / lebih besar",
+    "undo": "Urungkan / ulangi",
+    "pan": "Menggeser gambar",
+    "fit": "Paskan gambar ke layar",
+    "compare": "Tahan untuk melihat aslinya",
+    "view": "Ganti tampilan: Hasil, Lapisan, Asli",
+    "square": "Tahan saat menyeret untuk persegi atau lingkaran",
+    "hardness": "Kuas lebih lembut / lebih keras",
+    "cancel": "Batalkan garis atau bentuk yang sedang digambar"
+  },
+  "view": {
+    "label": "Tampilan",
+    "result": "Hasil",
+    "overlay": "Lapisan",
+    "original": "Asli",
+    "hints": {
+      "result": "Tampilkan hasil",
+      "overlay": "Tampilkan area yang dihapus secara samar, untuk melihat apa yang perlu dikembalikan",
+      "original": "Tampilkan gambar asli"
+    }
+  },
+  "history": {
+    "title": "Riwayat",
+    "hint": "tahan untuk riwayat",
+    "start": "Gambar dibuka",
+    "edit": "Edit",
+    "step": "{{tool}} · {{mode}}"
+  },
+  "shape": {
+    "label": "Bentuk",
+    "rect": "Kotak",
+    "ellipse": "Elips"
+  },
+  "edges": {
+    "title": "Rapikan tepi",
+    "shift": "Posisi tepi",
+    "shrink": "Perkecil",
+    "grow": "Perbesar",
+    "soften": "Kelembutan tepi",
+    "crisp": "Tajam",
+    "soft": "Lembut",
+    "cleanup": "Bersihkan bintik",
+    "off": "Mati",
+    "strong": "Kuat",
+    "note": "Berlaku untuk seluruh gambar sebagai satu langkah, yang bisa diurungkan."
+  },
+  "brushKind": {
+    "label": "Jenis kuas",
+    "paint": "Lukis",
+    "refine": "Rambut"
+  },
+  "checker": {
+    "title": "Latar",
+    "contrast": "Kontras",
+    "low": "Rendah",
+    "high": "Tinggi",
+    "motion": "Gerakkan latar"
+  }
+}

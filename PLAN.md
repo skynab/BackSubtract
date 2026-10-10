@@ -162,6 +162,7 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - Strings live in `src/locales/<code>.json` and load through react-i18next. Each language loads only when chosen. Few strings are needed, since the UI is mostly icons with tooltips and accessible labels.
 - **RTL support:** the app sets `dir="rtl"` for Arabic and Hebrew and uses CSS logical properties throughout.
 - Launch set (suggested): en, es, fr, de, pt, zh-CN, ja, ar, hi.
+- Added since: ru, id, ko, bn (13 in all). The picker lists each in its own language, next to related ones. A browser test opens an image on a 375 px phone in every language and checks nothing goes off screen and no tool label spills over; on phones tool buttons are at least as wide as their longest word and share the rest equally, and a long Download label shortens with an ellipsis.
 
 ## 7. Performance and compatibility
 

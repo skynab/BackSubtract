@@ -15,6 +15,36 @@ test('start screen, language switch and right-to-left layout', async ({ page }) 
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
 });
 
+test('every language fits a small phone: nothing off screen, no tool label spilling over', async ({ page }) => {
+  test.skip(test.info().project.name !== 'mobile', 'A phone layout check');
+  await page.setViewportSize({ width: 375, height: 740 });
+  await openTestImage(page);
+  const codes = await page.getByRole('combobox').locator('option').evaluateAll((os) => os.map((o) => (o as HTMLOptionElement).value));
+  expect(codes.length).toBeGreaterThanOrEqual(13);
+  for (const code of codes) {
+    await page.getByRole('combobox').selectOption(code);
+    await expect(page.locator('html')).toHaveAttribute('lang', code);
+    const problems = await page.evaluate(() => {
+      const vw = document.documentElement.clientWidth;
+      const out: string[] = [];
+      for (const e of document.querySelectorAll('.bottombar *, .topbar *, .view-controls *')) {
+        const r = e.getBoundingClientRect();
+        if (r.width && (r.right > vw + 0.5 || r.left < -0.5)) out.push(`off screen: ${e.textContent?.trim().slice(0, 20)}`);
+      }
+      for (const b of document.querySelectorAll('.tool')) {
+        const box = b.getBoundingClientRect();
+        const label = b.querySelector(':scope > span:last-child')!;
+        const range = document.createRange();
+        range.selectNodeContents(label);
+        if ([...range.getClientRects()].some((t) => t.left < box.left - 0.5 || t.right > box.right + 0.5)) out.push(`spills: ${label.textContent}`);
+      }
+      if (document.documentElement.scrollWidth > vw) out.push('page scrolls sideways');
+      return [...new Set(out)];
+    });
+    expect(problems, code).toEqual([]);
+  }
+});
+
 test('About opens from the app name and closes with Escape', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'BackSubtract' }).click();

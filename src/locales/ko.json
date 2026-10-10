@@ -1,0 +1,182 @@
+{
+  "language": "언어",
+  "empty": {
+    "title": "어떤 사진이든 배경을 지우세요",
+    "choose": "이미지 선택",
+    "hint": "또는 아무 곳에나 이미지를 끌어다 놓거나 붙여넣으세요",
+    "privacy": "이미지는 기기 밖으로 나가지 않습니다."
+  },
+  "drop": "놓아서 열기",
+  "tools": {
+    "label": "도구",
+    "auto": "자동",
+    "select": "선택",
+    "wand": "자동 선택",
+    "color": "색상",
+    "brush": "브러시",
+    "shape": "도형",
+    "lasso": "올가미",
+    "ai": "AI",
+    "aiHint": "AI 모델을 사용합니다(이 기기에 한 번만 다운로드)",
+    "edges": "가장자리 다듬기",
+    "refine": "가장자리 다듬기"
+  },
+  "mode": {
+    "label": "모드",
+    "keep": "남기기",
+    "remove": "지우기"
+  },
+  "brushSize": "브러시 크기",
+  "brushHardness": "경도",
+  "actions": {
+    "open": "다른 이미지 열기",
+    "undo": "실행 취소",
+    "redo": "다시 실행",
+    "exporting": "준비 중…"
+  },
+  "viewer": {
+    "label": "이미지 편집기",
+    "original": "원본"
+  },
+  "confirmReplace": "새 이미지를 열까요? 이 이미지의 편집 내용은 사라집니다.",
+  "notices": {
+    "resized": "큰 이미지라 편집용으로 {{max}}px로 줄였습니다. 다운로드는 원래 크기로 저장됩니다.",
+    "restored": "다시 오셨네요. 마지막 이미지를 복원했습니다."
+  },
+  "errors": {
+    "notImage": "이미지 파일이 아닙니다.",
+    "load": "이미지를 열 수 없습니다.",
+    "webgl": "이 브라우저는 BackSubtract에 필요한 WebGL2를 지원하지 않습니다.",
+    "export": "이미지를 내보낼 수 없습니다.",
+    "model": "AI 모델을 실행할 수 없습니다. 인터넷 연결을 확인하고 다시 시도하세요.",
+    "heic": "이 브라우저는 iPhone HEIC 사진을 열 수 없습니다. Safari를 사용하거나 먼저 JPG로 내보내세요(iPhone: 설정 → 카메라 → 포맷 → 높은 호환성).",
+    "copy": "이미지를 복사할 수 없습니다. 대신 다운로드해 보세요.",
+    "share": "이미지를 공유할 수 없습니다."
+  },
+  "dismiss": "닫기",
+  "tolerance": "허용치",
+  "download": {
+    "button": "{{format}} 다운로드",
+    "options": "다운로드 옵션",
+    "format": "형식",
+    "formats": {
+      "png": "PNG",
+      "webp": "WebP",
+      "jpg": "JPG",
+      "mask": "마스크"
+    },
+    "hints": {
+      "png": "투명 배경",
+      "webp": "투명, 더 작은 파일",
+      "jpg": "단색 배경",
+      "mask": "흑백, 다른 편집기용"
+    },
+    "background": "배경",
+    "customColor": "사용자 지정 색상",
+    "trim": "피사체에 맞춰 자르기",
+    "colors": {
+      "white": "흰색",
+      "black": "검은색"
+    },
+    "margin": "여백",
+    "aspect": "비율",
+    "aspectFree": "맞춤",
+    "fullSize": "원래 크기({{width}} × {{height}})",
+    "copy": "복사",
+    "share": "공유",
+    "copied": "이미지를 복사했습니다."
+  },
+  "auto": {
+    "run": "배경 지우기",
+    "download": "배경 지우기({{size}}MB 1회 다운로드)",
+    "again": "다시 실행"
+  },
+  "task": {
+    "downloading": "AI 모델 다운로드 중… {{loaded}} / {{total}}MB(한 번만)",
+    "auto": "배경 지우는 중…",
+    "preparing": "선택 준비 중…",
+    "selecting": "선택 중…",
+    "cancel": "취소",
+    "cancelled": "다운로드를 취소했습니다. AI 도구를 다시 사용하기 전까지는 아무것도 다운로드하지 않습니다."
+  },
+  "close": "닫기",
+  "donate": {
+    "button": "후원",
+    "title": "BackSubtract 후원하기",
+    "body": "BackSubtract는 광고도 가입도 없는 무료 서비스입니다. 시간을 아끼셨다면 작은 후원이 운영에 도움이 됩니다.",
+    "other": "다른 금액",
+    "note": "결제는 새 탭에서 Stripe가 안전하게 처리합니다. 후원은 자발적이며 세금 공제 대상이 아닙니다.",
+    "thanks": "BackSubtract를 후원해 주셔서 감사합니다!"
+  },
+  "about": {
+    "link": "정보",
+    "title": "BackSubtract 정보",
+    "intro": "사진의 배경을 지우는 간단한 무료 도구입니다. 이미지를 열고, 몇 가지 도구 중 하나로 배경을 지운 뒤, 결과를 다운로드하세요.",
+    "privacy": "모든 작업은 브라우저 안에서 이루어집니다. 이미지는 업로드되지 않으며 아무것도 수집하지 않습니다. AI 모델은 한 번 다운로드되어 기기에 보관됩니다.",
+    "shortcutsTitle": "키보드 단축키",
+    "creditsTitle": "사용한 기술",
+    "source": "소스 코드",
+    "contact": "문의"
+  },
+  "shortcuts": {
+    "tools": "자동, 선택, 자동 선택, 색상, 올가미, 브러시, 도형",
+    "mode": "남기기와 지우기 전환",
+    "size": "브러시 또는 허용치 작게 / 크게",
+    "undo": "실행 취소 / 다시 실행",
+    "pan": "이미지 이동",
+    "fit": "이미지를 화면에 맞추기",
+    "compare": "누르고 있으면 원본 보기",
+    "view": "보기 전환: 결과, 겹쳐 보기, 원본",
+    "square": "드래그하면서 누르면 정사각형이나 원",
+    "hardness": "더 부드러운 / 더 단단한 브러시",
+    "cancel": "그리고 있는 선이나 도형 취소"
+  },
+  "view": {
+    "label": "보기",
+    "result": "결과",
+    "overlay": "겹쳐 보기",
+    "original": "원본",
+    "hints": {
+      "result": "결과 보기",
+      "overlay": "지운 부분을 흐리게 보여 줘서 되살릴 곳을 찾기 쉽게",
+      "original": "원본 이미지 보기"
+    }
+  },
+  "history": {
+    "title": "작업 내역",
+    "hint": "길게 누르면 작업 내역",
+    "start": "이미지 열기",
+    "edit": "편집",
+    "step": "{{tool}} · {{mode}}"
+  },
+  "shape": {
+    "label": "도형",
+    "rect": "사각형",
+    "ellipse": "타원"
+  },
+  "edges": {
+    "title": "가장자리 다듬기",
+    "shift": "가장자리 위치",
+    "shrink": "줄이기",
+    "grow": "넓히기",
+    "soften": "가장자리 부드러움",
+    "crisp": "선명하게",
+    "soft": "부드럽게",
+    "cleanup": "잡티 정리",
+    "off": "끔",
+    "strong": "강하게",
+    "note": "이미지 전체에 한 단계로 적용되며, 실행 취소로 되돌릴 수 있습니다."
+  },
+  "brushKind": {
+    "label": "브러시 종류",
+    "paint": "칠하기",
+    "refine": "머리카락"
+  },
+  "checker": {
+    "title": "배경",
+    "contrast": "대비",
+    "low": "낮음",
+    "high": "높음",
+    "motion": "배경 움직이기"
+  }
+}

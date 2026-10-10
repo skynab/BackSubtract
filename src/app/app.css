@@ -119,6 +119,11 @@ button:disabled {
 }
 
 .language select {
+  /* As wide as the chosen language, not the longest one in the list ("Bahasa Indonesia"). */
+  field-sizing: content;
+  max-width: 11em;
+  min-width: 0;
+  text-overflow: ellipsis;
   appearance: none;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -461,8 +466,18 @@ button:disabled {
   }
 
   .tool {
-    min-width: 0;
-    flex: 1;
+    /* Each is at least as wide as its longest word, and the rest of the row is shared out equally,
+       so long labels (e.g. Russian) wrap at their spaces instead of spilling over their neighbours. */
+    flex: 1 1 0;
+    min-width: min-content;
+    padding-inline: 2px;
+    font-size: 11px;
+  }
+
+  .tool > span:last-child {
+    line-height: 1.15;
+    text-align: center;
+    hyphens: auto;
   }
 
   .slider {
@@ -829,10 +844,48 @@ button:disabled {
 @media (max-width: 720px) {
   .download {
     flex: 1;
+    min-width: 0;
   }
 
   .download .split-main {
     flex: 1;
+    min-width: 0;
+    padding-inline: 12px;
+  }
+
+  /* On a narrow phone a long label ("Als PNG herunterladen") shortens rather than pushing the row off screen. */
+  .download .split-main .label {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .actions .icon {
+    width: 38px;
+  }
+
+  .actions {
+    gap: 2px;
+  }
+
+  .download {
+    margin-inline-start: 4px;
+  }
+}
+
+@media (max-width: 420px) {
+  /* Room for the words: the button says what it does, so the arrow can go. */
+  .download .split-main svg {
+    display: none;
+  }
+
+  .topbar {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+
+  .language svg {
+    display: none;
   }
 }
 

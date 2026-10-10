@@ -117,7 +117,9 @@ export function DownloadButton() {
     <div className="download" ref={rootRef}>
       <button type="button" className="primary split-main" disabled={busy} onClick={download}>
         <DownloadIcon />
-        {busy ? t('actions.exporting') : t('download.button', { format: t(`download.formats.${active}`) })}
+        <span className="label">
+          {busy ? t('actions.exporting') : t('download.button', { format: t(`download.formats.${active}`) })}
+        </span>
       </button>
       <button
         type="button"
