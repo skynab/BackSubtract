@@ -1,0 +1,47 @@
+{
+  "language": "Idioma",
+  "empty": {
+    "title": "Quita el fondo de cualquier foto",
+    "choose": "Elegir imagen",
+    "hint": "o suelta o pega una imagen en cualquier lugar",
+    "privacy": "Tus imágenes nunca salen de tu dispositivo."
+  },
+  "drop": "Suelta para abrir",
+  "tools": {
+    "label": "Herramientas",
+    "auto": "Auto",
+    "select": "Seleccionar",
+    "wand": "Varita mágica",
+    "color": "Color",
+    "brush": "Pincel",
+    "comingSoon": "{{tool}}: próximamente"
+  },
+  "mode": {
+    "label": "Modo",
+    "keep": "Conservar",
+    "remove": "Quitar"
+  },
+  "brushSize": "Tamaño del pincel",
+  "actions": {
+    "open": "Abrir otra imagen",
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "download": "Descargar PNG",
+    "exporting": "Preparando…"
+  },
+  "viewer": {
+    "label": "Editor de imagen",
+    "original": "Original"
+  },
+  "confirmReplace": "¿Abrir una imagen nueva? Se perderán los cambios en esta.",
+  "notices": {
+    "resized": "Imagen grande reducida a {{max}} px en su lado más largo."
+  },
+  "errors": {
+    "notImage": "Ese archivo no es una imagen.",
+    "load": "No se pudo abrir esa imagen.",
+    "webgl": "Tu navegador no es compatible con WebGL2, que BackSubtract necesita.",
+    "export": "No se pudo exportar la imagen."
+  },
+  "dismiss": "Cerrar"
+}
