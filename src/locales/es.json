@@ -14,7 +14,10 @@
     "wand": "Varita mágica",
     "color": "Color",
     "brush": "Pincel",
-    "shape": "Forma"
+    "shape": "Forma",
+    "lasso": "Lazo",
+    "ai": "IA",
+    "aiHint": "Usa un modelo de IA que se descarga una sola vez en este dispositivo"
   },
   "mode": {
     "label": "Modo",
@@ -35,7 +38,7 @@
   },
   "confirmReplace": "¿Abrir una imagen nueva? Se perderán los cambios en esta.",
   "notices": {
-    "resized": "Imagen grande reducida a {{max}} px en su lado más largo.",
+    "resized": "Imagen grande reducida a {{max}} px para editarla. Las descargas mantienen el tamaño completo.",
     "restored": "Bienvenido de nuevo: se restauró tu última imagen."
   },
   "errors": {
@@ -44,7 +47,9 @@
     "webgl": "Tu navegador no es compatible con WebGL2, que BackSubtract necesita.",
     "export": "No se pudo exportar la imagen.",
     "model": "No se pudo ejecutar el modelo de IA. Revisa tu conexión e inténtalo de nuevo.",
-    "heic": "Este navegador no puede abrir fotos HEIC de iPhone. Prueba con Safari o exporta la foto como JPG (en el iPhone: Ajustes → Cámara → Formatos → Más compatible)."
+    "heic": "Este navegador no puede abrir fotos HEIC de iPhone. Prueba con Safari o exporta la foto como JPG (en el iPhone: Ajustes → Cámara → Formatos → Más compatible).",
+    "copy": "No se pudo copiar la imagen. Prueba a descargarla.",
+    "share": "No se pudo compartir la imagen."
   },
   "dismiss": "Cerrar",
   "tolerance": "Tolerancia",
@@ -55,12 +60,14 @@
     "formats": {
       "png": "PNG",
       "webp": "WebP",
-      "jpg": "JPG"
+      "jpg": "JPG",
+      "mask": "Máscara"
     },
     "hints": {
       "png": "Fondo transparente",
       "webp": "Transparente, archivo más pequeño",
-      "jpg": "Color de fondo sólido"
+      "jpg": "Color de fondo sólido",
+      "mask": "En blanco y negro, para otros editores"
     },
     "background": "Fondo",
     "customColor": "Color personalizado",
@@ -68,7 +75,14 @@
     "colors": {
       "white": "Blanco",
       "black": "Negro"
-    }
+    },
+    "margin": "Margen",
+    "aspect": "Forma",
+    "aspectFree": "Ajustar",
+    "fullSize": "Tamaño completo ({{width}} × {{height}})",
+    "copy": "Copiar",
+    "share": "Compartir",
+    "copied": "Imagen copiada."
   },
   "auto": {
     "run": "Quitar fondo",
@@ -76,13 +90,16 @@
     "again": "Volver a ejecutar"
   },
   "select": {
-    "hint": "Toca un objeto o dibuja a su alrededor"
+    "hint": "Toca un objeto o dibuja a su alrededor",
+    "hintDownload": "Toca un objeto o dibuja a su alrededor (descarga única de {{size}} MB)"
   },
   "task": {
     "downloading": "Descargando modelo de IA… {{loaded}} / {{total}} MB (solo una vez)",
     "auto": "Quitando el fondo…",
     "preparing": "Preparando la selección…",
-    "selecting": "Seleccionando…"
+    "selecting": "Seleccionando…",
+    "cancel": "Cancelar",
+    "cancelled": "Descarga cancelada. No se descargará nada más hasta que vuelvas a usar una herramienta de IA."
   },
   "close": "Cerrar",
   "donate": {
@@ -104,7 +121,7 @@
     "contact": "Contacto"
   },
   "shortcuts": {
-    "tools": "Auto, Seleccionar, Varita mágica, Color, Pincel, Forma",
+    "tools": "Auto, Seleccionar, Varita mágica, Color, Lazo, Pincel, Forma",
     "mode": "Cambiar entre Conservar y Quitar",
     "size": "Pincel o tolerancia más pequeños / más grandes",
     "undo": "Deshacer / rehacer",
@@ -113,7 +130,8 @@
     "compare": "Mantener para ver el original",
     "view": "Cambiar vista: Resultado, Superpuesto, Original",
     "square": "Mantén pulsado al arrastrar para un cuadrado o un círculo",
-    "hardness": "Pincel más suave / más duro"
+    "hardness": "Pincel más suave / más duro",
+    "cancel": "Cancelar la línea o la forma que estás dibujando"
   },
   "view": {
     "label": "Vista",
@@ -138,5 +156,8 @@
     "rect": "Rectángulo",
     "ellipse": "Elipse",
     "hint": "Arrastra para dibujar un rectángulo o una elipse"
+  },
+  "lasso": {
+    "hint": "Arrastra por el borde de un objeto; la línea se ajusta a él"
   }
 }

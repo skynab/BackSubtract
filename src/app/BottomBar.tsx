@@ -2,6 +2,7 @@ import { useEffect, type ComponentType, type SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { chooseImage } from '../session/openImage';
 import {
+  AI_TOOLS,
   BRUSH_MAX,
   BRUSH_MIN,
   selectMode,
@@ -21,6 +22,7 @@ import {
   ColorIcon,
   EllipseIcon,
   ImageIcon,
+  LassoIcon,
   MinusIcon,
   PlusIcon,
   RectIcon,
@@ -40,15 +42,23 @@ function ToolButton({ id, Icon }: { id: ToolId; Icon: ComponentType<SVGProps<SVG
   const { t } = useTranslation();
   const active = useUI((s) => s.tool === id);
   const label = t(`tools.${id}`);
+  const ai = AI_TOOLS.includes(id);
   return (
     <button
       type="button"
       className="tool"
       aria-pressed={active}
-      title={label}
+      title={ai ? `${label} · ${t('tools.aiHint')}` : label}
       onClick={() => useUI.getState().setTool(id)}
     >
-      <Icon />
+      <span className="tool-icon">
+        <Icon />
+        {ai && (
+          <span className="ai-badge" aria-hidden="true">
+            {t('tools.ai')}
+          </span>
+        )}
+      </span>
       <span>{label}</span>
     </button>
   );
@@ -170,6 +180,22 @@ function ShapeKindToggle() {
   );
 }
 
+/** Select's hint, which mentions the one-time download until the model is on the device. */
+function SelectHint() {
+  const { t } = useTranslation();
+  const info = useUI((s) => s.models.select);
+
+  useEffect(() => {
+    if (!info) void refreshModelInfo('select').catch(() => {});
+  }, [info]);
+
+  return (
+    <span className="hint">
+      {info && !info.cached ? t('select.hintDownload', { size: info.sizeMB }) : t('select.hint')}
+    </span>
+  );
+}
+
 function ContextRow() {
   const { t } = useTranslation();
   const tool = useUI((s) => s.tool);
@@ -179,7 +205,8 @@ function ContextRow() {
       <ModeToggle />
       <ToolSlider />
       {tool === 'shape' && <ShapeKindToggle />}
-      {tool === 'select' && <span className="hint">{t('select.hint')}</span>}
+      {tool === 'select' && <SelectHint />}
+      {tool === 'lasso' && <span className="hint">{t('lasso.hint')}</span>}
       {tool === 'shape' && <span className="hint">{t('shape.hint')}</span>}
     </>
   );
@@ -195,6 +222,7 @@ export function BottomBar() {
           <ToolButton key={tl.id} {...tl} />
         ))}
         <span className="divider" aria-hidden="true" />
+        <ToolButton id="lasso" Icon={LassoIcon} />
         <ToolButton id="brush" Icon={BrushIcon} />
         <ToolButton id="shape" Icon={ShapeIcon} />
       </div>

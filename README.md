@@ -37,7 +37,8 @@ See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for the licenses of bundl
 
 | Key | Action |
 |---|---|
-| 1 / 2 / 3 / 4 / B / M | Auto / Select / Magic Wand / Color / Brush / Shape |
+| 1 / 2 / 3 / 4 / L / B / M | Auto / Select / Magic Wand / Color / Lasso / Brush / Shape |
+| Esc | Cancel the lasso line or shape being drawn |
 | X | Toggle Keep / Remove |
 | [ / ] | Smaller / larger brush, or lower / raise tolerance |
 | Shift + [ / ] | Softer / harder brush |

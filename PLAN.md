@@ -92,6 +92,17 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - **Edge colour cleanup** (always on, no button) removes the coloured fringe a backdrop leaves on soft edges. Each partly visible edge pixel is un-mixed from the average colour of the removed pixels next to it. Because nothing is ever deleted, that background colour is always known. It works for every tool, not just Color, and applies only to the exported pixels, never the original.
 - Default mode is **Remove**.
 
+### Lasso (manual, no AI)
+- A magnetic lasso, like Photoshop's: drag roughly along an object's edge and the line snaps to it. Letting go closes the loop back to the start (along edges too, unless the gap is very long) and applies it with the shared Keep / Remove toggle. It works the same with a finger or a mouse, and Esc throws the line away.
+- The path finding is "intelligent scissors": the cheapest 8-connected path between two pixels, where each step costs less the stronger the Sobel edge under it. Each search is limited to the box around its two ends plus the lasso's width (10 screen px), so it stays a few milliseconds and runs once per frame while dragging.
+- The pointer only has to be near the edge: each position snaps to the strongest edge within the width. Once the live segment is 30 screen px long, it is fixed and a new one starts from its end.
+- The filled outline's rim is snapped to the image (3 px), like Select. Default mode is **Keep**, and it follows Select's rule: on an untouched image Keep cuts the object out; after that it only brings areas back.
+
+### AI marking and data use
+- Auto and Select carry a small "AI" badge (translated: IA, KI, …), and their tooltips say they use a model downloaded once to the device.
+- Select's hint shows its download size until the model is on the device, as Auto's button already did.
+- Every model download shows **Cancel** next to its progress bar. Cancelling shuts the AI worker down, which ends the download; nothing half-downloaded is kept, and a fresh worker starts the next time an AI tool is used.
+
 ### Brush (touch-up, always available)
 - A small brush icon sits next to the tool row, with a size slider and a hardness slider (Shift+[ / ]). It uses the shared Keep / Remove toggle.
 - Hardness sets how much of the brush paints at full strength before fading (default 60%). At 50% and above, a stroke's rim snaps to the image's edges when you let go; softer brushes paint a plain fade, since they are for blending across edges. Every brush keeps a small solid core so the stroke's path is always fully painted.
@@ -123,9 +134,12 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
   - **PNG** (default, transparent)
   - **WebP** (transparent, smaller)
   - **JPG** with a background colour picker (the white default covers e-commerce photos)
-  - **Trim to subject** (crop to the visible area's bounding box) as a checkbox in the same menu
+  - **Mask**: the hidden mask itself as a black-and-white PNG, for finishing in another editor
+  - **Trim to subject** (crop to the visible area's bounding box) as a checkbox in the same menu, with a **margin** slider (0–30% of the subject's longer side) and a **shape**: Fit, 1:1, 4:5 or 16:9. The frame grows around the subject and may reach past the image's edges; that part is transparent (or the JPG colour).
+  - **Full size**: a photo scaled down to 4096 px on opening still exports at its original size. The original file is decoded again in the image worker, the mask is scaled up, and its hard edges snap to the full-size photo (soft brush edges are wider than the snap radius and stay soft). If the browser can't hold the full size (e.g. iOS canvas limits), the export falls back to the edited size. A checkbox turns this off.
+  - **Copy** (PNG to the clipboard; JPG keeps its background colour) and **Share** (the system share sheet, where it takes files) sit at the bottom of the menu.
 - **Gestures:** pinch or wheel to zoom, two-finger drag or space-drag to pan, and press-and-hold to compare with the original. None of these needs a button.
-- **Keyboard:** 1–4 pick tools, B picks the brush, X toggles Keep/Remove, [ and ] change size or tolerance, and Ctrl+Z / Ctrl+Shift+Z undo and redo.
+- **Keyboard:** 1–4 pick tools, L the lasso, B the brush, X toggles Keep/Remove, [ and ] change size or tolerance, and Ctrl+Z / Ctrl+Shift+Z undo and redo.
 - Dropping another file anywhere starts a new image after a quick "Replace current image?" confirmation.
 - **Donate:** a small, quiet ♥ in the top bar. See section 10.
 

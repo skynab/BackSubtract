@@ -7,6 +7,8 @@ import { selectMode, useUI } from '../state/store';
 import { coreFraction } from '../tools/brush/brush';
 import { pick } from '../tools/color/pick';
 import { clearPreview, onPreview, previewAt, type Preview } from '../tools/color/preview';
+import { applyLasso } from '../tools/lasso/lasso';
+import { MagneticTrace, type Pixel } from '../tools/lasso/livewire';
 import { applyShape } from '../tools/shape/apply';
 import { dragBox } from '../tools/shape/shape';
 import { selectAt, selectLoop } from '../tools/select/select';
@@ -22,6 +24,9 @@ const HOLD_MS = 450;
 const REMOVE_TINT: [number, number, number] = [1, 0.2, 0.2];
 const KEEP_TINT: [number, number, number] = [0.2, 0.85, 0.4];
 const DRAG_SLOP = 6;
+/** Lasso: how far from the pointer it looks for an edge, and how long a segment gets before it is fixed (screen px). */
+const LASSO_WIDTH = 10;
+const LASSO_SPACING = 30;
 
 type Gesture =
   | { kind: 'none' }
@@ -30,6 +35,8 @@ type Gesture =
   | { kind: 'hold'; id: number; start: Point; timer: number }
   | { kind: 'lasso'; id: number; points: Point[] }
   | { kind: 'shape'; id: number; start: Point; end: Point; square: boolean }
+  /** Lasso: `pending` is the latest pointer position, followed once per frame since path finding takes a few ms. */
+  | { kind: 'trace'; id: number; trace: MagneticTrace; pending: Point | null }
   | { kind: 'pinch'; startDist: number; startMid: Point; startView: View };
 
 const isEditable = (target: EventTarget | null) =>
@@ -93,6 +100,7 @@ export function Viewer() {
       const ui = useUI.getState();
       const ghost = ui.viewMode === 'overlay' ? OVERLAY : selectMode(ui) === 'keep' ? GHOST : 0;
       const original = comparing || ui.viewMode === 'original' ? 1 : 0;
+      if (gesture.kind === 'trace') followTrace(gesture);
       const shownPreview =
         preview && !comparing ? { mode: preview.mode, tint: preview.mode === 'keep' ? KEEP_TINT : REMOVE_TINT } : null;
       renderer.render({ view, width: size.w, height: size.h, dpr: size.dpr, ghost, original, preview: shownPreview, ...colors });
@@ -140,7 +148,7 @@ export function Viewer() {
       hover = e && p ? { e, p } : hover;
       const ui = useUI.getState();
       const brush = ui.tool === 'brush' && !spaceDown;
-      const tapTool = ui.tool === 'wand' || ui.tool === 'color' || ui.tool === 'select' || ui.tool === 'shape';
+      const tapTool = ui.tool !== 'auto';
       canvas.style.cursor =
         spaceDown || gesture.kind === 'pan' ? 'grab' : brush ? 'none' : tapTool ? 'crosshair' : 'default';
       const showRing = brush && p && e && e.pointerType !== 'touch';
@@ -158,6 +166,28 @@ export function Viewer() {
 
     function drawLasso(points: Point[] | null) {
       lasso.setAttribute('d', points?.length ? `M${points.map((p) => `${p.x},${p.y}`).join('L')}Z` : '');
+    }
+
+    /** Lasso sizes, in image px, at the current zoom; capped so path finding stays quick when zoomed far out. */
+    const lassoRadius = () => clamp(LASSO_WIDTH / view.scale, 1, 40);
+    const lassoSpacing = () => clamp(LASSO_SPACING / view.scale, 6, 150);
+
+    const imagePixel = (p: Point): Pixel => {
+      const ip = toImage(view, p);
+      const { width, height } = editor.image!;
+      return { x: clamp(Math.round(ip.x), 0, width - 1), y: clamp(Math.round(ip.y), 0, height - 1) };
+    };
+
+    /** Move the lasso line to the latest pointer position and redraw it (it is kept in image px, so it follows zooming). */
+    function followTrace(g: Extract<Gesture, { kind: 'trace' }>) {
+      if (g.pending) {
+        g.trace.moveTo(imagePixel(g.pending), lassoRadius(), lassoSpacing());
+        g.pending = null;
+      }
+      const d = g.trace.points
+        .map((p, i) => `${i ? 'L' : 'M'}${((p.x + 0.5) * view.scale + view.x).toFixed(1)},${((p.y + 0.5) * view.scale + view.y).toFixed(1)}`)
+        .join('');
+      lasso.setAttribute('d', d);
     }
 
     function drawShape(g: Extract<Gesture, { kind: 'shape' }>) {
@@ -185,6 +215,14 @@ export function Viewer() {
       }
       if (gesture.kind === 'lasso') {
         if (tapped && gesture.points.length >= 3) void selectLoop(gesture.points.map((p) => toImage(view, p)));
+        drawLasso(null);
+      }
+      if (gesture.kind === 'trace') {
+        if (tapped) {
+          followTrace(gesture);
+          const outline = gesture.trace.close(lassoRadius());
+          if (outline.length >= 3) applyLasso(outline);
+        }
         drawLasso(null);
       }
       if (gesture.kind === 'shape') {
@@ -234,6 +272,10 @@ export function Viewer() {
         const ip = toImage(view, p);
         editor.beginStroke(ip.x, ip.y, ui.brushSize / 2 / view.scale, ui.modes.brush, ui.brushHardness / 100);
         gesture = { kind: 'stroke', id: e.pointerId };
+      } else if (ui.tool === 'lasso') {
+        const { width, height } = editor.image;
+        const trace = new MagneticTrace(editor.pixels, width, height, imagePixel(p), lassoRadius());
+        gesture = { kind: 'trace', id: e.pointerId, trace, pending: null };
       } else if (ui.tool === 'shape') {
         gesture = { kind: 'shape', id: e.pointerId, start: p, end: p, square: e.shiftKey };
       } else {
@@ -294,6 +336,11 @@ export function Viewer() {
           }
           return;
         }
+        case 'trace':
+          if (gesture.id !== e.pointerId) return;
+          gesture.pending = p;
+          requestRender();
+          return;
         case 'shape':
           if (gesture.id !== e.pointerId) return;
           gesture.end = p;
@@ -345,7 +392,10 @@ export function Viewer() {
 
     function onKeyDown(e: KeyboardEvent) {
       if (isEditable(e.target) || e.ctrlKey || e.metaKey || e.altKey || document.querySelector('dialog[open]')) return;
-      if (e.key === ' ') {
+      if (e.key === 'Escape' && (gesture.kind === 'trace' || gesture.kind === 'lasso' || gesture.kind === 'shape')) {
+        // Throw away the line or shape being drawn.
+        endGesture();
+      } else if (e.key === ' ') {
         if (!(e.target instanceof HTMLButtonElement)) e.preventDefault();
         spaceDown = true;
         updateCursor(null);

@@ -29,7 +29,8 @@ export type CvRequest =
   | ({ id: number; type: 'retune' } & PickRequest)
   /** What a tap here would select, for showing before it happens. Leaves the last pick alone, so re-tuning still works. */
   | ({ id: number; type: 'preview' } & PickRequest)
-  | { id: number; type: 'export'; mask: Uint8Array; options: ExportOptions };
+  /** With `source`, export at the original file's full size (it was scaled down on opening). */
+  | { id: number; type: 'export'; mask: Uint8Array; options: ExportOptions; source?: Blob };
 
 export type CvResponse =
   | { id: number; type: 'result'; value: unknown }

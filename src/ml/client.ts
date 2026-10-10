@@ -7,6 +7,15 @@ let worker: Worker | null = null;
 let nextId = 1;
 const pending = new Map<number, Pending>();
 const progressListeners = new Set<(model: ModelName, loaded: number, total: number) => void>();
+const resetListeners = new Set<() => void>();
+
+/** The error AI calls fail with after cancelModelWork(). */
+export class CancelledError extends Error {
+  constructor() {
+    super('Cancelled');
+    this.name = 'CancelledError';
+  }
+}
 
 function getWorker(): Worker {
   if (!worker) {
@@ -33,6 +42,26 @@ function call<T>(req: DistributiveOmit<Request, 'id'>, transfer: Transferable[] 
     pending.set(id, { resolve: resolve as (v: unknown) => void, reject });
     getWorker().postMessage({ ...req, id }, transfer);
   });
+}
+
+/**
+ * Stop whatever the AI worker is doing, e.g. a model download on a limited data plan.
+ * The worker is shut down, which ends its downloads (nothing half-downloaded is kept),
+ * and a fresh one starts on the next AI call. Pending calls fail with CancelledError.
+ */
+export function cancelModelWork(): void {
+  if (!worker) return;
+  worker.terminate();
+  worker = null;
+  for (const p of pending.values()) p.reject(new CancelledError());
+  pending.clear();
+  for (const l of resetListeners) l();
+}
+
+/** Called when the worker is shut down, so anything it held (e.g. Select's encoded image) is gone. */
+export function onWorkerReset(listener: () => void): () => void {
+  resetListeners.add(listener);
+  return () => resetListeners.delete(listener);
 }
 
 export function onDownloadProgress(listener: (model: ModelName, loaded: number, total: number) => void): () => void {

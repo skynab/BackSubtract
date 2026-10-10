@@ -3,7 +3,7 @@
  * Image work that can take a noticeable moment on large photos (Magic Wand,
  * Color, export encoding) runs here, so the page never freezes.
  */
-import { exportImage } from '../export/exportImage';
+import { exportFullSize, exportImage } from '../export/exportImage';
 import { distanceMap, rgbToLab } from '../tools/color/lab';
 import { refineEdges, selectContiguous, selectGlobal } from '../tools/color/select';
 import type { CvRequest, CvResponse, PickRequest, SelectionResult } from './protocol';
@@ -73,7 +73,15 @@ self.onmessage = async (event: MessageEvent<CvRequest>) => {
         break;
       case 'export':
         if (!pixels) throw new Error('No image');
-        value = await exportImage(pixels, req.mask, width, height, req.options);
+        if (req.source) {
+          try {
+            value = await exportFullSize(req.source, req.mask, width, height, req.options);
+          } catch (err) {
+            // E.g. the full-size photo is over this browser's canvas limit: export at the edited size instead.
+            console.warn('Full-size export failed; exporting at the edited size.', err);
+          }
+        }
+        value ??= await exportImage(pixels, req.mask, width, height, req.options);
         break;
     }
     const buffer = (value as SelectionResult | null)?.data?.buffer;

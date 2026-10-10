@@ -3,10 +3,11 @@ import { editor } from '../../editor/editor';
 import { boundingBox } from '../../mask/mask';
 import { resizePlane } from '../../mask/resample';
 import { snapToEdgesTiled } from '../../mask/snap';
-import { encodeImage, segment, workCopy } from '../../ml/client';
+import { encodeImage, onWorkerReset, segment, workCopy } from '../../ml/client';
 import type { MaskResult, Proposals } from '../../ml/protocol';
 import { refreshModelInfo, withModelTask } from '../../ml/status';
 import { useUI } from '../../state/store';
+import { applyObject } from '../cutout';
 import { bestFit, dilate, loopPrompts, mostConfident, rasterizeLoop } from './loop';
 
 /** Below this fit score, no proposal really matches the loop. */
@@ -23,6 +24,12 @@ editor.subscribe((event) => {
     encodedFor = null;
     encoding = null;
   }
+});
+
+// A cancelled download shuts the worker down, and the encoded image goes with it.
+onWorkerReset(() => {
+  encodedFor = null;
+  encoding = null;
 });
 
 /** Make sure the current image is encoded (the slow step, done once per image). */
@@ -124,14 +131,5 @@ function apply(image: ImageBitmap, result: MaskResult, clip?: Uint8Array): void 
   };
   snapToEdgesTiled({ data: full, width: W, height: H }, editor.pixels, padded, radius);
 
-  const mode = useUI.getState().modes.select;
-  const label = { tool: 'select', mode };
-  if (mode === 'keep' && !editor.mask!.hasHidden) {
-    // Keep on an untouched image cuts the object out: hide everything else.
-    // Once anything is hidden, Keep only brings areas back, so it can fix what another tool removed.
-    for (let i = 0; i < full.length; i++) full[i] = 255 - full[i];
-    editor.applySelection(full, { x: 0, y: 0, w: W, h: H }, 'remove', label);
-  } else {
-    editor.applySelection(full, padded, mode, label);
-  }
+  applyObject(full, padded, useUI.getState().modes.select, 'select');
 }

@@ -1,13 +1,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { ExportFormat } from '../export/exportImage';
+import type { Aspect, ExportFormat } from '../export/exportImage';
 import type { Mode } from '../mask/mask';
 import type { ModelInfo } from '../ml/protocol';
 import type { ShapeKind } from '../tools/shape/shape';
 
-export type ToolId = 'auto' | 'select' | 'wand' | 'color' | 'brush' | 'shape';
+export type ToolId = 'auto' | 'select' | 'wand' | 'color' | 'lasso' | 'brush' | 'shape';
 
-export const AVAILABLE_TOOLS: readonly ToolId[] = ['auto', 'select', 'wand', 'color', 'brush', 'shape'];
+export const AVAILABLE_TOOLS: readonly ToolId[] = ['auto', 'select', 'wand', 'color', 'lasso', 'brush', 'shape'];
+
+/** Tools that run an AI model (downloaded on first use). */
+export const AI_TOOLS: readonly ToolId[] = ['auto', 'select'];
+
+export const MARGIN_MAX = 30;
 
 /** Each tool starts in the mode it is most often used for. */
 const DEFAULT_MODES: Record<ToolId, Mode> = {
@@ -15,6 +20,7 @@ const DEFAULT_MODES: Record<ToolId, Mode> = {
   select: 'keep',
   wand: 'remove',
   color: 'remove',
+  lasso: 'keep',
   brush: 'remove',
   shape: 'remove',
 };
@@ -61,6 +67,11 @@ interface UIState {
   exportFormat: ExportFormat;
   jpgBackground: string;
   trim: boolean;
+  /** Space around the subject when trimming, in % of its longer side. */
+  margin: number;
+  aspect: Aspect;
+  /** Export at the original file's size when it was scaled down on opening. */
+  fullSize: boolean;
   canUndo: boolean;
   canRedo: boolean;
   viewMode: ViewMode;
@@ -99,6 +110,9 @@ export const useUI = create<UIState>()(
       exportFormat: 'png',
       jpgBackground: '#ffffff',
       trim: false,
+      margin: 0,
+      aspect: 'free',
+      fullSize: true,
       canUndo: false,
       canRedo: false,
       viewMode: 'result',
@@ -136,6 +150,9 @@ export const useUI = create<UIState>()(
         exportFormat: s.exportFormat,
         jpgBackground: s.jpgBackground,
         trim: s.trim,
+        margin: s.margin,
+        aspect: s.aspect,
+        fullSize: s.fullSize,
       }),
       merge: (saved, current) => {
         const merged = { ...current, ...(saved as Partial<UIState>) };

@@ -28,6 +28,8 @@ export class Editor {
   /** The file the image came from, kept so the session can be saved and restored. */
   source: Blob | null = null;
   fileName = '';
+  /** Size of the original file, which is larger than `image` when it was scaled down on opening. */
+  sourceSize = { width: 0, height: 0 };
   mask: Mask | null = null;
   readonly history = new History();
   private stroke: Stroke | null = null;
@@ -46,12 +48,19 @@ export class Editor {
     for (const listener of this.listeners) listener(event);
   }
 
-  load(image: ImageBitmap, source: Blob, fileName: string, saved?: { mask: Uint8Array; edits: Edit[] }): void {
+  load(
+    image: ImageBitmap,
+    source: Blob,
+    fileName: string,
+    saved?: { mask: Uint8Array; edits: Edit[] },
+    sourceSize = { width: image.width, height: image.height },
+  ): void {
     this.stroke = null;
     this.image?.close();
     this.image = image;
     this.source = source;
     this.fileName = fileName;
+    this.sourceSize = sourceSize;
     this.mask = new Mask(image.width, image.height, saved?.mask);
     this.coverage = null;
     this.pixelCache = null;
@@ -81,6 +90,11 @@ export class Editor {
       }
     }
     return this.pixelCache;
+  }
+
+  /** Whether the image was scaled down on opening, so a larger export is possible. */
+  get isReduced(): boolean {
+    return !!this.image && this.sourceSize.width > this.image.width;
   }
 
   get isStroking(): boolean {

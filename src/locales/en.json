@@ -14,7 +14,10 @@
     "wand": "Magic Wand",
     "color": "Color",
     "brush": "Brush",
-    "shape": "Shape"
+    "shape": "Shape",
+    "lasso": "Lasso",
+    "ai": "AI",
+    "aiHint": "Uses an AI model, downloaded once to this device"
   },
   "mode": {
     "label": "Mode",
@@ -35,7 +38,7 @@
   },
   "confirmReplace": "Open a new image? Your edits to this one will be lost.",
   "notices": {
-    "resized": "Large image scaled down to {{max}} px on its longest side.",
+    "resized": "Large image scaled down to {{max}} px for editing. Downloads stay full size.",
     "restored": "Welcome back — your last image was restored."
   },
   "errors": {
@@ -44,7 +47,9 @@
     "webgl": "Your browser doesn't support WebGL2, which BackSubtract needs.",
     "export": "Couldn't export the image.",
     "model": "The AI model couldn't run. Check your connection and try again.",
-    "heic": "This browser can't open iPhone HEIC photos. Try Safari, or export the photo as JPG first (on iPhone: Settings → Camera → Formats → Most Compatible)."
+    "heic": "This browser can't open iPhone HEIC photos. Try Safari, or export the photo as JPG first (on iPhone: Settings → Camera → Formats → Most Compatible).",
+    "copy": "Couldn't copy the image. Try Download instead.",
+    "share": "Couldn't share the image."
   },
   "dismiss": "Dismiss",
   "tolerance": "Tolerance",
@@ -55,12 +60,14 @@
     "formats": {
       "png": "PNG",
       "webp": "WebP",
-      "jpg": "JPG"
+      "jpg": "JPG",
+      "mask": "Mask"
     },
     "hints": {
       "png": "Transparent background",
       "webp": "Transparent, smaller file",
-      "jpg": "Solid background color"
+      "jpg": "Solid background color",
+      "mask": "Black and white, for other editors"
     },
     "background": "Background",
     "customColor": "Custom color",
@@ -68,7 +75,14 @@
     "colors": {
       "white": "White",
       "black": "Black"
-    }
+    },
+    "margin": "Margin",
+    "aspect": "Shape",
+    "aspectFree": "Fit",
+    "fullSize": "Full size ({{width}} × {{height}})",
+    "copy": "Copy",
+    "share": "Share",
+    "copied": "Image copied."
   },
   "auto": {
     "run": "Remove background",
@@ -76,13 +90,16 @@
     "again": "Run again"
   },
   "select": {
-    "hint": "Tap an object, or draw around it"
+    "hint": "Tap an object, or draw around it",
+    "hintDownload": "Tap an object, or draw around it ({{size}} MB one-time download)"
   },
   "task": {
     "downloading": "Downloading AI model… {{loaded}} / {{total}} MB (one time)",
     "auto": "Removing background…",
     "preparing": "Getting ready to select…",
-    "selecting": "Selecting…"
+    "selecting": "Selecting…",
+    "cancel": "Cancel",
+    "cancelled": "Download cancelled. Nothing more will be downloaded until you use an AI tool again."
   },
   "close": "Close",
   "donate": {
@@ -104,7 +121,7 @@
     "contact": "Contact"
   },
   "shortcuts": {
-    "tools": "Auto, Select, Magic Wand, Color, Brush, Shape",
+    "tools": "Auto, Select, Magic Wand, Color, Lasso, Brush, Shape",
     "mode": "Switch between Keep and Remove",
     "size": "Smaller / larger brush or tolerance",
     "undo": "Undo / redo",
@@ -113,7 +130,8 @@
     "compare": "Hold to see the original",
     "view": "Switch view: Result, Overlay, Original",
     "square": "Hold while dragging for a square or circle",
-    "hardness": "Softer / harder brush"
+    "hardness": "Softer / harder brush",
+    "cancel": "Cancel the line or shape being drawn"
   },
   "view": {
     "label": "View",
@@ -138,5 +156,8 @@
     "rect": "Box",
     "ellipse": "Ellipse",
     "hint": "Drag to draw a box or ellipse"
+  },
+  "lasso": {
+    "hint": "Drag along an object's edge; the line snaps to it"
   }
 }

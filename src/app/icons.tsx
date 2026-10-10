@@ -35,6 +35,13 @@ export const WandIcon = icon(
   </>,
 );
 export const ColorIcon = icon(<path d="M12 3.5c3.4 4 5.8 7.2 5.8 10a5.8 5.8 0 0 1-11.6 0c0-2.8 2.4-6 5.8-10z" />);
+export const LassoIcon = icon(
+  <>
+    <path d="M7.5 16.5C4.8 15.3 3 13.3 3 11c0-3.9 4-7 9-7s9 3.1 9 7-4 7-9 7c-1 0-2-.1-2.9-.4" />
+    <circle cx="8.5" cy="17" r="1.6" />
+    <path d="M8 18.5c-.4 1.2-1.3 2-2.5 2.2" />
+  </>,
+);
 export const BrushIcon = icon(
   <>
     <path d="M20 4L11 13" />
@@ -64,6 +71,18 @@ export const RedoIcon = icon(
 export const DownloadIcon = icon(
   <>
     <path d="M12 4v11M7 10.5l5 5 5-5M5 20h14" />
+  </>,
+);
+export const CopyIcon = icon(
+  <>
+    <rect x="8.5" y="8.5" width="11" height="11" rx="2" />
+    <path d="M15.5 8.5V6.5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2" />
+  </>,
+);
+export const ShareIcon = icon(
+  <>
+    <path d="M12 15V4M8 7.5L12 3.5l4 4" />
+    <path d="M8.5 10.5H7a2 2 0 0 0-2 2V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5.5a2 2 0 0 0-2-2h-1.5" />
   </>,
 );
 export const ImageIcon = icon(

@@ -361,6 +361,27 @@ button:disabled {
   opacity: 0.4;
 }
 
+.tool-icon {
+  position: relative;
+  display: flex;
+}
+
+/* Marks the tools that run an AI model. */
+.ai-badge {
+  position: absolute;
+  inset-block-end: -3px;
+  inset-inline-end: -9px;
+  padding: 0 3px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-size: 8.5px;
+  font-weight: 700;
+  line-height: 12px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 0 1.5px var(--bg);
+}
+
 .divider {
   width: 1px;
   height: 32px;
@@ -630,6 +651,58 @@ button:disabled {
 .menu-row.check {
   justify-content: flex-start;
   cursor: pointer;
+}
+
+.download-menu {
+  max-height: calc(100dvh - 120px);
+  overflow-y: auto;
+}
+
+/* Margin and shape, under "Crop to subject". */
+.menu-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 8px 8px;
+  padding-inline-start: 34px;
+}
+
+.menu-slider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.menu-slider input {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.menu-slider output {
+  min-width: 3ch;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: end;
+}
+
+.segmented.small button {
+  flex: 1;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 6px;
+  font-size: 13px;
+}
+
+.menu-actions {
+  justify-content: stretch;
+}
+
+.menu-actions .secondary {
+  flex: 1;
+  justify-content: center;
+  min-height: 36px;
 }
 
 .swatches {

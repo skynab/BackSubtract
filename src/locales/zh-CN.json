@@ -14,7 +14,10 @@
     "wand": "魔棒",
     "color": "颜色",
     "brush": "画笔",
-    "shape": "形状"
+    "shape": "形状",
+    "lasso": "套索",
+    "ai": "AI",
+    "aiHint": "使用 AI 模型，只需下载一次到此设备"
   },
   "mode": {
     "label": "模式",
@@ -35,7 +38,7 @@
   },
   "confirmReplace": "打开新图片？你对当前图片的修改将会丢失。",
   "notices": {
-    "resized": "图片较大，已将最长边缩小到 {{max}} 像素。",
+    "resized": "大图已缩小到 {{max}} 像素以便编辑。下载仍为原始尺寸。",
     "restored": "欢迎回来，已恢复你上次的图片。"
   },
   "errors": {
@@ -44,7 +47,9 @@
     "webgl": "你的浏览器不支持 BackSubtract 所需的 WebGL2。",
     "export": "无法导出图片。",
     "model": "AI 模型无法运行。请检查网络连接后重试。",
-    "heic": "此浏览器无法打开 iPhone 的 HEIC 照片。请改用 Safari，或先将照片导出为 JPG（iPhone 上：设置 → 相机 → 格式 → 兼容性最佳）。"
+    "heic": "此浏览器无法打开 iPhone 的 HEIC 照片。请改用 Safari，或先将照片导出为 JPG（iPhone 上：设置 → 相机 → 格式 → 兼容性最佳）。",
+    "copy": "无法复制图片，请改用下载。",
+    "share": "无法分享图片。"
   },
   "dismiss": "关闭",
   "tolerance": "容差",
@@ -55,12 +60,14 @@
     "formats": {
       "png": "PNG",
       "webp": "WebP",
-      "jpg": "JPG"
+      "jpg": "JPG",
+      "mask": "蒙版"
     },
     "hints": {
       "png": "透明背景",
       "webp": "透明，文件更小",
-      "jpg": "纯色背景"
+      "jpg": "纯色背景",
+      "mask": "黑白图，供其他编辑器使用"
     },
     "background": "背景",
     "customColor": "自定义颜色",
@@ -68,7 +75,14 @@
     "colors": {
       "white": "白色",
       "black": "黑色"
-    }
+    },
+    "margin": "边距",
+    "aspect": "比例",
+    "aspectFree": "贴合",
+    "fullSize": "原始尺寸（{{width}} × {{height}}）",
+    "copy": "复制",
+    "share": "分享",
+    "copied": "图片已复制。"
   },
   "auto": {
     "run": "去除背景",
@@ -76,13 +90,16 @@
     "again": "重新运行"
   },
   "select": {
-    "hint": "点按一个对象，或在它周围画一圈"
+    "hint": "点按一个对象，或在它周围画一圈",
+    "hintDownload": "点按一个对象，或在它周围画一圈（一次性下载 {{size}} MB）"
   },
   "task": {
     "downloading": "正在下载 AI 模型… {{loaded}} / {{total}} MB（仅需一次）",
     "auto": "正在去除背景…",
     "preparing": "正在准备选择…",
-    "selecting": "正在选择…"
+    "selecting": "正在选择…",
+    "cancel": "取消",
+    "cancelled": "已取消下载。在你再次使用 AI 工具之前，不会再下载任何内容。"
   },
   "close": "关闭",
   "donate": {
@@ -104,7 +121,7 @@
     "contact": "联系"
   },
   "shortcuts": {
-    "tools": "自动、选择、魔棒、颜色、画笔、形状",
+    "tools": "自动、选择、魔棒、颜色、套索、画笔、形状",
     "mode": "在保留和移除之间切换",
     "size": "缩小 / 放大画笔或容差",
     "undo": "撤销 / 重做",
@@ -113,7 +130,8 @@
     "compare": "按住查看原图",
     "view": "切换视图：结果、叠加、原图",
     "square": "拖动时按住可画正方形或圆形",
-    "hardness": "画笔更柔和 / 更硬"
+    "hardness": "画笔更柔和 / 更硬",
+    "cancel": "取消正在绘制的线条或形状"
   },
   "view": {
     "label": "视图",
@@ -138,5 +156,8 @@
     "rect": "矩形",
     "ellipse": "椭圆",
     "hint": "拖动以绘制矩形或椭圆"
+  },
+  "lasso": {
+    "hint": "沿着对象边缘拖动，线条会自动吸附"
   }
 }

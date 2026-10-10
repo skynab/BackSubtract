@@ -14,7 +14,10 @@
     "wand": "Zauberstab",
     "color": "Farbe",
     "brush": "Pinsel",
-    "shape": "Form"
+    "shape": "Form",
+    "lasso": "Lasso",
+    "ai": "KI",
+    "aiHint": "Nutzt ein KI-Modell, das einmalig auf dieses Gerät geladen wird"
   },
   "mode": {
     "label": "Modus",
@@ -35,7 +38,7 @@
   },
   "confirmReplace": "Ein neues Bild öffnen? Deine Änderungen an diesem Bild gehen verloren.",
   "notices": {
-    "resized": "Großes Bild auf {{max}} px an der längsten Seite verkleinert.",
+    "resized": "Großes Bild zum Bearbeiten auf {{max}} px verkleinert. Downloads haben die volle Größe.",
     "restored": "Willkommen zurück – dein letztes Bild wurde wiederhergestellt."
   },
   "errors": {
@@ -44,7 +47,9 @@
     "webgl": "Dein Browser unterstützt WebGL2 nicht, das BackSubtract benötigt.",
     "export": "Das Bild konnte nicht exportiert werden.",
     "model": "Das KI-Modell konnte nicht ausgeführt werden. Prüfe deine Verbindung und versuche es erneut.",
-    "heic": "Dieser Browser kann HEIC-Fotos vom iPhone nicht öffnen. Verwende Safari oder exportiere das Foto zuerst als JPG (auf dem iPhone: Einstellungen → Kamera → Formate → Maximale Kompatibilität)."
+    "heic": "Dieser Browser kann HEIC-Fotos vom iPhone nicht öffnen. Verwende Safari oder exportiere das Foto zuerst als JPG (auf dem iPhone: Einstellungen → Kamera → Formate → Maximale Kompatibilität).",
+    "copy": "Das Bild konnte nicht kopiert werden. Lade es stattdessen herunter.",
+    "share": "Das Bild konnte nicht geteilt werden."
   },
   "dismiss": "Schließen",
   "tolerance": "Toleranz",
@@ -55,12 +60,14 @@
     "formats": {
       "png": "PNG",
       "webp": "WebP",
-      "jpg": "JPG"
+      "jpg": "JPG",
+      "mask": "Maske"
     },
     "hints": {
       "png": "Transparenter Hintergrund",
       "webp": "Transparent, kleinere Datei",
-      "jpg": "Einfarbiger Hintergrund"
+      "jpg": "Einfarbiger Hintergrund",
+      "mask": "Schwarz-weiß, für andere Programme"
     },
     "background": "Hintergrund",
     "customColor": "Eigene Farbe",
@@ -68,7 +75,14 @@
     "colors": {
       "white": "Weiß",
       "black": "Schwarz"
-    }
+    },
+    "margin": "Rand",
+    "aspect": "Format",
+    "aspectFree": "Passend",
+    "fullSize": "Volle Größe ({{width}} × {{height}})",
+    "copy": "Kopieren",
+    "share": "Teilen",
+    "copied": "Bild kopiert."
   },
   "auto": {
     "run": "Hintergrund entfernen",
@@ -76,13 +90,16 @@
     "again": "Erneut ausführen"
   },
   "select": {
-    "hint": "Tippe auf ein Objekt oder umrande es"
+    "hint": "Tippe auf ein Objekt oder umrande es",
+    "hintDownload": "Tippe auf ein Objekt oder umrande es (einmaliger Download, {{size}} MB)"
   },
   "task": {
     "downloading": "KI-Modell wird geladen… {{loaded}} / {{total}} MB (nur einmal)",
     "auto": "Hintergrund wird entfernt…",
     "preparing": "Auswahl wird vorbereitet…",
-    "selecting": "Wird ausgewählt…"
+    "selecting": "Wird ausgewählt…",
+    "cancel": "Abbrechen",
+    "cancelled": "Download abgebrochen. Erst wenn du wieder ein KI-Werkzeug nutzt, wird etwas geladen."
   },
   "close": "Schließen",
   "donate": {
@@ -104,7 +121,7 @@
     "contact": "Kontakt"
   },
   "shortcuts": {
-    "tools": "Auto, Auswahl, Zauberstab, Farbe, Pinsel, Form",
+    "tools": "Auto, Auswahl, Zauberstab, Farbe, Lasso, Pinsel, Form",
     "mode": "Zwischen Behalten und Entfernen wechseln",
     "size": "Pinsel oder Toleranz kleiner / größer",
     "undo": "Rückgängig / wiederholen",
@@ -113,7 +130,8 @@
     "compare": "Gedrückt halten, um das Original zu sehen",
     "view": "Ansicht wechseln: Ergebnis, Überlagert, Original",
     "square": "Beim Ziehen gedrückt halten für Quadrat oder Kreis",
-    "hardness": "Weicherer / härterer Pinsel"
+    "hardness": "Weicherer / härterer Pinsel",
+    "cancel": "Linie oder Form beim Zeichnen verwerfen"
   },
   "view": {
     "label": "Ansicht",
@@ -138,5 +156,8 @@
     "rect": "Rechteck",
     "ellipse": "Ellipse",
     "hint": "Ziehen, um ein Rechteck oder eine Ellipse zu zeichnen"
+  },
+  "lasso": {
+    "hint": "Ziehe entlang der Kante eines Objekts; die Linie haftet daran"
   }
 }

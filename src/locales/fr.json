@@ -14,7 +14,10 @@
     "wand": "Baguette magique",
     "color": "Couleur",
     "brush": "Pinceau",
-    "shape": "Forme"
+    "shape": "Forme",
+    "lasso": "Lasso",
+    "ai": "IA",
+    "aiHint": "Utilise un modèle d'IA, téléchargé une seule fois sur cet appareil"
   },
   "mode": {
     "label": "Mode",
@@ -35,7 +38,7 @@
   },
   "confirmReplace": "Ouvrir une nouvelle image ? Vos modifications sur celle-ci seront perdues.",
   "notices": {
-    "resized": "Grande image réduite à {{max}} px sur son côté le plus long.",
+    "resized": "Grande image réduite à {{max}} px pour l'édition. Les téléchargements restent en taille réelle.",
     "restored": "Bon retour ! Votre dernière image a été restaurée."
   },
   "errors": {
@@ -44,7 +47,9 @@
     "webgl": "Votre navigateur ne prend pas en charge WebGL2, nécessaire à BackSubtract.",
     "export": "Impossible d’exporter l’image.",
     "model": "Le modèle d’IA n’a pas pu s’exécuter. Vérifiez votre connexion et réessayez.",
-    "heic": "Ce navigateur ne peut pas ouvrir les photos HEIC d’iPhone. Essayez Safari, ou exportez d’abord la photo en JPG (sur iPhone : Réglages → Appareil photo → Formats → Le plus compatible)."
+    "heic": "Ce navigateur ne peut pas ouvrir les photos HEIC d’iPhone. Essayez Safari, ou exportez d’abord la photo en JPG (sur iPhone : Réglages → Appareil photo → Formats → Le plus compatible).",
+    "copy": "Impossible de copier l'image. Essayez plutôt de la télécharger.",
+    "share": "Impossible de partager l'image."
   },
   "dismiss": "Fermer",
   "tolerance": "Tolérance",
@@ -55,12 +60,14 @@
     "formats": {
       "png": "PNG",
       "webp": "WebP",
-      "jpg": "JPG"
+      "jpg": "JPG",
+      "mask": "Masque"
     },
     "hints": {
       "png": "Arrière-plan transparent",
       "webp": "Transparent, fichier plus léger",
-      "jpg": "Arrière-plan de couleur unie"
+      "jpg": "Arrière-plan de couleur unie",
+      "mask": "Noir et blanc, pour d'autres éditeurs"
     },
     "background": "Arrière-plan",
     "customColor": "Couleur personnalisée",
@@ -68,7 +75,14 @@
     "colors": {
       "white": "Blanc",
       "black": "Noir"
-    }
+    },
+    "margin": "Marge",
+    "aspect": "Format",
+    "aspectFree": "Ajusté",
+    "fullSize": "Taille réelle ({{width}} × {{height}})",
+    "copy": "Copier",
+    "share": "Partager",
+    "copied": "Image copiée."
   },
   "auto": {
     "run": "Supprimer l’arrière-plan",
@@ -76,13 +90,16 @@
     "again": "Relancer"
   },
   "select": {
-    "hint": "Touchez un objet ou dessinez autour"
+    "hint": "Touchez un objet ou dessinez autour",
+    "hintDownload": "Touchez un objet ou dessinez autour (téléchargement unique de {{size}} Mo)"
   },
   "task": {
     "downloading": "Téléchargement du modèle d’IA… {{loaded}} / {{total}} Mo (une seule fois)",
     "auto": "Suppression de l’arrière-plan…",
     "preparing": "Préparation de la sélection…",
-    "selecting": "Sélection…"
+    "selecting": "Sélection…",
+    "cancel": "Annuler",
+    "cancelled": "Téléchargement annulé. Rien d'autre ne sera téléchargé tant que vous n'utiliserez pas un outil d'IA."
   },
   "close": "Fermer",
   "donate": {
@@ -104,7 +121,7 @@
     "contact": "Contact"
   },
   "shortcuts": {
-    "tools": "Auto, Sélection, Baguette magique, Couleur, Pinceau, Forme",
+    "tools": "Auto, Sélection, Baguette magique, Couleur, Lasso, Pinceau, Forme",
     "mode": "Basculer entre Garder et Retirer",
     "size": "Pinceau ou tolérance plus petit / plus grand",
     "undo": "Annuler / rétablir",
@@ -113,7 +130,8 @@
     "compare": "Maintenir pour voir l’original",
     "view": "Changer d'affichage : Résultat, Superposé, Original",
     "square": "Maintenir en faisant glisser pour un carré ou un cercle",
-    "hardness": "Pinceau plus doux / plus dur"
+    "hardness": "Pinceau plus doux / plus dur",
+    "cancel": "Annuler la ligne ou la forme en cours"
   },
   "view": {
     "label": "Affichage",
@@ -138,5 +156,8 @@
     "rect": "Rectangle",
     "ellipse": "Ellipse",
     "hint": "Faites glisser pour tracer un rectangle ou une ellipse"
+  },
+  "lasso": {
+    "hint": "Faites glisser le long du bord d'un objet ; la ligne s'y colle"
   }
 }

@@ -1,5 +1,5 @@
 import { useUI } from '../state/store';
-import { modelInfo, onDownloadProgress } from './client';
+import { CancelledError, modelInfo, onDownloadProgress } from './client';
 import type { ModelInfo, ModelName } from './protocol';
 
 const MB = 1024 * 1024;
@@ -41,8 +41,12 @@ export async function withModelTask<T>(model: ModelName, workingKey: string, run
     void refreshModelInfo(model);
     return result;
   } catch (err) {
-    console.error(err);
-    useUI.getState().showNotice({ key: 'errors.model', tone: 'error' });
+    if (err instanceof CancelledError) {
+      useUI.getState().showNotice({ key: 'task.cancelled', tone: 'info' });
+    } else {
+      console.error(err);
+      useUI.getState().showNotice({ key: 'errors.model', tone: 'error' });
+    }
     return null;
   } finally {
     afterDownload = null;

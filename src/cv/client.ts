@@ -57,9 +57,10 @@ export function previewInWorker(req: PickRequest): Promise<SelectionResult | nul
   return call({ type: 'preview', ...req });
 }
 
-export function exportInWorker(mask: Uint8Array, options: ExportOptions): Promise<Blob> {
+/** Export the image; passing the original file exports at its full size. */
+export function exportInWorker(mask: Uint8Array, options: ExportOptions, source?: Blob): Promise<Blob> {
   ensureImage();
   // Send a snapshot of the mask, so edits made while encoding don't affect the file.
   const copy = mask.slice();
-  return call({ type: 'export', mask: copy, options }, [copy.buffer]);
+  return call({ type: 'export', mask: copy, options, source }, [copy.buffer]);
 }

@@ -6,17 +6,25 @@ import { loadSession } from './autosave';
 /** Longest side kept in memory; larger photos are scaled down on open. */
 export const MAX_SIDE = 4096;
 
-async function decodeImage(file: Blob): Promise<{ bitmap: ImageBitmap; resized: boolean }> {
+interface Decoded {
+  bitmap: ImageBitmap;
+  resized: boolean;
+  /** The file's own size, kept for exporting at full size. */
+  full: { width: number; height: number };
+}
+
+async function decodeImage(file: Blob): Promise<Decoded> {
   const options: ImageBitmapOptions = { imageOrientation: 'from-image', premultiplyAlpha: 'none' };
   const probe = await createImageBitmap(file, options);
+  const full = { width: probe.width, height: probe.height };
   const scale = MAX_SIDE / Math.max(probe.width, probe.height);
-  if (scale >= 1) return { bitmap: probe, resized: false };
+  if (scale >= 1) return { bitmap: probe, resized: false, full };
 
   const resizeWidth = Math.round(probe.width * scale);
   const resizeHeight = Math.round(probe.height * scale);
   probe.close();
   const bitmap = await createImageBitmap(file, { ...options, resizeWidth, resizeHeight, resizeQuality: 'high' });
-  return { bitmap, resized: true };
+  return { bitmap, resized: true, full };
 }
 
 /** iPhone photos. Some systems report no type for them, so check the name too. */
@@ -32,8 +40,8 @@ export async function openImage(file: File): Promise<void> {
   if (editor.history.canUndo && !window.confirm(i18n.t('confirmReplace'))) return;
 
   try {
-    const { bitmap, resized } = await decodeImage(file);
-    editor.load(bitmap, file, file.name);
+    const { bitmap, resized, full } = await decodeImage(file);
+    editor.load(bitmap, file, file.name, undefined, full);
     useUI.setState({
       hasImage: true,
       notice: resized ? { key: 'notices.resized', params: { max: MAX_SIDE }, tone: 'info' } : null,
@@ -49,10 +57,10 @@ export async function restoreSession(): Promise<void> {
   const saved = await loadSession();
   if (!saved) return;
   try {
-    const { bitmap } = await decodeImage(saved.file);
+    const { bitmap, full } = await decodeImage(saved.file);
     // If the image decodes to a different size than before, the saved edits no longer line up.
     const fits = bitmap.width === saved.width && bitmap.height === saved.height;
-    editor.load(bitmap, saved.file, saved.fileName, fits ? { mask: saved.mask, edits: saved.edits } : undefined);
+    editor.load(bitmap, saved.file, saved.fileName, fits ? { mask: saved.mask, edits: saved.edits } : undefined, full);
     // Don't let Auto overwrite restored work.
     useUI.setState({ hasImage: true, autoRan: true, notice: { key: 'notices.restored', tone: 'info' } });
   } catch {

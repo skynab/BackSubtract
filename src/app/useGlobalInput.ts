@@ -66,7 +66,7 @@ export function useGlobalInput(): void {
         return;
       }
       if (e.altKey || !ui.hasImage) return;
-      const toolKeys: Record<string, ToolId> = { '1': 'auto', '2': 'select', '3': 'wand', '4': 'color', b: 'brush', m: 'shape' };
+      const toolKeys: Record<string, ToolId> = { '1': 'auto', '2': 'select', '3': 'wand', '4': 'color', l: 'lasso', b: 'brush', m: 'shape' };
       if (toolKeys[key]) ui.setTool(toolKeys[key]);
       else if (key === 'x') ui.toggleMode();
       else if ((e.key === '{' || e.key === '}') && ui.tool === 'brush') {
