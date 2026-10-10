@@ -178,7 +178,6 @@
   "brushKind": {
     "label": "Tipo de pincel",
     "paint": "Pintar",
-    "refine": "Refinar",
-    "hint": "Pinte sobre cabelo ou pelo para recuperar os fios finos"
+    "refine": "Cabelo"
   }
 }

@@ -178,7 +178,6 @@
   "brushKind": {
     "label": "Tipo de pincel",
     "paint": "Pintar",
-    "refine": "Refinar",
-    "hint": "Pinta sobre el pelo o el pelaje para recuperar los mechones finos"
+    "refine": "Pelo"
   }
 }

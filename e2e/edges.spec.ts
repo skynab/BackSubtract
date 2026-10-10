@@ -78,7 +78,7 @@ test('Refine brush works the edge out again from the colours around it', async (
   expect((await downloadAndReadAlpha(page, [inside]))[0]).toBe(0);
 
   // ...then paint over it with Refine: the disk comes back, the background stays removed.
-  await page.getByRole('group', { name: 'Brush type' }).getByRole('button', { name: 'Refine' }).click();
+  await page.getByRole('group', { name: 'Brush type' }).getByRole('button', { name: 'Hair' }).click();
   await expect(page.getByRole('group', { name: 'Mode' })).toBeHidden();
   await drag(page, edge);
   const [back, stillGone] = await downloadAndReadAlpha(page, [inside, outside]);

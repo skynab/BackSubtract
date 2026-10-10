@@ -178,7 +178,6 @@
   "brushKind": {
     "label": "画笔类型",
     "paint": "绘制",
-    "refine": "精修",
-    "hint": "在头发或毛发上涂抹，找回细小的发丝"
+    "refine": "头发"
   }
 }

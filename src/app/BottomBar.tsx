@@ -233,7 +233,6 @@ function ContextRow() {
       {tool === 'select' && <SelectHint />}
       {tool === 'lasso' && <span className="hint">{t('lasso.hint')}</span>}
       {tool === 'shape' && <span className="hint">{t('shape.hint')}</span>}
-      {refining && <span className="hint">{t('brushKind.hint')}</span>}
     </>
   );
 }

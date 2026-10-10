@@ -178,7 +178,6 @@
   "brushKind": {
     "label": "Type de pinceau",
     "paint": "Peindre",
-    "refine": "Affiner",
-    "hint": "Peignez sur les cheveux ou le pelage pour retrouver les mèches fines"
+    "refine": "Cheveux"
   }
 }

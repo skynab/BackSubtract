@@ -178,7 +178,6 @@
   "brushKind": {
     "label": "Brush type",
     "paint": "Paint",
-    "refine": "Refine",
-    "hint": "Paint over hair or fur to bring back fine strands"
+    "refine": "Hair"
   }
 }

@@ -178,7 +178,6 @@
   "brushKind": {
     "label": "Pinselart",
     "paint": "Malen",
-    "refine": "Verfeinern",
-    "hint": "Male über Haare oder Fell, um feine Strähnen zurückzuholen"
+    "refine": "Haare"
   }
 }
