@@ -186,22 +186,6 @@ function ShapeKindToggle() {
   );
 }
 
-/** Select's hint, which mentions the one-time download until the model is on the device. */
-function SelectHint() {
-  const { t } = useTranslation();
-  const info = useUI((s) => s.models.select);
-
-  useEffect(() => {
-    if (!info) void refreshModelInfo('select').catch(() => {});
-  }, [info]);
-
-  return (
-    <span className="hint">
-      {info && !info.cached ? t('select.hintDownload', { size: info.sizeMB }) : t('select.hint')}
-    </span>
-  );
-}
-
 function BrushKindToggle() {
   const { t } = useTranslation();
   const kind = useUI((s) => s.brushKind);
@@ -220,7 +204,6 @@ function BrushKindToggle() {
 }
 
 function ContextRow() {
-  const { t } = useTranslation();
   const tool = useUI((s) => s.tool);
   const refining = useUI((s) => s.tool === 'brush' && s.brushKind === 'refine');
   if (tool === 'auto') return <AutoButton />;
@@ -230,9 +213,6 @@ function ContextRow() {
       {!refining && <ModeToggle />}
       <ToolSlider />
       {tool === 'shape' && <ShapeKindToggle />}
-      {tool === 'select' && <SelectHint />}
-      {tool === 'lasso' && <span className="hint">{t('lasso.hint')}</span>}
-      {tool === 'shape' && <span className="hint">{t('shape.hint')}</span>}
     </>
   );
 }

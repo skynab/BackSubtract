@@ -91,10 +91,6 @@
     "download": "Remover fundo (download único de {{size}} MB)",
     "again": "Executar novamente"
   },
-  "select": {
-    "hint": "Toque em um objeto ou desenhe em volta dele",
-    "hintDownload": "Toque em um objeto ou desenhe em volta dele (download único de {{size}} MB)"
-  },
   "task": {
     "downloading": "Baixando modelo de IA… {{loaded}} / {{total}} MB (só uma vez)",
     "auto": "Removendo o fundo…",
@@ -156,11 +152,7 @@
   "shape": {
     "label": "Forma",
     "rect": "Retângulo",
-    "ellipse": "Elipse",
-    "hint": "Arraste para desenhar um retângulo ou uma elipse"
-  },
-  "lasso": {
-    "hint": "Arraste pela borda de um objeto; a linha se ajusta a ela"
+    "ellipse": "Elipse"
   },
   "edges": {
     "title": "Refinar bordas",

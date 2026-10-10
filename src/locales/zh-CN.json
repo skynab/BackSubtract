@@ -91,10 +91,6 @@
     "download": "去除背景（一次性下载 {{size}} MB）",
     "again": "重新运行"
   },
-  "select": {
-    "hint": "点按一个对象，或在它周围画一圈",
-    "hintDownload": "点按一个对象，或在它周围画一圈（一次性下载 {{size}} MB）"
-  },
   "task": {
     "downloading": "正在下载 AI 模型… {{loaded}} / {{total}} MB（仅需一次）",
     "auto": "正在去除背景…",
@@ -156,11 +152,7 @@
   "shape": {
     "label": "形状",
     "rect": "矩形",
-    "ellipse": "椭圆",
-    "hint": "拖动以绘制矩形或椭圆"
-  },
-  "lasso": {
-    "hint": "沿着对象边缘拖动，线条会自动吸附"
+    "ellipse": "椭圆"
   },
   "edges": {
     "title": "调整边缘",

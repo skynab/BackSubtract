@@ -26,10 +26,13 @@ test('the AI tools are marked, and the others are not', async ({ page }) => {
 test('Lasso: a rough loop around the disk snaps to its edge and cuts it out', async ({ page }) => {
   await openTestImage(page);
   await chooseTool(page, 'Lasso');
-  // Drag a wobbly loop 8–14 px outside the disk's edge.
+  // Drag a wobbly loop 6–9 screen px outside the disk's edge: within the lasso's reach (10 screen px) at any zoom.
+  const origin = await toScreen(page, 0, 0);
+  const scale = (await toScreen(page, 100, 0)).x / 100 - origin.x / 100;
+  const gap = 7.5 / scale;
   const points: { x: number; y: number }[] = [];
   for (let a = 0; a <= Math.PI * 2 + 0.05; a += 0.1) {
-    const r = DISK.r + 11 + 3 * Math.sin(a * 5);
+    const r = DISK.r + gap + (1.5 / scale) * Math.sin(a * 5);
     points.push(await toScreen(page, DISK.x + r * Math.cos(a), DISK.y + r * Math.sin(a)));
   }
   await page.mouse.move(points[0].x, points[0].y);
@@ -42,8 +45,9 @@ test('Lasso: a rough loop around the disk snaps to its edge and cuts it out', as
   const { pixels } = await download(page, [
     [DISK.x, DISK.y],
     [DISK.x + DISK.r - 4, DISK.y],
-    [DISK.x + DISK.r + 5, DISK.y],
-    [DISK.x, DISK.y - DISK.r - 5],
+    // Between the disk and the loop.
+    [DISK.x + DISK.r + Math.max(2, Math.round(gap / 2)), DISK.y],
+    [DISK.x, DISK.y - DISK.r - Math.max(2, Math.round(gap / 2))],
     [10, 10],
   ]);
   const [centre, inside, outside, above, corner] = pixels.map((p) => p[3]);

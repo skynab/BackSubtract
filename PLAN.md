@@ -100,7 +100,6 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 
 ### AI marking and data use
 - Auto and Select carry a small "AI" badge (translated: IA, KI, …), and their tooltips say they use a model downloaded once to the device.
-- Select's hint shows its download size until the model is on the device, as Auto's button already did.
 - Every model download shows **Cancel** next to its progress bar. Cancelling shuts the AI worker down, which ends the download; nothing half-downloaded is kept, and a fresh worker starts the next time an AI tool is used.
 
 ### Brush (touch-up, always available)

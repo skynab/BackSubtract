@@ -91,10 +91,6 @@
     "download": "Hintergrund entfernen (einmaliger Download, {{size}} MB)",
     "again": "Erneut ausführen"
   },
-  "select": {
-    "hint": "Tippe auf ein Objekt oder umrande es",
-    "hintDownload": "Tippe auf ein Objekt oder umrande es (einmaliger Download, {{size}} MB)"
-  },
   "task": {
     "downloading": "KI-Modell wird geladen… {{loaded}} / {{total}} MB (nur einmal)",
     "auto": "Hintergrund wird entfernt…",
@@ -156,11 +152,7 @@
   "shape": {
     "label": "Form",
     "rect": "Rechteck",
-    "ellipse": "Ellipse",
-    "hint": "Ziehen, um ein Rechteck oder eine Ellipse zu zeichnen"
-  },
-  "lasso": {
-    "hint": "Ziehe entlang der Kante eines Objekts; die Linie haftet daran"
+    "ellipse": "Ellipse"
   },
   "edges": {
     "title": "Kanten verfeinern",

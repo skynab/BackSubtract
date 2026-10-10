@@ -91,10 +91,6 @@
     "download": "Remove background ({{size}} MB one-time download)",
     "again": "Run again"
   },
-  "select": {
-    "hint": "Tap an object, or draw around it",
-    "hintDownload": "Tap an object, or draw around it ({{size}} MB one-time download)"
-  },
   "task": {
     "downloading": "Downloading AI model… {{loaded}} / {{total}} MB (one time)",
     "auto": "Removing background…",
@@ -156,11 +152,7 @@
   "shape": {
     "label": "Shape",
     "rect": "Box",
-    "ellipse": "Ellipse",
-    "hint": "Drag to draw a box or ellipse"
-  },
-  "lasso": {
-    "hint": "Drag along an object's edge; the line snaps to it"
+    "ellipse": "Ellipse"
   },
   "edges": {
     "title": "Refine edges",

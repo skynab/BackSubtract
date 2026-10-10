@@ -91,10 +91,6 @@
     "download": "Supprimer l’arrière-plan (téléchargement unique de {{size}} Mo)",
     "again": "Relancer"
   },
-  "select": {
-    "hint": "Touchez un objet ou dessinez autour",
-    "hintDownload": "Touchez un objet ou dessinez autour (téléchargement unique de {{size}} Mo)"
-  },
   "task": {
     "downloading": "Téléchargement du modèle d’IA… {{loaded}} / {{total}} Mo (une seule fois)",
     "auto": "Suppression de l’arrière-plan…",
@@ -156,11 +152,7 @@
   "shape": {
     "label": "Forme",
     "rect": "Rectangle",
-    "ellipse": "Ellipse",
-    "hint": "Faites glisser pour tracer un rectangle ou une ellipse"
-  },
-  "lasso": {
-    "hint": "Faites glisser le long du bord d'un objet ; la ligne s'y colle"
+    "ellipse": "Ellipse"
   },
   "edges": {
     "title": "Affiner les bords",

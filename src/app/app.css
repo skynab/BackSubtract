@@ -845,11 +845,6 @@ button:disabled {
   opacity: 0.55;
 }
 
-.hint {
-  color: var(--muted);
-  font-size: 13px;
-}
-
 /* Progress for slow work */
 
 .task {
