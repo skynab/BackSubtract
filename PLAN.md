@@ -172,7 +172,14 @@ public/           icons, manifest
    - Measured on an Intel gen-9 GPU with a 1600×1200 image:
      - Auto: 88 MB download in about 4 s, then about 3 s per run (5 s for the first run after a reload).
      - Select: about 8.6 s for the first tap (17 MB download plus preparing the image), then about 0.5 s per tap and 0.4 s per loop.
-4. **Donations and polish (week 5):** donate dialog, mobile gestures and layout, accessibility (keyboard and screen-reader labels), the remaining translations, PWA/offline, and deploy.
+4. ✅ **Donations and polish:**
+   - Donate dialog (Stripe Payment Links via env vars, hidden until configured), with a thank-you message on return.
+   - About dialog with privacy, shortcuts, credits and contact.
+   - French, German, Portuguese, Chinese, Japanese, Arabic (RTL) and Hindi, plus a key/placeholder consistency test.
+   - Touch polish.
+   - Installable PWA that works offline (app shell precached; AI runtime and models cached on first use).
+   - Deploy steps are in the README; the actual deploy is left to the owner.
+   - Still open: native-speaker review of the translations, and testing on real phones and other GPUs.
 5. **Testing throughout:**
    - Vitest unit tests for the mask maths: Keep/Remove combine, recovery after removal, undo diffs, flood fill, colour key, export.
    - Playwright smoke tests on desktop and mobile viewports.
