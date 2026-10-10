@@ -41,7 +41,8 @@
     "load": "无法打开这张图片。",
     "webgl": "你的浏览器不支持 BackSubtract 所需的 WebGL2。",
     "export": "无法导出图片。",
-    "model": "AI 模型无法运行。请检查网络连接后重试。"
+    "model": "AI 模型无法运行。请检查网络连接后重试。",
+    "heic": "此浏览器无法打开 iPhone 的 HEIC 照片。请改用 Safari，或先将照片导出为 JPG（iPhone 上：设置 → 相机 → 格式 → 兼容性最佳）。"
   },
   "dismiss": "关闭",
   "tolerance": "容差",

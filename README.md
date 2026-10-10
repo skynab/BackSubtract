@@ -10,7 +10,8 @@ Requires Node 20+.
 ```bash
 npm install
 npm run dev      # start the dev server at http://localhost:5173
-npm test         # unit tests
+npm test         # unit tests + golden-image comparisons
+npm run golden:update  # regenerate golden/*.png after an intended change (look at them first!)
 npm run test:e2e # browser smoke tests (desktop + phone), against a fresh production build
 npm run build    # type-check and build to dist/
 ```

@@ -1,4 +1,5 @@
 import type { Rect } from '../../mask/mask';
+import { snapToEdgesTiled } from '../../mask/snap';
 import { softness } from './lab';
 
 export interface Selection {
@@ -86,4 +87,47 @@ export function selectContiguous(
     }
   }
   return { data, rect: { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 } };
+}
+
+/** Neighbourhood for deciding how much of each edge pixel belongs to the selection. */
+const EDGE_RADIUS = 3;
+
+/**
+ * Anti-alias a colour selection against the image. Edge pixels in a photo are a
+ * blend of subject and background, and are often too far from the tapped colour
+ * to be selected at all, leaving a fringe. Mark a 1-pixel band on each side of
+ * the selection's boundary as uncertain, then let edge snapping estimate how much
+ * of each of those pixels is the selected colour. Mixed pixels become partly
+ * selected, so edge colour cleanup can later remove the fringe. Updates `sel`.
+ */
+export function refineEdges(sel: Selection, rgba: Uint8ClampedArray, width: number, height: number): Selection {
+  const { data } = sel;
+  const pad = 1 + EDGE_RADIUS;
+  const x0 = Math.max(0, sel.rect.x - pad), y0 = Math.max(0, sel.rect.y - pad);
+  const x1 = Math.min(width, sel.rect.x + sel.rect.w + pad), y1 = Math.min(height, sel.rect.y + sel.rect.h + pad);
+
+  // Find boundary pixels first, then mark them, so marking doesn't spread.
+  const band: number[] = [];
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      const i = y * width + x;
+      const v = data[i];
+      if (v !== 0 && v !== 255) continue;
+      const opposite = 255 - v;
+      if (
+        (x > 0 && data[i - 1] === opposite) ||
+        (x < width - 1 && data[i + 1] === opposite) ||
+        (y > 0 && data[i - width] === opposite) ||
+        (y < height - 1 && data[i + width] === opposite)
+      ) {
+        band.push(i);
+      }
+    }
+  }
+  for (const i of band) data[i] = 128;
+
+  const rect = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  snapToEdgesTiled({ data, width, height }, rgba, rect, EDGE_RADIUS);
+  sel.rect = rect;
+  return sel;
 }

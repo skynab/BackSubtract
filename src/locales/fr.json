@@ -41,7 +41,8 @@
     "load": "Impossible d’ouvrir cette image.",
     "webgl": "Votre navigateur ne prend pas en charge WebGL2, nécessaire à BackSubtract.",
     "export": "Impossible d’exporter l’image.",
-    "model": "Le modèle d’IA n’a pas pu s’exécuter. Vérifiez votre connexion et réessayez."
+    "model": "Le modèle d’IA n’a pas pu s’exécuter. Vérifiez votre connexion et réessayez.",
+    "heic": "Ce navigateur ne peut pas ouvrir les photos HEIC d’iPhone. Essayez Safari, ou exportez d’abord la photo en JPG (sur iPhone : Réglages → Appareil photo → Formats → Le plus compatible)."
   },
   "dismiss": "Fermer",
   "tolerance": "Tolérance",

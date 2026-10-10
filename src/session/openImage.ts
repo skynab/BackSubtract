@@ -19,9 +19,13 @@ async function decodeImage(file: Blob): Promise<{ bitmap: ImageBitmap; resized: 
   return { bitmap, resized: true };
 }
 
+/** iPhone photos. Some systems report no type for them, so check the name too. */
+export const isHeic = (file: File) => /image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
+
 export async function openImage(file: File): Promise<void> {
   const ui = useUI.getState();
-  if (!file.type.startsWith('image/')) {
+  const heic = isHeic(file);
+  if (!file.type.startsWith('image/') && !heic) {
     ui.showNotice({ key: 'errors.notImage', tone: 'error' });
     return;
   }
@@ -35,7 +39,8 @@ export async function openImage(file: File): Promise<void> {
       notice: resized ? { key: 'notices.resized', params: { max: MAX_SIDE }, tone: 'info' } : null,
     });
   } catch {
-    ui.showNotice({ key: 'errors.load', tone: 'error' });
+    // Safari can open HEIC itself; other browsers can't, so say what to do instead.
+    ui.showNotice({ key: heic ? 'errors.heic' : 'errors.load', tone: 'error' });
   }
 }
 
@@ -59,7 +64,7 @@ export async function restoreSession(): Promise<void> {
 export function chooseImage(): void {
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = 'image/*';
+  input.accept = 'image/*,.heic,.heif';
   input.addEventListener('change', () => {
     const file = input.files?.[0];
     if (file) void openImage(file);

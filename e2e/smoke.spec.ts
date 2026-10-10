@@ -99,3 +99,12 @@ test('work survives a reload', async ({ page }) => {
   const [corner] = await downloadAndReadAlpha(page, [[10, 10]]);
   expect(corner).toBe(0);
 });
+
+test('an iPhone HEIC photo the browser cannot decode gets a helpful message', async ({ page }) => {
+  await page.goto('/');
+  const chooser = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: 'Choose image' }).click();
+  // Windows often reports no type for .heic files, so the name alone must be enough.
+  await (await chooser).setFiles({ name: 'IMG_0001.HEIC', mimeType: '', buffer: Buffer.from('not really heic') });
+  await expect(page.getByText(/can't open iPhone HEIC photos/)).toBeVisible();
+});

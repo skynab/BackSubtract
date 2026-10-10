@@ -41,7 +41,8 @@
     "load": "Couldn't open that image.",
     "webgl": "Your browser doesn't support WebGL2, which BackSubtract needs.",
     "export": "Couldn't export the image.",
-    "model": "The AI model couldn't run. Check your connection and try again."
+    "model": "The AI model couldn't run. Check your connection and try again.",
+    "heic": "This browser can't open iPhone HEIC photos. Try Safari, or export the photo as JPG first (on iPhone: Settings → Camera → Formats → Most Compatible)."
   },
   "dismiss": "Dismiss",
   "tolerance": "Tolerance",

@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "golden:update": "node scripts/update-golden.mjs"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.3.1",

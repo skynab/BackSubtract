@@ -10,6 +10,8 @@ export interface PickRequest {
   y: number;
   /** ΔE tolerance. */
   tolerance: number;
+  /** Anti-alias the selection's edge against the image (slower; skipped while a slider is moving). */
+  refine: boolean;
 }
 
 export interface SelectionResult {

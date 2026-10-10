@@ -5,7 +5,7 @@
  */
 import { exportImage } from '../export/exportImage';
 import { distanceMap, rgbToLab } from '../tools/color/lab';
-import { selectContiguous, selectGlobal } from '../tools/color/select';
+import { refineEdges, selectContiguous, selectGlobal } from '../tools/color/select';
 import type { CvRequest, CvResponse, PickRequest, SelectionResult } from './protocol';
 
 declare const self: DedicatedWorkerGlobalScope;
@@ -17,9 +17,11 @@ let height = 0;
 let lastDist: Uint8Array | null = null;
 
 function select(req: PickRequest, dist: Uint8Array): SelectionResult | null {
-  return req.tool === 'wand'
-    ? selectContiguous(dist, width, height, req.x, req.y, req.tolerance)
-    : selectGlobal(dist, width, height, req.tolerance);
+  const sel =
+    req.tool === 'wand'
+      ? selectContiguous(dist, width, height, req.x, req.y, req.tolerance)
+      : selectGlobal(dist, width, height, req.tolerance);
+  return sel && req.refine ? refineEdges(sel, pixels!, width, height) : sel;
 }
 
 function pick(req: PickRequest): SelectionResult | null {

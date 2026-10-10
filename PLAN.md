@@ -138,7 +138,8 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - **Lazy-load** each model the first time its tool is used, with a progress bar, e.g. "Downloading AI model… 34 / 88 MB (one time)". Models stay in the browser's Cache API.
 - Prefer **half-precision or quantised models**. Quality background models are about 90–115 MB, more than the original 50 MB target, so Auto asks before its first download.
 - The ONNX Runtime WASM file is about 27 MB and ships with the site. That's over Cloudflare Pages' 25 MiB per-file limit, so either host on Netlify or GitHub Pages, or load it from a CDN.
-- Images are decoded with `createImageBitmap`, and EXIF orientation is honoured. HEIC (iPhone) is supported through a lazy-loaded `heic2any`.
+- Images are decoded with `createImageBitmap`, and EXIF orientation is honoured.
+- HEIC (iPhone) photos open where the browser can decode them, as Safari does. Elsewhere a clear message explains how to get a JPG. `heic2any` was not added: it bundles libheif, which is LGPL-3.0, and that would need a licensing decision first.
 - Memory: cap the working resolution at about 4096 px on the long side and warn above that.
 
 ## 8. Project structure
@@ -183,7 +184,7 @@ public/           icons, manifest
 5. **Testing throughout:**
    - Vitest unit tests for the mask maths: Keep/Remove combine, recovery after removal, undo diffs, flood fill, colour key, export.
    - ✅ Playwright smoke tests (`npm run test:e2e`) on Desktop Chrome and a Pixel 7 profile, using real touch taps on the phone. They cover the start screen, language and RTL, About, opening an image, Magic Wand, Color with Keep/Remove, brush, undo/redo, and restoring after a reload. Each checks the downloaded PNG's actual transparency. The AI tools are not covered, because of the model downloads.
-   - A small set of golden images for a visual check of each tool.
+   - ✅ Golden images (`golden/*.png`): Magic Wand, Color on a green screen, and an edge-snapping brush stroke, each run on fixed photo-like scenes. They're compared on every `npm test` and are viewable as a visual record; regenerate with `npm run golden:update`. They exposed a green fringe left by colour selections, now fixed by anti-aliasing colour selections against the image.
 
 ## 10. Donations (custom, no third-party donation platform)
 

@@ -41,7 +41,8 @@
     "load": "Das Bild konnte nicht geöffnet werden.",
     "webgl": "Dein Browser unterstützt WebGL2 nicht, das BackSubtract benötigt.",
     "export": "Das Bild konnte nicht exportiert werden.",
-    "model": "Das KI-Modell konnte nicht ausgeführt werden. Prüfe deine Verbindung und versuche es erneut."
+    "model": "Das KI-Modell konnte nicht ausgeführt werden. Prüfe deine Verbindung und versuche es erneut.",
+    "heic": "Dieser Browser kann HEIC-Fotos vom iPhone nicht öffnen. Verwende Safari oder exportiere das Foto zuerst als JPG (auf dem iPhone: Einstellungen → Kamera → Formate → Maximale Kompatibilität)."
   },
   "dismiss": "Schließen",
   "tolerance": "Toleranz",
