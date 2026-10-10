@@ -93,7 +93,8 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - Default mode is **Remove**.
 
 ### Brush (touch-up, always available)
-- A small brush icon sits next to the tool row, with one size slider. It uses the shared Keep / Remove toggle.
+- A small brush icon sits next to the tool row, with a size slider and a hardness slider (Shift+[ / ]). It uses the shared Keep / Remove toggle.
+- Hardness sets how much of the brush paints at full strength before fading (default 60%). At 50% and above, a stroke's rim snaps to the image's edges when you let go; softer brushes paint a plain fade, since they are for blending across edges. Every brush keeps a small solid core so the stroke's path is always fully painted.
 
 ### Shape (boxes and ellipses)
 - Drag to draw a box or ellipse; it is applied when you let go, with the shared Keep / Remove toggle (Remove by default). Shift makes a square or circle. Edges are anti-aliased but not snapped, so the shape is exactly what you drew.

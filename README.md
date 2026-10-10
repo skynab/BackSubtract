@@ -40,6 +40,7 @@ See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for the licenses of bundl
 | 1 / 2 / 3 / 4 / B / M | Auto / Select / Magic Wand / Color / Brush / Shape |
 | X | Toggle Keep / Remove |
 | [ / ] | Smaller / larger brush, or lower / raise tolerance |
+| Shift + [ / ] | Softer / harder brush |
 | Ctrl+Z / Ctrl+Shift+Z | Undo / redo |
 | Space + drag, middle-drag | Pan |
 | Wheel, pinch | Zoom |

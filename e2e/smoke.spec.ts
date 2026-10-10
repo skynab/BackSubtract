@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { chooseTool, DISK, downloadAndReadAlpha, openTestImage, screenColor, tapImage, toScreen } from './helpers';
+import { chooseTool, DISK, downloadAndReadAlpha, IMAGE_H, IMAGE_W, openTestImage, screenColor, tapImage, toScreen } from './helpers';
 
 test('start screen, language switch and right-to-left layout', async ({ page }) => {
   await page.goto('/');
@@ -145,6 +145,30 @@ test('a brush stroke hides what it covers', async ({ page }) => {
   const [stroke, untouched] = await downloadAndReadAlpha(page, [[DISK.x, DISK.y], [10, 10]]);
   expect(stroke).toBe(0);
   expect(untouched).toBe(255);
+});
+
+test('a soft brush fades out instead of cutting a hard edge', async ({ page }) => {
+  await openTestImage(page);
+  await chooseTool(page, 'Brush');
+  await page.getByRole('slider', { name: 'Hardness' }).fill('0');
+
+  // Brush radius in image pixels: 20 screen px (the default 40 px brush) at the initial fit.
+  const box = (await page.getByRole('img', { name: 'Image editor' }).boundingBox())!;
+  const radius = 20 / Math.min((box.width - 48) / IMAGE_W, (box.height - 48) / IMAGE_H);
+  const y = 40;
+  const from = await toScreen(page, 60, y);
+  const to = await toScreen(page, 340, y);
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(to.x, to.y, { steps: 20 });
+  await page.mouse.up();
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled();
+
+  const [centre, rim] = await downloadAndReadAlpha(page, [[200, y], [200, Math.round(y + radius * 0.75)]]);
+  expect(centre).toBe(0);
+  // Three quarters of the way out, a soft brush has only partly hidden the image.
+  expect(rim).toBeGreaterThan(100);
+  expect(rim).toBeLessThan(250);
 });
 
 test('Shape removes a dragged box and Keep with an ellipse brings part of it back', async ({ page }) => {

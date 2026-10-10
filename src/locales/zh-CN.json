@@ -22,6 +22,7 @@
     "remove": "移除"
   },
   "brushSize": "画笔大小",
+  "brushHardness": "硬度",
   "actions": {
     "open": "打开另一张图片",
     "undo": "撤销",
@@ -111,7 +112,8 @@
     "fit": "使图片适应屏幕",
     "compare": "按住查看原图",
     "view": "切换视图：结果、叠加、原图",
-    "square": "拖动时按住可画正方形或圆形"
+    "square": "拖动时按住可画正方形或圆形",
+    "hardness": "画笔更柔和 / 更硬"
   },
   "view": {
     "label": "视图",

@@ -8,6 +8,7 @@ const SHORTCUTS: [string, string][] = [
   ['Shift', 'shortcuts.square'],
   ['X', 'shortcuts.mode'],
   ['[  ]', 'shortcuts.size'],
+  ['Shift + [  ]', 'shortcuts.hardness'],
   ['Ctrl+Z / Ctrl+Shift+Z', 'shortcuts.undo'],
   ['Space + drag', 'shortcuts.pan'],
   ['0', 'shortcuts.fit'],

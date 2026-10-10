@@ -69,7 +69,10 @@ export function useGlobalInput(): void {
       const toolKeys: Record<string, ToolId> = { '1': 'auto', '2': 'select', '3': 'wand', '4': 'color', b: 'brush', m: 'shape' };
       if (toolKeys[key]) ui.setTool(toolKeys[key]);
       else if (key === 'x') ui.toggleMode();
-      else if (e.key === '[' || e.key === ']') {
+      else if ((e.key === '{' || e.key === '}') && ui.tool === 'brush') {
+        // Shift+[ and Shift+] change hardness, as in other image editors.
+        ui.setBrushHardness(ui.brushHardness + (e.key === '}' ? 10 : -10));
+      } else if (e.key === '[' || e.key === ']') {
         const up = e.key === ']';
         if (ui.tool === 'brush') ui.setBrushSize(up ? ui.brushSize * 1.25 : ui.brushSize / 1.25);
         else if (ui.tool === 'wand' || ui.tool === 'color') {

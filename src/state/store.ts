@@ -53,6 +53,8 @@ interface UIState {
   modes: Record<ToolId, Mode>;
   /** Brush diameter in screen pixels, so it feels the same at any zoom. */
   brushSize: number;
+  /** Brush hardness, 0–100: how much of the brush paints at full strength before it fades. */
+  brushHardness: number;
   /** What the Shape tool draws. */
   shapeKind: ShapeKind;
   tolerances: { wand: number; color: number };
@@ -74,6 +76,7 @@ interface UIState {
   toggleMode: () => void;
   setMode: (mode: Mode) => void;
   setBrushSize: (size: number) => void;
+  setBrushHardness: (hardness: number) => void;
   /** Step to the next view mode. */
   cycleViewMode: () => void;
   setTolerance: (tool: 'wand' | 'color', value: number) => void;
@@ -90,6 +93,7 @@ export const useUI = create<UIState>()(
       tool: 'auto',
       modes: { ...DEFAULT_MODES },
       brushSize: 40,
+      brushHardness: 60,
       shapeKind: 'rect',
       tolerances: { wand: 20, color: 15 },
       exportFormat: 'png',
@@ -113,6 +117,7 @@ export const useUI = create<UIState>()(
       cycleViewMode: () =>
         set((s) => ({ viewMode: VIEW_MODES[(VIEW_MODES.indexOf(s.viewMode) + 1) % VIEW_MODES.length] })),
       setBrushSize: (size) => set({ brushSize: clamp(size, BRUSH_MIN, BRUSH_MAX) }),
+      setBrushHardness: (hardness) => set({ brushHardness: clamp(hardness, 0, 100) }),
       setTolerance: (tool, value) =>
         set((s) => ({ tolerances: { ...s.tolerances, [tool]: clamp(value, TOLERANCE_MIN, TOLERANCE_MAX) } })),
       showNotice: (notice) => set({ notice }),
@@ -125,6 +130,7 @@ export const useUI = create<UIState>()(
       partialize: (s) => ({
         tool: s.tool,
         brushSize: s.brushSize,
+        brushHardness: s.brushHardness,
         shapeKind: s.shapeKind,
         tolerances: s.tolerances,
         exportFormat: s.exportFormat,

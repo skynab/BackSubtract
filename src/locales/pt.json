@@ -22,6 +22,7 @@
     "remove": "Remover"
   },
   "brushSize": "Tamanho do pincel",
+  "brushHardness": "Dureza",
   "actions": {
     "open": "Abrir outra imagem",
     "undo": "Desfazer",
@@ -111,7 +112,8 @@
     "fit": "Ajustar a imagem à tela",
     "compare": "Segure para ver o original",
     "view": "Mudar a visualização: Resultado, Sobreposto, Original",
-    "square": "Segure ao arrastar para um quadrado ou um círculo"
+    "square": "Segure ao arrastar para um quadrado ou um círculo",
+    "hardness": "Pincel mais suave / mais duro"
   },
   "view": {
     "label": "Visualização",

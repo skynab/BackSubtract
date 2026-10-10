@@ -1,7 +1,7 @@
 import { History, makeEdit, type Edit, type StepLabel } from '../mask/history';
 import { extract, Mask, padRect, unionRect, type Mode, type Rect } from '../mask/mask';
 import { snapToEdges, type Plane } from '../mask/snap';
-import { snapRadius, stampDab, stampSegment } from '../tools/brush/brush';
+import { SNAP_MIN_HARDNESS, snapRadius, stampDab, stampSegment } from '../tools/brush/brush';
 
 export type EditorEvent =
   | { type: 'image' }
@@ -14,6 +14,8 @@ interface Stroke {
   lastX: number;
   lastY: number;
   radius: number;
+  /** 0–1: how much of the radius is painted at full strength. */
+  hardness: number;
   mode: Mode;
 }
 
@@ -85,24 +87,24 @@ export class Editor {
     return this.stroke !== null;
   }
 
-  beginStroke(x: number, y: number, radius: number, mode: Mode): void {
+  beginStroke(x: number, y: number, radius: number, mode: Mode, hardness: number): void {
     const mask = this.mask;
     if (!mask) return;
     if (this.stroke) this.endStroke();
     this.coverage ??= { data: new Uint8Array(mask.width * mask.height), width: mask.width, height: mask.height };
-    this.stroke = { snapshot: mask.data.slice(), dirty: null, lastX: x, lastY: y, radius, mode };
-    this.paint(stampDab(this.coverage, x, y, radius));
+    this.stroke = { snapshot: mask.data.slice(), dirty: null, lastX: x, lastY: y, radius, hardness, mode };
+    this.paint(stampDab(this.coverage, x, y, radius, hardness));
   }
 
   continueStroke(x: number, y: number): void {
     const s = this.stroke;
     if (!s || !this.coverage) return;
-    this.paint(stampSegment(this.coverage, s.lastX, s.lastY, x, y, s.radius));
+    this.paint(stampSegment(this.coverage, s.lastX, s.lastY, x, y, s.radius, s.hardness));
     s.lastX = x;
     s.lastY = y;
   }
 
-  /** Finish the stroke: snap its edge to the image, then record it as one undo step. */
+  /** Finish the stroke: snap its edge to the image (unless the brush is soft), then record it as one undo step. */
   endStroke(): void {
     const s = this.stroke;
     const mask = this.mask;
@@ -110,9 +112,10 @@ export class Editor {
     this.stroke = null;
     if (!s?.dirty || !mask || !coverage) return;
 
-    const r = snapRadius(s.radius);
+    const snap = s.hardness >= SNAP_MIN_HARDNESS;
+    const r = snap ? snapRadius(s.radius) : 0;
     const rect = mask.clip(padRect(s.dirty, r))!;
-    snapToEdges(coverage, this.pixels, rect, r);
+    if (snap) snapToEdges(coverage, this.pixels, rect, r);
     mask.combineFrom(s.snapshot, coverage.data, rect, s.mode);
     this.clearCoverage(rect);
     this.emit({ type: 'mask', rect });

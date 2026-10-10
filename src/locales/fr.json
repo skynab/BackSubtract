@@ -22,6 +22,7 @@
     "remove": "Retirer"
   },
   "brushSize": "Taille du pinceau",
+  "brushHardness": "Dureté",
   "actions": {
     "open": "Ouvrir une autre image",
     "undo": "Annuler",
@@ -111,7 +112,8 @@
     "fit": "Ajuster l’image à l’écran",
     "compare": "Maintenir pour voir l’original",
     "view": "Changer d'affichage : Résultat, Superposé, Original",
-    "square": "Maintenir en faisant glisser pour un carré ou un cercle"
+    "square": "Maintenir en faisant glisser pour un carré ou un cercle",
+    "hardness": "Pinceau plus doux / plus dur"
   },
   "view": {
     "label": "Affichage",

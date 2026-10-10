@@ -22,6 +22,7 @@
     "remove": "Entfernen"
   },
   "brushSize": "Pinselgröße",
+  "brushHardness": "Härte",
   "actions": {
     "open": "Anderes Bild öffnen",
     "undo": "Rückgängig",
@@ -111,7 +112,8 @@
     "fit": "Bild an den Bildschirm anpassen",
     "compare": "Gedrückt halten, um das Original zu sehen",
     "view": "Ansicht wechseln: Ergebnis, Überlagert, Original",
-    "square": "Beim Ziehen gedrückt halten für Quadrat oder Kreis"
+    "square": "Beim Ziehen gedrückt halten für Quadrat oder Kreis",
+    "hardness": "Weicherer / härterer Pinsel"
   },
   "view": {
     "label": "Ansicht",

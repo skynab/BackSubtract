@@ -22,6 +22,7 @@
     "remove": "Remove"
   },
   "brushSize": "Brush size",
+  "brushHardness": "Hardness",
   "actions": {
     "open": "Open another image",
     "undo": "Undo",
@@ -111,7 +112,8 @@
     "fit": "Fit the image to the screen",
     "compare": "Hold to see the original",
     "view": "Switch view: Result, Overlay, Original",
-    "square": "Hold while dragging for a square or circle"
+    "square": "Hold while dragging for a square or circle",
+    "hardness": "Softer / harder brush"
   },
   "view": {
     "label": "View",

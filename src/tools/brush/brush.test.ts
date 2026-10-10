@@ -22,6 +22,26 @@ describe('stamping', () => {
     expect(edge).toBeLessThan(255);
   });
 
+  it('hardness sets how far from the centre the fade starts', () => {
+    const at = (hardness: number) => {
+      const p = plane(40, 1);
+      stampDab(p, 20, 0.5, 10, hardness);
+      return p.data[25]; // 5.5px from the centre
+    };
+    expect(at(1)).toBe(255);
+    expect(at(0.6)).toBe(255);
+    expect(at(0)).toBeLessThan(at(0.3));
+    expect(at(0)).toBeGreaterThan(0);
+  });
+
+  it('a fully hard brush still fades over its last pixel', () => {
+    const p = plane(40, 1);
+    stampDab(p, 20, 0.5, 10, 1);
+    expect(p.data[29]).toBeGreaterThan(0); // 9.5px out
+    expect(p.data[29]).toBeLessThan(255);
+    expect(p.data[27]).toBe(255);
+  });
+
   it('overlapping dabs do not build up', () => {
     const once = plane(20, 20);
     stampDab(once, 10, 10, 6);

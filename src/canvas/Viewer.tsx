@@ -221,7 +221,7 @@ export function Viewer() {
         gesture = { kind: 'pan', id: e.pointerId, last: p };
       } else if (ui.tool === 'brush') {
         const ip = toImage(view, p);
-        editor.beginStroke(ip.x, ip.y, ui.brushSize / 2 / view.scale, ui.modes.brush);
+        editor.beginStroke(ip.x, ip.y, ui.brushSize / 2 / view.scale, ui.modes.brush, ui.brushHardness / 100);
         gesture = { kind: 'stroke', id: e.pointerId };
       } else if (ui.tool === 'shape') {
         gesture = { kind: 'shape', id: e.pointerId, start: p, end: p, square: e.shiftKey };

@@ -54,16 +54,22 @@ function ToolButton({ id, Icon }: { id: ToolId; Icon: ComponentType<SVGProps<SVG
   );
 }
 
-function Slider({ value, min, max, label, onChange }: {
+function Slider({ value, min, max, label, onChange, soft }: {
   value: number;
   min: number;
   max: number;
   label: string;
   onChange: (value: number) => void;
+  /** Show soft → hard ends instead of small → large. */
+  soft?: boolean;
 }) {
   return (
     <label className="slider">
-      <span className="dot" style={{ width: 6, height: 6 }} aria-hidden="true" />
+      {soft ? (
+        <span className="dot soft" style={{ width: 14, height: 14 }} aria-hidden="true" />
+      ) : (
+        <span className="dot" style={{ width: 6, height: 6 }} aria-hidden="true" />
+      )}
       <input
         type="range"
         min={min}
@@ -73,7 +79,7 @@ function Slider({ value, min, max, label, onChange }: {
         title={label}
         onChange={(e) => onChange(Number(e.target.value))}
       />
-      <span className="dot" style={{ width: 16, height: 16 }} aria-hidden="true" />
+      <span className="dot" style={soft ? { width: 14, height: 14 } : { width: 16, height: 16 }} aria-hidden="true" />
     </label>
   );
 }
@@ -82,12 +88,17 @@ function ToolSlider() {
   const { t } = useTranslation();
   const tool = useUI((s) => s.tool);
   const brushSize = useUI((s) => s.brushSize);
+  const brushHardness = useUI((s) => s.brushHardness);
   const tolerances = useUI((s) => s.tolerances);
 
   if (tool === 'brush') {
     return (
-      <Slider value={brushSize} min={BRUSH_MIN} max={BRUSH_MAX} label={t('brushSize')}
-        onChange={(v) => useUI.getState().setBrushSize(v)} />
+      <>
+        <Slider value={brushSize} min={BRUSH_MIN} max={BRUSH_MAX} label={t('brushSize')}
+          onChange={(v) => useUI.getState().setBrushSize(v)} />
+        <Slider value={brushHardness} min={0} max={100} label={t('brushHardness')} soft
+          onChange={(v) => useUI.getState().setBrushHardness(v)} />
+      </>
     );
   }
   if (tool === 'wand' || tool === 'color') {

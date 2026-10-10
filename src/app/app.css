@@ -408,6 +408,10 @@ button:disabled {
   background: var(--muted);
 }
 
+.slider .dot.soft {
+  background: radial-gradient(circle, var(--muted) 0%, transparent 70%);
+}
+
 .actions {
   display: flex;
   align-items: center;
@@ -433,6 +437,7 @@ button:disabled {
 
   .slider {
     flex: 1;
+    min-width: 140px;
   }
 
   .slider input {
