@@ -3,6 +3,7 @@ import { extract, Mask, padRect, unionRect, type Mode, type Rect } from '../mask
 import { snapToEdges, type Plane } from '../mask/snap';
 import { SNAP_MIN_HARDNESS, snapRadius, stampDab, stampSegment } from '../tools/brush/brush';
 import { refineAlpha, refineReach } from '../tools/brush/refine';
+import { deviceHints, historyBudget } from './memory';
 
 export type EditorEvent =
   | { type: 'image' }
@@ -51,7 +52,8 @@ export class Editor {
   /** Size of the original file, which is larger than `image` when it was scaled down on opening. */
   sourceSize = { width: 0, height: 0 };
   mask: Mask | null = null;
-  readonly history = new History();
+  /** Undo history, capped to suit the device's memory. */
+  readonly history = new History(historyBudget(deviceHints()));
   private stroke: Stroke | null = null;
   /** Scratch plane for the stroke in progress; all zero between strokes. */
   private coverage: Plane | null = null;

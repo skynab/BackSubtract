@@ -170,7 +170,7 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - The ONNX Runtime WASM file is about 27 MB and ships with the site. That's over Cloudflare Pages' 25 MiB per-file limit, so either host on Netlify or GitHub Pages, or load it from a CDN.
 - Images are decoded with `createImageBitmap`, and EXIF orientation is honoured.
 - HEIC (iPhone) photos open where the browser can decode them, as Safari does. Elsewhere a clear message explains how to get a JPG. `heic2any` was not added: it bundles libheif, which is LGPL-3.0, and that would need a licensing decision first.
-- Memory: cap the working resolution at about 4096 px on the long side and warn above that.
+- Memory: cap the working resolution at about 4096 px on the long side and warn above that. Undo history gets a budget that fits beside the photo: 32 MB per GB of reported device memory (Chromium's `navigator.deviceMemory`), between 48 and 256 MB; 96 MB on iPhone and iPad, which report nothing and whose Safari closes tabs that use too much; 256 MB elsewhere. Whole-image steps (Auto, Edges) store only the area that changed.
 
 ## 8. Project structure
 
@@ -213,7 +213,7 @@ public/           icons, manifest
    - Still open: native-speaker review of the translations, and testing on real phones and other GPUs.
 5. **Testing throughout:**
    - Vitest unit tests for the mask maths: Keep/Remove combine, recovery after removal, undo diffs, flood fill, colour key, export.
-   - ✅ Playwright smoke tests (`npm run test:e2e`) on Desktop Chrome and a Pixel 7 profile, using real touch taps on the phone. They cover the start screen, language and RTL, About, opening an image, Magic Wand, Color with Keep/Remove, brush, undo/redo, and restoring after a reload. Each checks the downloaded PNG's actual transparency. The AI tools are not covered, because of the model downloads.
+   - ✅ Playwright smoke tests (`npm run test:e2e`) on Desktop Chrome and a Pixel 7 profile, using real touch taps on the phone. They cover the start screen, language and RTL, About, opening an image, Magic Wand, Color with Keep/Remove, brush, undo/redo, and restoring after a reload. Each checks the downloaded PNG's actual transparency. The AI tools are covered too, against a stand-in AI worker swapped in by the `e2e` build mode: it speaks the same protocol, simulates downloads (with progress, caching and cancelling) and returns colour-based masks. The tests cover Auto's ask-first download, progress and Cancel, Auto running by itself once downloaded, a restored session not being overwritten, a failing model's message, and Select taps and loops. Each was checked to fail when the behaviour it guards is broken. The real models are still only tried by hand.
    - ✅ Golden images (`golden/*.png`): Magic Wand, Color on a green screen, and an edge-snapping brush stroke, each run on fixed photo-like scenes. They're compared on every `npm test` and are viewable as a visual record; regenerate with `npm run golden:update`. They exposed a green fringe left by colour selections, now fixed by anti-aliasing colour selections against the image.
 
 ## 10. Donations (custom, no third-party donation platform)
