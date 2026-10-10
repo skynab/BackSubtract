@@ -1,4 +1,4 @@
-import { History, makeEdit, type Edit } from '../mask/history';
+import { History, makeEdit, type Edit, type StepLabel } from '../mask/history';
 import { extract, Mask, padRect, unionRect, type Mode, type Rect } from '../mask/mask';
 import { snapToEdges, type Plane } from '../mask/snap';
 import { snapRadius, stampDab, stampSegment } from '../tools/brush/brush';
@@ -117,7 +117,7 @@ export class Editor {
     this.clearCoverage(rect);
     this.emit({ type: 'mask', rect });
 
-    const edit = makeEdit(s.snapshot, mask, rect, this.nextTag++);
+    const edit = makeEdit(s.snapshot, mask, rect, this.nextTag++, undefined, { tool: 'brush', mode: s.mode });
     if (edit) {
       this.history.push(edit);
       this.emit({ type: 'history' });
@@ -139,7 +139,13 @@ export class Editor {
    * Passing the tag of the latest step replaces that step instead, which lets a
    * slider re-tune the last tap without piling up history.
    */
-  applySelection(selection: Uint8Array, rect: Rect, mode: Mode, replaceTag?: number, kind?: string): number | null {
+  applySelection(
+    selection: Uint8Array,
+    rect: Rect,
+    mode: Mode,
+    label: StepLabel,
+    { replaceTag, kind }: { replaceTag?: number; kind?: string } = {},
+  ): number | null {
     const mask = this.mask;
     if (!mask || this.stroke) return null;
     let dirty: Rect | null = null;
@@ -152,21 +158,21 @@ export class Editor {
     this.emit({ type: 'mask', rect: dirty });
 
     const tag = this.nextTag++;
-    const edit = makeEdit(snapshot, mask, rect, tag, kind);
+    const edit = makeEdit(snapshot, mask, rect, tag, kind, label);
     if (edit) this.history.push(edit);
     this.emit({ type: 'history' });
     return edit ? tag : null;
   }
 
   /** Set the whole mask at once (e.g. to the Auto result) as one undo step. */
-  replaceMask(values: Uint8Array, kind?: string): void {
+  replaceMask(values: Uint8Array, label: StepLabel, kind?: string): void {
     const mask = this.mask;
     if (!mask || this.stroke || values.length !== mask.data.length) return;
     const snapshot = mask.data.slice();
     mask.data.set(values);
     const rect = { x: 0, y: 0, w: mask.width, h: mask.height };
     this.emit({ type: 'mask', rect });
-    const edit = makeEdit(snapshot, mask, rect, this.nextTag++, kind);
+    const edit = makeEdit(snapshot, mask, rect, this.nextTag++, kind, label);
     if (edit) {
       this.history.push(edit);
       this.emit({ type: 'history' });
@@ -185,6 +191,16 @@ export class Editor {
   redo(): void {
     if (this.stroke || !this.mask) return;
     const rect = this.history.redo(this.mask);
+    if (rect) {
+      this.emit({ type: 'mask', rect });
+      this.emit({ type: 'history' });
+    }
+  }
+
+  /** Jump straight to a point in the history: `position` is how many steps stay applied. */
+  goTo(position: number): void {
+    if (this.stroke || !this.mask) return;
+    const rect = this.history.goTo(this.mask, position);
     if (rect) {
       this.emit({ type: 'mask', rect });
       this.emit({ type: 'history' });

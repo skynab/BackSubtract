@@ -33,7 +33,9 @@ editor.subscribe((event) => {
 function apply(pick: LastPick, selection: SelectionResult | null, replace: boolean): void {
   // Ignore results for an image that has since been replaced.
   if (!selection || editor.image !== pick.image) return;
-  pick.tag = editor.applySelection(selection.data, selection.rect, pick.mode, replace ? (pick.tag ?? undefined) : undefined);
+  pick.tag = editor.applySelection(selection.data, selection.rect, pick.mode, { tool: pick.tool, mode: pick.mode }, {
+    replaceTag: replace ? (pick.tag ?? undefined) : undefined,
+  });
   pick.version = editor.history.version;
 }
 

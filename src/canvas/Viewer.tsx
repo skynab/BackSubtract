@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ViewSwitch } from '../app/ViewSwitch';
 import { editor } from '../editor/editor';
 import { unionRect, type Rect } from '../mask/mask';
 import { selectMode, useUI } from '../state/store';
@@ -10,6 +11,8 @@ import { clamp, fitView, MAX_SCALE, minScale, toImage, zoomAt, type Point, type 
 
 /** How visible removed areas are while in Keep mode, so users can see what they can bring back. */
 const GHOST = 0.15;
+/** How visible removed areas are in the Overlay view. */
+const OVERLAY = 0.5;
 const HOLD_MS = 450;
 const DRAG_SLOP = 6;
 
@@ -76,8 +79,10 @@ export function Viewer() {
       frame = 0;
       if (pendingMask && editor.mask) renderer.updateMask(editor.mask, pendingMask);
       pendingMask = null;
-      const ghost = selectMode(useUI.getState()) === 'keep' ? GHOST : 0;
-      renderer.render({ view, width: size.w, height: size.h, dpr: size.dpr, ghost, original: comparing ? 1 : 0, ...colors });
+      const ui = useUI.getState();
+      const ghost = ui.viewMode === 'overlay' ? OVERLAY : selectMode(ui) === 'keep' ? GHOST : 0;
+      const original = comparing || ui.viewMode === 'original' ? 1 : 0;
+      renderer.render({ view, width: size.w, height: size.h, dpr: size.dpr, ghost, original, ...colors });
     }
 
     function fit() {
@@ -292,6 +297,8 @@ export function Viewer() {
         setComparing(true);
       } else if (e.key === '0') {
         fit();
+      } else if ((e.key === 'v' || e.key === 'V') && !e.repeat) {
+        useUI.getState().cycleViewMode();
       }
     }
 
@@ -375,6 +382,7 @@ export function Viewer() {
       <svg className="lasso" aria-hidden="true">
         <path ref={lassoRef} />
       </svg>
+      <ViewSwitch />
       <div className="badge" ref={badgeRef} hidden>
         {t('viewer.original')}
       </div>

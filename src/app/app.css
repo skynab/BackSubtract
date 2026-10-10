@@ -440,6 +440,94 @@ button:disabled {
 
 }
 
+/* View switch, over the top corner of the image */
+
+.view-switch {
+  position: absolute;
+  inset-block-start: 10px;
+  inset-inline-end: 10px;
+  padding: 2px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+  backdrop-filter: blur(6px);
+}
+
+.view-switch button {
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+/* Undo / redo and the history list */
+
+.history {
+  position: relative;
+  display: flex;
+  gap: 4px;
+}
+
+.history-menu {
+  /* Grows away from the screen edge the buttons sit near. */
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+  width: 240px;
+  max-height: min(60vh, 380px);
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.history-menu ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.history-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg);
+  text-align: start;
+}
+
+.history-menu button:hover {
+  background: var(--surface-hover);
+}
+
+.history-menu button[aria-current='step'] {
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+
+/* Steps after the current one have been undone and can be redone. */
+.history-menu button.undone {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.step-mark {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.step-mark.keep {
+  background: var(--accent);
+}
+
+.step-mark.remove {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--muted);
+}
+
 /* Download split button and menu */
 
 .download {

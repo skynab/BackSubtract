@@ -127,11 +127,12 @@ function apply(image: ImageBitmap, result: MaskResult, clip?: Uint8Array): void 
   snapToEdgesTiled({ data: full, width: W, height: H }, editor.pixels, padded, radius);
 
   const mode = useUI.getState().modes.select;
+  const label = { tool: 'select', mode };
   if (mode === 'keep' && !editor.history.hasKind(FIRST_KEEP)) {
     // First Keep: hide everything that isn't the object (intersect with what's visible now).
     for (let i = 0; i < full.length; i++) full[i] = 255 - full[i];
-    editor.applySelection(full, { x: 0, y: 0, w: W, h: H }, 'remove', undefined, FIRST_KEEP);
+    editor.applySelection(full, { x: 0, y: 0, w: W, h: H }, 'remove', label, { kind: FIRST_KEEP });
   } else {
-    editor.applySelection(full, padded, mode);
+    editor.applySelection(full, padded, mode, label);
   }
 }

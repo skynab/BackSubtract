@@ -108,6 +108,25 @@
     "undo": "Deshacer / rehacer",
     "pan": "Moverse por la imagen",
     "fit": "Ajustar la imagen a la pantalla",
-    "compare": "Mantener para ver el original"
+    "compare": "Mantener para ver el original",
+    "view": "Cambiar vista: Resultado, Superpuesto, Original"
+  },
+  "view": {
+    "label": "Vista",
+    "result": "Resultado",
+    "overlay": "Superpuesto",
+    "original": "Original",
+    "hints": {
+      "result": "Mostrar el resultado",
+      "overlay": "Mostrar tenues las zonas quitadas, para ver qué recuperar",
+      "original": "Mostrar la imagen original"
+    }
+  },
+  "history": {
+    "title": "Historial",
+    "hint": "mantén pulsado para ver el historial",
+    "start": "Imagen abierta",
+    "edit": "Edición",
+    "step": "{{tool}} · {{mode}}"
   }
 }

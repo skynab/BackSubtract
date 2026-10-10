@@ -108,6 +108,25 @@
     "undo": "Annuler / rétablir",
     "pan": "Se déplacer dans l’image",
     "fit": "Ajuster l’image à l’écran",
-    "compare": "Maintenir pour voir l’original"
+    "compare": "Maintenir pour voir l’original",
+    "view": "Changer d'affichage : Résultat, Superposé, Original"
+  },
+  "view": {
+    "label": "Affichage",
+    "result": "Résultat",
+    "overlay": "Superposé",
+    "original": "Original",
+    "hints": {
+      "result": "Afficher le résultat",
+      "overlay": "Afficher en transparence les zones retirées, pour repérer ce qu'il faut récupérer",
+      "original": "Afficher l'image d'origine"
+    }
+  },
+  "history": {
+    "title": "Historique",
+    "hint": "maintenir pour l'historique",
+    "start": "Image ouverte",
+    "edit": "Modification",
+    "step": "{{tool}} · {{mode}}"
   }
 }

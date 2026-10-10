@@ -108,6 +108,25 @@
     "undo": "撤销 / 重做",
     "pan": "移动图片",
     "fit": "使图片适应屏幕",
-    "compare": "按住查看原图"
+    "compare": "按住查看原图",
+    "view": "切换视图：结果、叠加、原图"
+  },
+  "view": {
+    "label": "视图",
+    "result": "结果",
+    "overlay": "叠加",
+    "original": "原图",
+    "hints": {
+      "result": "显示结果",
+      "overlay": "半透明显示已移除的区域，方便找出要恢复的部分",
+      "original": "显示原始图片"
+    }
+  },
+  "history": {
+    "title": "历史记录",
+    "hint": "长按查看历史记录",
+    "start": "打开图片",
+    "edit": "编辑",
+    "step": "{{tool}} · {{mode}}"
   }
 }

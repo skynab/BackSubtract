@@ -108,6 +108,25 @@
     "undo": "Undo / redo",
     "pan": "Move around the image",
     "fit": "Fit the image to the screen",
-    "compare": "Hold to see the original"
+    "compare": "Hold to see the original",
+    "view": "Switch view: Result, Overlay, Original"
+  },
+  "view": {
+    "label": "View",
+    "result": "Result",
+    "overlay": "Overlay",
+    "original": "Original",
+    "hints": {
+      "result": "Show the result",
+      "overlay": "Show removed areas faintly, to spot what to bring back",
+      "original": "Show the original image"
+    }
+  },
+  "history": {
+    "title": "History",
+    "hint": "hold for history",
+    "start": "Opened image",
+    "edit": "Edit",
+    "step": "{{tool}} · {{mode}}"
   }
 }

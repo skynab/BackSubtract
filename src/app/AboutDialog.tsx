@@ -11,6 +11,7 @@ const SHORTCUTS: [string, string][] = [
   ['Space + drag', 'shortcuts.pan'],
   ['0', 'shortcuts.fit'],
   ['C', 'shortcuts.compare'],
+  ['V', 'shortcuts.view'],
 ];
 
 export function AboutDialog({ onClose }: { onClose: () => void }) {

@@ -108,6 +108,25 @@
     "undo": "Rückgängig / wiederholen",
     "pan": "Im Bild bewegen",
     "fit": "Bild an den Bildschirm anpassen",
-    "compare": "Gedrückt halten, um das Original zu sehen"
+    "compare": "Gedrückt halten, um das Original zu sehen",
+    "view": "Ansicht wechseln: Ergebnis, Überlagert, Original"
+  },
+  "view": {
+    "label": "Ansicht",
+    "result": "Ergebnis",
+    "overlay": "Überlagert",
+    "original": "Original",
+    "hints": {
+      "result": "Ergebnis anzeigen",
+      "overlay": "Entfernte Bereiche halb durchsichtig zeigen, um Fehlendes zurückzuholen",
+      "original": "Originalbild anzeigen"
+    }
+  },
+  "history": {
+    "title": "Verlauf",
+    "hint": "gedrückt halten für den Verlauf",
+    "start": "Bild geöffnet",
+    "edit": "Bearbeitung",
+    "step": "{{tool}} · {{mode}}"
   }
 }

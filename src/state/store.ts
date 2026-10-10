@@ -17,6 +17,14 @@ const DEFAULT_MODES: Record<ToolId, Mode> = {
   brush: 'remove',
 };
 
+/**
+ * How the image is shown: the result, the result with removed areas half visible
+ * (to spot and paint back what was missed), or the untouched original.
+ */
+export type ViewMode = 'result' | 'overlay' | 'original';
+
+export const VIEW_MODES: readonly ViewMode[] = ['result', 'overlay', 'original'];
+
 export const BRUSH_MIN = 4;
 export const BRUSH_MAX = 300;
 /** Colour tolerance range, in ΔE. */
@@ -49,6 +57,7 @@ interface UIState {
   trim: boolean;
   canUndo: boolean;
   canRedo: boolean;
+  viewMode: ViewMode;
   dragging: boolean;
   notice: Notice | null;
   task: Task | null;
@@ -61,6 +70,8 @@ interface UIState {
   toggleMode: () => void;
   setMode: (mode: Mode) => void;
   setBrushSize: (size: number) => void;
+  /** Step to the next view mode. */
+  cycleViewMode: () => void;
   setTolerance: (tool: 'wand' | 'color', value: number) => void;
   showNotice: (notice: Notice) => void;
   clearNotice: () => void;
@@ -81,6 +92,7 @@ export const useUI = create<UIState>()(
       trim: false,
       canUndo: false,
       canRedo: false,
+      viewMode: 'result',
       dragging: false,
       notice: null,
       task: null,
@@ -93,6 +105,8 @@ export const useUI = create<UIState>()(
       toggleMode: () =>
         set((s) => ({ modes: { ...s.modes, [s.tool]: s.modes[s.tool] === 'keep' ? 'remove' : 'keep' } })),
       setMode: (mode) => set((s) => ({ modes: { ...s.modes, [s.tool]: mode } })),
+      cycleViewMode: () =>
+        set((s) => ({ viewMode: VIEW_MODES[(VIEW_MODES.indexOf(s.viewMode) + 1) % VIEW_MODES.length] })),
       setBrushSize: (size) => set({ brushSize: clamp(size, BRUSH_MIN, BRUSH_MAX) }),
       setTolerance: (tool, value) =>
         set((s) => ({ tolerances: { ...s.tolerances, [tool]: clamp(value, TOLERANCE_MIN, TOLERANCE_MAX) } })),

@@ -108,6 +108,25 @@
     "undo": "Desfazer / refazer",
     "pan": "Mover pela imagem",
     "fit": "Ajustar a imagem à tela",
-    "compare": "Segure para ver o original"
+    "compare": "Segure para ver o original",
+    "view": "Mudar a visualização: Resultado, Sobreposto, Original"
+  },
+  "view": {
+    "label": "Visualização",
+    "result": "Resultado",
+    "overlay": "Sobreposto",
+    "original": "Original",
+    "hints": {
+      "result": "Mostrar o resultado",
+      "overlay": "Mostrar as áreas removidas em transparência, para ver o que recuperar",
+      "original": "Mostrar a imagem original"
+    }
+  },
+  "history": {
+    "title": "Histórico",
+    "hint": "mantenha pressionado para ver o histórico",
+    "start": "Imagem aberta",
+    "edit": "Edição",
+    "step": "{{tool}} · {{mode}}"
   }
 }

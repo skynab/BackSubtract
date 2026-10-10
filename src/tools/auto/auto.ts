@@ -19,7 +19,7 @@ export async function runAuto(): Promise<void> {
     // Ignore the result if a different image was opened meanwhile.
     if (!result || editor.image !== image) return;
     const full = resizePlane(result.data, result.width, result.height, image.width, image.height);
-    editor.replaceMask(full, 'auto');
+    editor.replaceMask(full, { tool: 'auto' }, 'auto');
     useUI.setState({ autoRan: true });
   } finally {
     running = false;

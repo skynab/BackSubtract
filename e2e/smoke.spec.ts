@@ -69,6 +69,49 @@ test('Keep brings back what Remove hid; undo and redo work', async ({ page }) =>
   expect(corner).toBe(255);
 });
 
+test('holding Undo lists every step and jumps straight to one', async ({ page }) => {
+  await openTestImage(page);
+  const list = page.getByRole('dialog', { name: 'History' });
+  // Right-click opens the same list as press-and-hold. Checking it after each tap also waits for the tap to land.
+  const expectSteps = async (steps: string[]) => {
+    await page.getByRole('button', { name: 'Undo' }).click({ button: 'right' });
+    await expect(list.getByRole('button')).toHaveText(['Opened image', ...steps]);
+    await expect(list.getByRole('button', { name: steps.at(-1) })).toHaveAttribute('aria-current', 'step');
+    await page.keyboard.press('Escape');
+    await expect(list).toBeHidden();
+  };
+
+  await chooseTool(page, 'Color');
+  await tapImage(page, 10, 10); // remove the background
+  await expectSteps(['Color · Remove']);
+  await page.getByRole('button', { name: 'Keep' }).click();
+  await tapImage(page, 10, 10); // bring it back
+  await expectSteps(['Color · Remove', 'Color · Keep']);
+  await chooseTool(page, 'Magic Wand');
+  await tapImage(page, DISK.x, DISK.y); // remove the disk
+  await expectSteps(['Color · Remove', 'Color · Keep', 'Magic Wand · Remove']);
+
+  await page.getByRole('button', { name: 'Undo' }).click({ button: 'right' });
+  await list.getByRole('button', { name: 'Color · Remove' }).click();
+  await expect(list.getByRole('button', { name: 'Color · Remove' })).toHaveAttribute('aria-current', 'step');
+  await page.keyboard.press('Escape');
+  await expect(list).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Redo' })).toBeEnabled();
+
+  const [corner, centre] = await downloadAndReadAlpha(page, [[10, 10], [DISK.x, DISK.y]]);
+  expect(corner).toBe(0);
+  expect(centre).toBe(255);
+});
+
+test('the view switch toggles between result, overlay and original', async ({ page }) => {
+  await openTestImage(page);
+  const view = page.getByRole('group', { name: 'View' });
+  for (const name of ['Overlay', 'Original', 'Result']) {
+    await view.getByRole('button', { name }).click();
+    await expect(view.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'true');
+  }
+});
+
 test('a brush stroke hides what it covers', async ({ page }) => {
   await openTestImage(page);
   await chooseTool(page, 'Brush');

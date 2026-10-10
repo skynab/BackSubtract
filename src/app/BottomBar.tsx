@@ -1,6 +1,5 @@
 import { useEffect, type ComponentType, type SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
-import { editor } from '../editor/editor';
 import { chooseImage } from '../session/openImage';
 import {
   BRUSH_MAX,
@@ -15,6 +14,7 @@ import { refreshModelInfo } from '../ml/status';
 import { runAuto } from '../tools/auto/auto';
 import { retune } from '../tools/color/pick';
 import { DownloadButton } from './DownloadButton';
+import { HistoryButtons } from './HistoryButtons';
 import {
   AutoIcon,
   BrushIcon,
@@ -22,9 +22,7 @@ import {
   ImageIcon,
   MinusIcon,
   PlusIcon,
-  RedoIcon,
   SelectIcon,
-  UndoIcon,
   WandIcon,
 } from './icons';
 
@@ -156,8 +154,6 @@ function ContextRow() {
 
 export function BottomBar() {
   const { t } = useTranslation();
-  const canUndo = useUI((s) => s.canUndo);
-  const canRedo = useUI((s) => s.canRedo);
 
   return (
     <footer className="bottombar">
@@ -177,12 +173,7 @@ export function BottomBar() {
         <button type="button" className="icon" title={t('actions.open')} aria-label={t('actions.open')} onClick={chooseImage}>
           <ImageIcon />
         </button>
-        <button type="button" className="icon" title={t('actions.undo')} aria-label={t('actions.undo')} disabled={!canUndo} onClick={() => editor.undo()}>
-          <UndoIcon className="flip-rtl" />
-        </button>
-        <button type="button" className="icon" title={t('actions.redo')} aria-label={t('actions.redo')} disabled={!canRedo} onClick={() => editor.redo()}>
-          <RedoIcon className="flip-rtl" />
-        </button>
+        <HistoryButtons />
         <DownloadButton />
       </div>
     </footer>

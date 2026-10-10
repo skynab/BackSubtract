@@ -81,6 +81,29 @@ describe('History', () => {
     expect(restored.canUndo).toBe(true);
   });
 
+  it('goTo jumps several steps back and forward at once', () => {
+    const mask = new Mask(3, 1);
+    const history = new History();
+    history.push({ ...hide(mask, 0, 0), label: { tool: 'wand', mode: 'remove' } });
+    history.push({ ...hide(mask, 1, 0), label: { tool: 'brush', mode: 'remove' } });
+    history.push(hide(mask, 2, 0));
+
+    expect(history.goTo(mask, 1)).toEqual({ x: 1, y: 0, w: 2, h: 1 });
+    expect([...mask.data]).toEqual([0, 255, 255]);
+    expect(history.position).toBe(1);
+    expect(history.steps).toEqual([
+      { label: { tool: 'wand', mode: 'remove' }, applied: true },
+      { label: { tool: 'brush', mode: 'remove' }, applied: false },
+      { label: undefined, applied: false },
+    ]);
+
+    history.goTo(mask, 3);
+    expect([...mask.data]).toEqual([0, 0, 0]);
+    history.goTo(mask, 0);
+    expect([...mask.data]).toEqual([255, 255, 255]);
+    expect(history.goTo(mask, 0)).toBeNull();
+  });
+
   it('makeEdit returns null when nothing changed', () => {
     const mask = new Mask(2, 2);
     expect(makeEdit(mask.data.slice(), mask, { x: 0, y: 0, w: 2, h: 2 })).toBeNull();
