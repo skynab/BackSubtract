@@ -58,4 +58,5 @@ See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for the licenses of bundl
 | Hold C | Show the original |
 | V | Switch view: Result / Overlay / Original |
 | Shift + drag | Shape: square or circle |
+| Shift + click | Brush: straight line from where the last stroke ended |
 | Hold Undo / Redo, or right-click | List every step and jump to one |

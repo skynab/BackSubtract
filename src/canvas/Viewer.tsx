@@ -31,8 +31,11 @@ const LASSO_SPACING = 30;
 
 type Gesture =
   | { kind: 'none' }
-  /** `trail` (screen points) is drawn for refine strokes, which change nothing until they end. */
-  | { kind: 'stroke'; id: number; trail: Point[] | null }
+  /**
+   * `trail` (screen points) is drawn for refine strokes, which change nothing until they end.
+   * `last` is the stroke's latest point in image px, where a Shift+click line will start from.
+   */
+  | { kind: 'stroke'; id: number; trail: Point[] | null; last: Point }
   | { kind: 'pan'; id: number; last: Point }
   | { kind: 'hold'; id: number; start: Point; timer: number }
   | { kind: 'lasso'; id: number; points: Point[] }
@@ -54,6 +57,7 @@ export function Viewer() {
   const badgeRef = useRef<HTMLDivElement>(null);
   const lassoRef = useRef<SVGPathElement>(null);
   const trailRef = useRef<SVGPathElement>(null);
+  const lineRef = useRef<SVGPathElement>(null);
 
   useEffect(() => {
     const wrap = wrapRef.current!;
@@ -63,6 +67,7 @@ export function Viewer() {
     const badge = badgeRef.current!;
     const lasso = lassoRef.current!;
     const trail = trailRef.current!;
+    const linePreview = lineRef.current!;
 
     let renderer: Renderer;
     try {
@@ -77,6 +82,9 @@ export function Viewer() {
     let userMoved = false;
     let comparing = false;
     let spaceDown = false;
+    let shiftDown = false;
+    /** Where the last brush stroke ended (image px): Shift+click paints a straight line from here. */
+    let lastBrush: Point | null = null;
     let pendingMask: Rect | null = null;
     let preview: Preview | null = null;
     let frame = 0;
@@ -105,6 +113,7 @@ export function Viewer() {
       const ghost = ui.viewMode === 'overlay' ? OVERLAY : selectMode(ui) === 'keep' ? GHOST : 0;
       const original = comparing || ui.viewMode === 'original' ? 1 : 0;
       if (gesture.kind === 'trace') followTrace(gesture);
+      drawLinePreview();
       const shownPreview =
         preview && !comparing ? { mode: preview.mode, tint: preview.mode === 'keep' ? KEEP_TINT : REMOVE_TINT } : null;
       const [checkerA, checkerB] = checkerColors(colors.checkerA, colors.checkerB, ui.checkerContrast);
@@ -126,6 +135,7 @@ export function Viewer() {
     }
 
     function loadImage() {
+      lastBrush = null;
       if (!editor.image || !editor.mask) return;
       renderer.setImage(editor.image, editor.mask);
       pendingMask = null;
@@ -174,6 +184,27 @@ export function Viewer() {
         coreRing.style.width = coreRing.style.height = `${core}px`;
         coreRing.hidden = core > d - 4 || ui.brushKind === 'refine';
       }
+      if (e) shiftDown = e.shiftKey;
+      drawLinePreview();
+    }
+
+    const toScreen = (ip: Point): Point => ({ x: ip.x * view.scale + view.x, y: ip.y * view.scale + view.y });
+
+    /**
+     * With a mouse or pen, holding Shift over the image with the brush shows the
+     * straight line a click would paint, from where the last stroke ended.
+     */
+    function drawLinePreview() {
+      const ui = useUI.getState();
+      const show =
+        shiftDown && lastBrush && hover && hover.e.pointerType !== 'touch' &&
+        ui.tool === 'brush' && gesture.kind === 'none' && !spaceDown;
+      if (!show) {
+        linePreview.setAttribute('d', '');
+        return;
+      }
+      const a = toScreen(lastBrush!), b = hover!.p;
+      linePreview.setAttribute('d', `M${a.x},${a.y}L${b.x},${b.y}`);
     }
 
     function drawTrail(points: Point[] | null) {
@@ -220,6 +251,7 @@ export function Viewer() {
     function endGesture(tapped = false) {
       if (gesture.kind === 'stroke') {
         editor.endStroke();
+        lastBrush = gesture.last;
         drawTrail(null);
       }
       if (gesture.kind === 'hold') {
@@ -271,6 +303,7 @@ export function Viewer() {
       if (pointers.size === 2) {
         // A second finger turns whatever the first one started into a pinch.
         if (gesture.kind === 'stroke') editor.cancelStroke();
+        if (gesture.kind === 'stroke') lastBrush = null;
         if (gesture.kind === 'hold') clearTimeout(gesture.timer);
         drawLasso(null);
         drawTrail(null);
@@ -294,9 +327,14 @@ export function Viewer() {
         const refine = ui.brushKind === 'refine';
         // A refine stroke fades over half its radius, so its edge blends into what was there.
         const hardness = refine ? 0.5 : ui.brushHardness / 100;
-        editor.beginStroke(ip.x, ip.y, ui.brushSize / 2 / view.scale, ui.modes.brush, hardness, refine);
-        gesture = { kind: 'stroke', id: e.pointerId, trail: refine ? [p] : null };
+        // Shift+click (mouse or pen): a straight line from where the last stroke ended, as one step.
+        const from = e.shiftKey && e.pointerType !== 'touch' && lastBrush ? lastBrush : null;
+        const start = from ?? ip;
+        editor.beginStroke(start.x, start.y, ui.brushSize / 2 / view.scale, ui.modes.brush, hardness, refine);
+        if (from) editor.continueStroke(ip.x, ip.y);
+        gesture = { kind: 'stroke', id: e.pointerId, trail: refine ? (from ? [toScreen(from), p] : [p]) : null, last: ip };
         if (refine) drawTrail(gesture.trail);
+        linePreview.setAttribute('d', '');
       } else if (ui.tool === 'lasso') {
         const { width, height } = editor.image;
         const trace = new MagneticTrace(editor.pixels, width, height, imagePixel(p), lassoRadius());
@@ -335,6 +373,7 @@ export function Viewer() {
           for (const ce of coalesced?.length ? coalesced : [e]) {
             const ip = toImage(view, local(ce));
             editor.continueStroke(ip.x, ip.y);
+            gesture.last = ip;
           }
           if (gesture.trail) {
             gesture.trail.push(p);
@@ -422,6 +461,10 @@ export function Viewer() {
     }
 
     function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Shift') {
+        shiftDown = true;
+        drawLinePreview();
+      }
       if (isEditable(e.target) || e.ctrlKey || e.metaKey || e.altKey || document.querySelector('dialog[open]')) return;
       if (e.key === 'Escape' && (gesture.kind === 'trace' || gesture.kind === 'lasso' || gesture.kind === 'shape')) {
         // Throw away the line or shape being drawn.
@@ -440,6 +483,10 @@ export function Viewer() {
     }
 
     function onKeyUp(e: KeyboardEvent) {
+      if (e.key === 'Shift') {
+        shiftDown = false;
+        drawLinePreview();
+      }
       if (e.key === ' ') {
         spaceDown = false;
         updateCursor(null);
@@ -487,10 +534,13 @@ export function Viewer() {
     const onLeave = () => {
       cursor.hidden = true;
       hover = null;
+      drawLinePreview();
       if (gesture.kind === 'none') clearPreview();
     };
     const onBlur = () => {
       spaceDown = false;
+      shiftDown = false;
+      drawLinePreview();
       setComparing(false);
     };
 
@@ -537,6 +587,7 @@ export function Viewer() {
       <svg className="lasso" aria-hidden="true">
         <path ref={lassoRef} />
         <path ref={trailRef} className="trail" />
+        <path ref={lineRef} className="line-preview" />
       </svg>
       <ViewSwitch />
       <div className="badge" ref={badgeRef} hidden>

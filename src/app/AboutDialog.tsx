@@ -6,6 +6,7 @@ import { Modal } from './Modal';
 const SHORTCUTS: [string, string][] = [
   ['1 – 4, B, M', 'shortcuts.tools'],
   ['Shift', 'shortcuts.square'],
+  ['Shift + click', 'shortcuts.line'],
   ['X', 'shortcuts.mode'],
   ['[  ]', 'shortcuts.size'],
   ['Shift + [  ]', 'shortcuts.hardness'],

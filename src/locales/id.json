@@ -129,7 +129,8 @@
     "view": "Ganti tampilan: Hasil, Lapisan, Asli",
     "square": "Tahan saat menyeret untuk persegi atau lingkaran",
     "hardness": "Kuas lebih lembut / lebih keras",
-    "cancel": "Batalkan garis atau bentuk yang sedang digambar"
+    "cancel": "Batalkan garis atau bentuk yang sedang digambar",
+    "line": "Kuas: garis lurus dari ujung goresan terakhir"
   },
   "view": {
     "label": "Tampilan",

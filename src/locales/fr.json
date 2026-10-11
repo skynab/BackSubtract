@@ -129,7 +129,8 @@
     "view": "Changer d'affichage : Résultat, Superposé, Original",
     "square": "Maintenir en faisant glisser pour un carré ou un cercle",
     "hardness": "Pinceau plus doux / plus dur",
-    "cancel": "Annuler la ligne ou la forme en cours"
+    "cancel": "Annuler la ligne ou la forme en cours",
+    "line": "Pinceau : ligne droite depuis la fin du dernier trait"
   },
   "view": {
     "label": "Affichage",

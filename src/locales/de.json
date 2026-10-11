@@ -129,7 +129,8 @@
     "view": "Ansicht wechseln: Ergebnis, Überlagert, Original",
     "square": "Beim Ziehen gedrückt halten für Quadrat oder Kreis",
     "hardness": "Weicherer / härterer Pinsel",
-    "cancel": "Linie oder Form beim Zeichnen verwerfen"
+    "cancel": "Linie oder Form beim Zeichnen verwerfen",
+    "line": "Pinsel: gerade Linie vom Ende des letzten Strichs"
   },
   "view": {
     "label": "Ansicht",

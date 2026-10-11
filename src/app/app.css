@@ -919,6 +919,15 @@ button:disabled {
   filter: none;
 }
 
+/* Brush: the straight line a Shift+click would paint. */
+.lasso path.line-preview {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.9));
+}
+
 /* Tool context */
 
 .secondary {

@@ -129,7 +129,8 @@
     "view": "Mudar a visualização: Resultado, Sobreposto, Original",
     "square": "Segure ao arrastar para um quadrado ou um círculo",
     "hardness": "Pincel mais suave / mais duro",
-    "cancel": "Cancelar a linha ou forma sendo desenhada"
+    "cancel": "Cancelar a linha ou forma sendo desenhada",
+    "line": "Pincel: linha reta a partir de onde terminou o último traço"
   },
   "view": {
     "label": "Visualização",

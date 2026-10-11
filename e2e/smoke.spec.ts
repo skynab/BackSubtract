@@ -86,8 +86,9 @@ test('Keep brings back what Remove hid; undo and redo work', async ({ page }) =>
   // Keep + tap the same colour restores it.
   await page.getByRole('button', { name: 'Keep' }).click();
   await tapImage(page, 10, 10);
-  let [corner] = await downloadAndReadAlpha(page, [[10, 10]]);
-  expect(corner).toBe(255);
+  // The tap is worked out in the image worker; wait for it rather than racing it.
+  await expect.poll(async () => (await downloadAndReadAlpha(page, [[10, 10]]))[0]).toBe(255);
+  let corner: number;
 
   await undo.click();
   await expect(redo).toBeEnabled();
@@ -200,6 +201,36 @@ test('a brush stroke hides what it covers', async ({ page }) => {
   const [stroke, untouched] = await downloadAndReadAlpha(page, [[DISK.x, DISK.y], [10, 10]]);
   expect(stroke).toBe(0);
   expect(untouched).toBe(255);
+});
+
+test('Shift+click paints a straight brush line from where the last stroke ended', async ({ page }) => {
+  test.skip(!!test.info().project.use.hasTouch, 'Needs a keyboard and mouse');
+  await openTestImage(page);
+  await chooseTool(page, 'Brush');
+  const a = await toScreen(page, DISK.x - 60, DISK.y);
+  const b = await toScreen(page, DISK.x + 60, DISK.y);
+  await page.mouse.click(a.x, a.y);
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled();
+
+  // Holding Shift over the image shows the line a click would paint.
+  await page.mouse.move(b.x, b.y);
+  await page.keyboard.down('Shift');
+  await expect.poll(() => page.locator('path.line-preview').getAttribute('d')).toMatch(/^M.+L.+/);
+  await page.mouse.click(b.x, b.y);
+  await page.keyboard.up('Shift');
+  await expect.poll(() => page.locator('path.line-preview').getAttribute('d')).toBe('');
+
+  const [start, middle, end, aside] = await downloadAndReadAlpha(page, [
+    [DISK.x - 60, DISK.y], [DISK.x, DISK.y], [DISK.x + 60, DISK.y], [DISK.x, DISK.y - 40],
+  ]);
+  expect([start, middle, end]).toEqual([0, 0, 0]);
+  expect(aside).toBe(255);
+
+  // The line is one step: one Undo takes it away and leaves the first click.
+  await page.getByRole('button', { name: 'Undo' }).click();
+  const [first, middleBack] = await downloadAndReadAlpha(page, [[DISK.x - 60, DISK.y], [DISK.x, DISK.y]]);
+  expect(first).toBe(0);
+  expect(middleBack).toBe(255);
 });
 
 test('a soft brush fades out instead of cutting a hard edge', async ({ page }) => {

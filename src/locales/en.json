@@ -129,7 +129,8 @@
     "view": "Switch view: Result, Overlay, Original",
     "square": "Hold while dragging for a square or circle",
     "hardness": "Softer / harder brush",
-    "cancel": "Cancel the line or shape being drawn"
+    "cancel": "Cancel the line or shape being drawn",
+    "line": "Brush: straight line from where the last stroke ended"
   },
   "view": {
     "label": "View",
