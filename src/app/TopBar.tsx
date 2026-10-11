@@ -10,7 +10,8 @@ export function TopBar() {
     <header className="topbar">
       {/* The name doubles as the way into About, so it needs no button of its own. */}
       <button type="button" className="brand" title={t('about.title')} onClick={() => useUI.setState({ dialog: 'about' })}>
-        <img src="/favicon.svg" alt="" width="26" height="26" />
+        {/* From the site's base folder, which is a subfolder on GitHub Pages. */}
+        <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width="26" height="26" />
         <span>BackSubtract</span>
       </button>
       <div className="topbar-end">

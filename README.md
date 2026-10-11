@@ -31,6 +31,15 @@ The site is static: deploy the `dist/` folder.
   - `VITE_CONTACT_EMAIL`: shown on the About page. Stripe requires public contact details, and a refund policy if you have one.
 - **Icons.** `node scripts/make-icons.mjs` regenerates the PNG app icons in `public/`.
 
+### GitHub Pages (for testing)
+
+`.github/workflows/pages.yml` publishes the site to `https://<user>.github.io/<repo>/` on every push to `dev`, or by hand from the Actions tab. It runs the unit tests first, then `npm run build:pages`.
+
+- **One-time setup:** in the repository's Settings → Pages → Build and deployment, set Source to **GitHub Actions**.
+- **Subfolder:** Pages serves the site from `/<repo>/`, so that build sets Vite's `base` from `PAGES_BASE` (the workflow fills in the repository name; `/BackSubtract/` locally) and goes to `dist-pages/`. `npm run build` and `dist/` are unaffected.
+- **Slower AI without WebGPU:** Pages can't send the cross-origin isolation headers, so the AI models' WASM fallback runs on one thread, and the image worker copies pixels instead of sharing them. Everything works; browsers with WebGPU run the models at full speed.
+- **Try it locally first:** `npm run build:pages && npm run preview:pages`, then open http://localhost:4173/BackSubtract/. The preview leaves the isolation headers out, as Pages does.
+
 See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for the licenses of bundled code and the AI models.
 
 ## Shortcuts

@@ -21,6 +21,19 @@ const isolation = {
  */
 const E2E = 'e2e';
 
+/**
+ * The GitHub Pages build (`--mode pages`): the site lives in a subfolder
+ * (https://<user>.github.io/<repo>/), set by PAGES_BASE, and builds to its own
+ * folder. Pages can't send the cross-origin isolation headers, so its preview
+ * leaves them out too: the app then copies pixels to its workers instead of
+ * sharing them, and the AI models' WASM fallback runs on one thread.
+ */
+const PAGES = 'pages';
+const pagesBase = () => {
+  const base = process.env.PAGES_BASE || '/BackSubtract/';
+  return base.endsWith('/') ? base : `${base}/`;
+};
+
 function fakeAiWorker(): Plugin {
   const fake = readFileSync(new URL('./src/ml/fake-worker.ts', import.meta.url), 'utf-8');
   return {
@@ -32,8 +45,11 @@ function fakeAiWorker(): Plugin {
   };
 }
 
-export default defineConfig(({ mode }) => ({
-  build: mode === E2E ? { outDir: 'dist-e2e' } : {},
+export default defineConfig(({ mode }) => {
+  const base = mode === PAGES ? pagesBase() : '/';
+  return {
+  base,
+  build: mode === E2E ? { outDir: 'dist-e2e' } : mode === PAGES ? { outDir: 'dist-pages' } : {},
   plugins: [
     react(),
     // Installable and usable offline: the app itself is cached on first visit.
@@ -48,7 +64,8 @@ export default defineConfig(({ mode }) => ({
         theme_color: '#4f46e5',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/',
+        start_url: base,
+        scope: base,
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -70,7 +87,7 @@ export default defineConfig(({ mode }) => ({
     }),
   ],
   server: { headers: isolation },
-  preview: { headers: isolation },
+  preview: { headers: mode === PAGES ? {} : isolation },
   worker: { format: 'es', plugins: () => (mode === E2E ? [fakeAiWorker()] : []) },
   // Pre-bundle the AI library at startup, so the dev page doesn't reload the first time a model is used.
   optimizeDeps: { include: ['@huggingface/transformers'] },
@@ -79,4 +96,5 @@ export default defineConfig(({ mode }) => ({
     // Browser tests run separately with Playwright (npm run test:e2e).
     exclude: ['e2e/**', 'node_modules/**'],
   },
-}));
+  };
+});
