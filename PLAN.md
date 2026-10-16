@@ -152,7 +152,7 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - **Edges** sits with the actions (next to Undo): see section 4.
 - **Background**: a small checkerboard button beside the Result / Overlay / Original switch opens two settings for spotting missed bits, both remembered. **Contrast** runs from one even colour, through the theme's own subtle checkerboard (the default), to black and white. **Move the background** slides the checkerboard slowly (24 px/s), so leftover opaque bits stand still against the motion. It slides rather than flashes, to stay comfortable for people sensitive to flicker, and only redraws while it is on.
 - **Keyboard:** 1–4 pick tools, L the lasso, B the brush, X toggles Keep/Remove, [ and ] change size or tolerance, and Ctrl+Z / Ctrl+Shift+Z undo and redo.
-- Dropping another file anywhere starts a new image after a quick "Replace current image?" confirmation.
+- Dropping another file anywhere (or pasting one, or choosing one) starts a new session with it. If the current image has edits, the app's own dialog asks first ("Open a new image?", with **Open new image** focused so Enter accepts). It is not window.confirm, which some browsers and embedded views suppress, leaving a drop doing nothing.
 - **Donate:** a small, quiet ♥ in the top bar. See section 10.
 
 ## 6. Internationalisation

@@ -38,7 +38,12 @@
     "label": "图片编辑器",
     "original": "原图"
   },
-  "confirmReplace": "打开新图片？你对当前图片的修改将会丢失。",
+  "replace": {
+    "title": "打开新图片？",
+    "body": "对这张图片的修改将会丢失。",
+    "cancel": "取消",
+    "open": "打开新图片"
+  },
   "notices": {
     "resized": "大图已缩小到 {{max}} 像素以便编辑。下载仍为原始尺寸。",
     "restored": "欢迎回来，已恢复你上次的图片。"

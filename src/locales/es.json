@@ -38,7 +38,12 @@
     "label": "Editor de imagen",
     "original": "Original"
   },
-  "confirmReplace": "¿Abrir una imagen nueva? Se perderán los cambios en esta.",
+  "replace": {
+    "title": "¿Abrir una imagen nueva?",
+    "body": "Se perderán los cambios hechos en esta.",
+    "cancel": "Cancelar",
+    "open": "Abrir imagen nueva"
+  },
   "notices": {
     "resized": "Imagen grande reducida a {{max}} px para editarla. Las descargas mantienen el tamaño completo.",
     "restored": "Bienvenido de nuevo: se restauró tu última imagen."

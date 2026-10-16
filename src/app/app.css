@@ -1067,6 +1067,14 @@ button:disabled {
   padding: 8px 20px 20px;
 }
 
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-block-start: 16px;
+}
+
 .modal-header {
   display: flex;
   align-items: center;

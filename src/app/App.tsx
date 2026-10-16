@@ -5,6 +5,7 @@ import { AboutDialog } from './AboutDialog';
 import { BottomBar } from './BottomBar';
 import { DonateDialog } from './DonateDialog';
 import { DropZone } from './DropZone';
+import { ReplaceDialog } from './ReplaceDialog';
 import { TaskStatus } from './TaskStatus';
 import { Toast } from './Toast';
 import { TopBar } from './TopBar';
@@ -30,6 +31,7 @@ export function App() {
       {hasImage && <BottomBar />}
       {dialog === 'donate' && <DonateDialog onClose={closeDialog} />}
       {dialog === 'about' && <AboutDialog onClose={closeDialog} />}
+      {dialog === 'replace' && <ReplaceDialog />}
     </div>
   );
 }

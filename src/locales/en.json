@@ -38,7 +38,12 @@
     "label": "Image editor",
     "original": "Original"
   },
-  "confirmReplace": "Open a new image? Your edits to this one will be lost.",
+  "replace": {
+    "title": "Open a new image?",
+    "body": "Your edits to this one will be lost.",
+    "cancel": "Cancel",
+    "open": "Open new image"
+  },
   "notices": {
     "resized": "Large image scaled down to {{max}} px for editing. Downloads stay full size.",
     "restored": "Welcome back — your last image was restored."

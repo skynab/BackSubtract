@@ -56,11 +56,11 @@ test('once downloaded, Auto runs by itself when the next image opens', async ({ 
   await autoButton(page).click();
   await expect(page.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 10_000 });
 
-  // Open a second image (confirming that the edits to the first may go).
-  page.once('dialog', (d) => d.accept());
+  // Open a second image, confirming that the edits to the first may go.
   const chooser = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: 'Open another image' }).click();
   await (await chooser).setFiles({ name: 'again.png', mimeType: 'image/png', buffer: testImage() });
+  await page.getByRole('dialog', { name: 'Open a new image?' }).getByRole('button', { name: 'Open new image' }).click();
   await expect(page.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 10_000 });
   await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled();
   const [corner, centre] = await downloadAndReadAlpha(page, [[10, 10], [DISK.x, DISK.y]]);

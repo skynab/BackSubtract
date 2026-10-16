@@ -38,7 +38,12 @@
     "label": "Bildeditor",
     "original": "Original"
   },
-  "confirmReplace": "Ein neues Bild öffnen? Deine Änderungen an diesem Bild gehen verloren.",
+  "replace": {
+    "title": "Neues Bild öffnen?",
+    "body": "Deine Änderungen an diesem Bild gehen verloren.",
+    "cancel": "Abbrechen",
+    "open": "Neues Bild öffnen"
+  },
   "notices": {
     "resized": "Großes Bild zum Bearbeiten auf {{max}} px verkleinert. Downloads haben die volle Größe.",
     "restored": "Willkommen zurück – dein letztes Bild wurde wiederhergestellt."

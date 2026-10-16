@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { chooseTool, DISK, downloadAndReadAlpha, IMAGE_H, IMAGE_W, openTestImage, screenColor, tapImage, toScreen } from './helpers';
+import { chooseTool, DISK, download, downloadAndReadAlpha, IMAGE_H, IMAGE_W, openTestImage, screenColor, tapImage, toScreen } from './helpers';
 
 test('start screen, language switch and right-to-left layout', async ({ page }) => {
   await page.goto('/');
@@ -280,6 +280,46 @@ test('Shape removes a dragged box and Keep with an ellipse brings part of it bac
   expect(centre).toBe(255);
   expect(inBox).toBe(0);
   expect(outside).toBe(255);
+});
+
+test('dropping a new image while editing asks first, then starts afresh with it', async ({ page }) => {
+  await openTestImage(page);
+  await chooseTool(page, 'Magic Wand');
+  await tapImage(page, 10, 10);
+  const undo = page.getByRole('button', { name: 'Undo' });
+  await expect(undo).toBeEnabled();
+
+  // A file dropped onto the editor, as from the desktop.
+  const dropFile = async () => {
+    const dataTransfer = await page.evaluateHandle(async () => {
+      const c = new OffscreenCanvas(200, 100);
+      const ctx = c.getContext('2d')!;
+      ctx.fillStyle = '#2050d0';
+      ctx.fillRect(0, 0, 200, 100);
+      const dt = new DataTransfer();
+      dt.items.add(new File([await c.convertToBlob()], 'dropped.png', { type: 'image/png' }));
+      return dt;
+    });
+    const canvas = page.getByRole('img', { name: 'Image editor' });
+    for (const type of ['dragenter', 'dragover', 'drop']) await canvas.dispatchEvent(type, { dataTransfer });
+  };
+
+  const ask = page.getByRole('dialog', { name: 'Open a new image?' });
+  await dropFile();
+  await expect(ask).toBeVisible();
+  // Enter opens it; Cancel keeps the current work.
+  await expect(ask.getByRole('button', { name: 'Open new image' })).toBeFocused();
+  await ask.getByRole('button', { name: 'Cancel' }).click();
+  await expect(ask).toBeHidden();
+  await expect(undo).toBeEnabled();
+
+  await dropFile();
+  await ask.getByRole('button', { name: 'Open new image' }).click();
+  await expect(ask).toBeHidden();
+  // A new session: nothing to undo, and the download is the dropped image's size.
+  await expect(undo).toBeDisabled();
+  const { width, height } = await download(page);
+  expect([width, height]).toEqual([200, 100]);
 });
 
 test('work survives a reload', async ({ page }) => {

@@ -1,5 +1,4 @@
 import { editor } from '../editor/editor';
-import { i18n } from '../i18n';
 import { useUI } from '../state/store';
 import { loadSession } from './autosave';
 
@@ -27,6 +26,27 @@ async function decodeImage(file: Blob): Promise<Decoded> {
   return { bitmap, resized: true, full };
 }
 
+/** The answer to "Open a new image?" while it's being asked. */
+let pendingReplace: ((open: boolean) => void) | null = null;
+
+/** Ask (in the app's own dialog) whether a new image may replace the current one and its edits. */
+function askReplace(): Promise<boolean> {
+  // A second drop while asking replaces the first: the newer file is the one to ask about.
+  pendingReplace?.(false);
+  return new Promise((resolve) => {
+    pendingReplace = resolve;
+    useUI.setState({ dialog: 'replace' });
+  });
+}
+
+/** Called by the dialog with the user's answer. */
+export function answerReplace(open: boolean): void {
+  const resolve = pendingReplace;
+  pendingReplace = null;
+  if (useUI.getState().dialog === 'replace') useUI.setState({ dialog: null });
+  resolve?.(open);
+}
+
 /** iPhone photos. Some systems report no type for them, so check the name too. */
 export const isHeic = (file: File) => /image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
 
@@ -37,7 +57,7 @@ export async function openImage(file: File): Promise<void> {
     ui.showNotice({ key: 'errors.notImage', tone: 'error' });
     return;
   }
-  if (editor.history.canUndo && !window.confirm(i18n.t('confirmReplace'))) return;
+  if (editor.history.canUndo && !(await askReplace())) return;
 
   try {
     const { bitmap, resized, full } = await decodeImage(file);

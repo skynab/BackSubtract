@@ -38,7 +38,12 @@
     "label": "Editor gambar",
     "original": "Asli"
   },
-  "confirmReplace": "Buka gambar baru? Hasil edit pada gambar ini akan hilang.",
+  "replace": {
+    "title": "Buka gambar baru?",
+    "body": "Hasil edit pada gambar ini akan hilang.",
+    "cancel": "Batal",
+    "open": "Buka gambar baru"
+  },
   "notices": {
     "resized": "Gambar besar diperkecil menjadi {{max}} px untuk diedit. Unduhan tetap berukuran penuh.",
     "restored": "Selamat datang kembali — gambar terakhir Anda telah dipulihkan."

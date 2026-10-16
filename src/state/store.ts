@@ -88,7 +88,8 @@ interface UIState {
   models: { auto?: ModelInfo; select?: ModelInfo };
   /** Whether Auto has already run on the current image. */
   autoRan: boolean;
-  dialog: 'donate' | 'about' | null;
+  /** 'replace' asks before a new image replaces one with edits (see openImage). */
+  dialog: 'donate' | 'about' | 'replace' | null;
   setTool: (tool: ToolId) => void;
   toggleMode: () => void;
   setMode: (mode: Mode) => void;
