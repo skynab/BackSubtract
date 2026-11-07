@@ -9,6 +9,46 @@ const pending = new Map<number, Pending>();
 const progressListeners = new Set<(model: ModelName, loaded: number, total: number) => void>();
 const resetListeners = new Set<() => void>();
 
+const ISOLATION_RELOAD_KEY = 'backsubtract.isolationReload';
+
+/**
+ * The AI runtime's WebAssembly uses shared memory, which Firefox only allows in a
+ * cross-origin isolated page. Where the host can't send the isolation headers (GitHub
+ * Pages), the service worker adds them (public/sw-isolation.js), but only to pages it
+ * serves. So reload once it's ready if it didn't serve this one (the first visit, or a
+ * hard refresh, which bypasses it). A reload that didn't help (no `credentialless`
+ * support, as in Safari) isn't tried again. That's remembered in localStorage, since
+ * isolated and non-isolated pages don't share sessionStorage.
+ */
+function reloadIntoIsolation(): void {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+  try {
+    // Isolated: forget an earlier try, so a later hard refresh can reload again.
+    if (window.crossOriginIsolated) return localStorage.removeItem(ISOLATION_RELOAD_KEY);
+    if (localStorage.getItem(ISOLATION_RELOAD_KEY)) return;
+  } catch {
+    return; // No storage: can't remember having tried, so don't try.
+  }
+  const sw = navigator.serviceWorker;
+  let reloading = false;
+  const reload = () => {
+    if (reloading) return;
+    reloading = true;
+    try {
+      localStorage.setItem(ISOLATION_RELOAD_KEY, '1');
+    } catch {
+      return;
+    }
+    location.reload();
+  };
+  sw.addEventListener('controllerchange', reload);
+  void sw.ready.then(() => {
+    if (!sw.controller) reload();
+  });
+}
+
+reloadIntoIsolation();
+
 /** The error AI calls fail with after cancelModelWork(). */
 export class CancelledError extends Error {
   constructor() {

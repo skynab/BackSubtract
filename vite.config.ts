@@ -5,7 +5,8 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 /**
- * Cross-origin isolation lets the WASM fallback for the AI models use threads.
+ * Cross-origin isolation lets the AI runtime's WebAssembly use shared memory: Firefox
+ * requires it, and other browsers then run the WASM fallback on several threads.
  * "credentialless" keeps the model downloads from Hugging Face working.
  * The same headers are set for production in public/_headers.
  */
@@ -25,8 +26,8 @@ const E2E = 'e2e';
  * The GitHub Pages build (`--mode pages`): the site lives in a subfolder
  * (https://<user>.github.io/<repo>/), set by PAGES_BASE, and builds to its own
  * folder. Pages can't send the cross-origin isolation headers, so its preview
- * leaves them out too: the app then copies pixels to its workers instead of
- * sharing them, and the AI models' WASM fallback runs on one thread.
+ * leaves them out too. The service worker adds them instead (public/sw-isolation.js),
+ * and the page reloads once when it first takes over (src/ml/client.ts).
  */
 const PAGES = 'pages';
 const pagesBase = () => {
@@ -73,6 +74,8 @@ export default defineConfig(({ mode }) => {
         ],
       },
       workbox: {
+        // Adds the cross-origin isolation headers where the host can't (GitHub Pages).
+        importScripts: ['sw-isolation.js'],
         globPatterns: ['**/*.{js,css,html,svg,png}'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         // The ~27 MB AI runtime is cached the first time an AI tool is used, not on install.

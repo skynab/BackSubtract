@@ -1,7 +1,7 @@
 # Publishes the site to GitHub Pages (https://<user>.github.io/<repo>/) for testing.
 # One-time setup: Settings → Pages → Build and deployment → Source: "GitHub Actions".
-# GitHub Pages can't send cross-origin isolation headers, so the AI models' WASM
-# fallback runs single-threaded there; Netlify (see README) runs at full speed.
+# GitHub Pages can't send the cross-origin isolation headers the AI tools need, so the
+# service worker adds them (public/sw-isolation.js; see README).
 name: Deploy to GitHub Pages
 
 on:

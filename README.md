@@ -24,7 +24,7 @@ The first time, install the browser for the e2e tests with `npx playwright insta
 
 The site is static: deploy the `dist/` folder.
 
-- **Headers.** The AI models' WASM fallback needs cross-origin isolation. `public/_headers` sets `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: credentialless`, and Netlify and Cloudflare Pages read that file. GitHub Pages can't set headers.
+- **Headers.** The AI tools need cross-origin isolation: ONNX Runtime's WebAssembly uses shared memory, which Firefox only allows in an isolated page, and other browsers then run the WASM fallback on several threads. `public/_headers` sets `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: credentialless`, and Netlify and Cloudflare Pages read that file. GitHub Pages can't set headers.
 - **File size.** The ONNX Runtime WASM file is about 27 MB. That's over Cloudflare Pages' 25 MiB per-file limit, so Netlify (or another host without that limit) is the simplest choice.
 - **Settings.** Copy `.env.example` to `.env.local`, or set the same variables in the host's build settings:
   - `VITE_DONATE_LINK_*`: Stripe Payment Links for the Donate dialog. The Donate button stays hidden until at least one is set (it always shows under `npm run dev`, so you can see it while working). Set each link's after-payment redirect to `https://<your-site>/?thanks` to show a thank-you message.
@@ -37,8 +37,8 @@ The site is static: deploy the `dist/` folder.
 
 - **One-time setup:** in the repository's Settings → Pages → Build and deployment, set Source to **GitHub Actions**.
 - **Subfolder:** Pages serves the site from `/<repo>/`, so that build sets Vite's `base` from `PAGES_BASE` (the workflow fills in the repository name; `/BackSubtract/` locally) and goes to `dist-pages/`. `npm run build` and `dist/` are unaffected.
-- **Slower AI without WebGPU:** Pages can't send the cross-origin isolation headers, so the AI models' WASM fallback runs on one thread, and the image worker copies pixels instead of sharing them. Everything works; browsers with WebGPU run the models at full speed.
-- **Try it locally first:** `npm run build:pages && npm run preview:pages`, then open http://localhost:4173/BackSubtract/. The preview leaves the isolation headers out, as Pages does.
+- **Isolation from the service worker:** Pages can't send the cross-origin isolation headers, so the service worker adds them to what it serves (`public/sw-isolation.js`). The first visit reloads once when the service worker takes over, and so does a hard refresh, which bypasses it. Without this, the AI tools can't run in Firefox. Safari doesn't support `credentialless`, so it isn't isolated there, as on any host.
+- **Try it locally first:** `npm run build:pages && npm run preview:pages`, then open http://localhost:4173/BackSubtract/. The preview leaves the isolation headers out, as Pages does, so the service worker adds them there too.
 
 See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for the licenses of bundled code and the AI models.
 
