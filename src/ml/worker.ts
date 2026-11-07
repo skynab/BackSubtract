@@ -70,18 +70,19 @@ interface ModelFiles {
   dtype: unknown;
   device: unknown;
   paths: string[];
-  sizeMB: number;
+  /** Size of those files, as listed on Hugging Face. */
+  bytes: number;
 }
 
 /** Which model and ONNX files to use on this device. */
 function files(model: ModelName, s: Setup): ModelFiles {
   if (model === 'auto') {
     if (useBirefnet(s)) {
-      return { id: BIREFNET_ID, dtype: 'fp16', device: 'webgpu', paths: ['onnx/model_fp16.onnx'], sizeMB: 115 };
+      return { id: BIREFNET_ID, dtype: 'fp16', device: 'webgpu', paths: ['onnx/model_fp16.onnx'], bytes: 114_538_221 };
     }
     return s.fp16
-      ? { id: ISNET_ID, dtype: 'fp16', device: s.device, paths: ['onnx/model_fp16.onnx'], sizeMB: 88 }
-      : { id: ISNET_ID, dtype: 'fp32', device: s.device, paths: ['onnx/model.onnx'], sizeMB: 176 };
+      ? { id: ISNET_ID, dtype: 'fp16', device: s.device, paths: ['onnx/model_fp16.onnx'], bytes: 88_152_708 }
+      : { id: ISNET_ID, dtype: 'fp32', device: s.device, paths: ['onnx/model.onnx'], bytes: 176_149_806 };
   }
   // The small prompt decoder runs on WASM everywhere; it's quick and WebGPU gains little for it.
   return {
@@ -92,8 +93,21 @@ function files(model: ModelName, s: Setup): ModelFiles {
       s.fp16 ? 'onnx/vision_encoder_fp16.onnx' : 'onnx/vision_encoder_quantized.onnx',
       'onnx/prompt_encoder_mask_decoder_quantized.onnx',
     ],
-    sizeMB: s.fp16 ? 17 : 14,
+    // The vision encoder, then the prompt decoder.
+    bytes: (s.fp16 ? 12_170_657 : 8_882_165) + 4_903_810,
   };
+}
+
+/**
+ * The ONNX Runtime WebAssembly that runs every model. Transformers.js fetches it from
+ * jsDelivr the first time a model loads and caches it. jsDelivr sends it compressed:
+ * about 4.7 MB over the network, 27 MB unpacked.
+ */
+const RUNTIME_BYTES = 4_704_500;
+
+function runtimeUrl(): string | undefined {
+  const paths = env.backends.onnx.wasm?.wasmPaths;
+  return typeof paths === 'object' && paths.wasm ? String(paths.wasm) : undefined;
 }
 
 async function info(model: ModelName, avoidBirefnet?: boolean): Promise<ModelInfo> {
@@ -101,24 +115,31 @@ async function info(model: ModelName, avoidBirefnet?: boolean): Promise<ModelInf
   const s = await setup();
   const f = files(model, s);
   let cached = false;
+  let runtimeCached = false;
   try {
     const cache = await caches.open(env.cacheKey);
     const hits = await Promise.all(f.paths.map((p) => cache.match(`${env.remoteHost}${f.id}/resolve/main/${p}`)));
     cached = hits.every(Boolean);
+    const runtime = runtimeUrl();
+    runtimeCached = !!runtime && !!(await cache.match(runtime));
   } catch {
     // No Cache API (e.g. some private modes): treat as not downloaded.
   }
-  return { device: s.device, sizeMB: f.sizeMB, cached };
+  return { device: s.device, bytes: f.bytes + (runtimeCached ? 0 : RUNTIME_BYTES), cached };
 }
 
 function post(message: Response, transfer: Transferable[] = []) {
   self.postMessage(message, transfer);
 }
 
-function progressFor(model: ModelName) {
+/**
+ * Download progress against the size of the files this device uses. Transformers.js's
+ * own total can count files it never fetches (Select's other vision encoder).
+ */
+function progressFor(model: ModelName, total: number) {
   return (p: { status: string; loaded?: number; total?: number }) => {
     if (p.status === 'progress_total' && p.total) {
-      post({ type: 'progress', model, loaded: p.loaded ?? 0, total: p.total });
+      post({ type: 'progress', model, loaded: Math.min(p.loaded ?? 0, total), total });
     }
   };
 }
@@ -129,7 +150,7 @@ function load(name: ModelName, f: ModelFiles) {
   let p = loaded.get(f.id);
   if (!p) {
     p = (async () => {
-      const options = { dtype: f.dtype, device: f.device, progress_callback: progressFor(name) } as never;
+      const options = { dtype: f.dtype, device: f.device, progress_callback: progressFor(name, f.bytes) } as never;
       const Model = name === 'auto' ? AutoModel : SamModel;
       const [model, processor] = await Promise.all([
         Model.from_pretrained(f.id, options),

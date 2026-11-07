@@ -4,8 +4,8 @@ export type ModelName = 'auto' | 'select';
 
 export interface ModelInfo {
   device: 'webgpu' | 'wasm';
-  /** Approximate one-time download size in MB, for the device in use. */
-  sizeMB: number;
+  /** One-time download size in bytes for the device in use, including the AI runtime if it isn't downloaded yet. */
+  bytes: number;
   cached: boolean;
 }
 

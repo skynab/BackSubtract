@@ -21,7 +21,7 @@ import type { AutoResult, ModelInfo, ModelName, Proposals, Request, Response } f
 declare const self: DedicatedWorkerGlobalScope;
 
 const CACHE = 'fake-ai';
-const SIZE_MB: Record<ModelName, number> = { auto: 88, select: 17 };
+const SIZE_BYTES: Record<ModelName, number> = { auto: 88_000_000, select: 17_000_000 };
 /** Colour distance (RGB) above which a pixel counts as different. */
 const DIFFERENT = 60;
 
@@ -51,7 +51,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function ensureModel(model: ModelName): Promise<void> {
   if (await isCached(model)) return;
   const { downloadMs = 600 } = await config();
-  const total = SIZE_MB[model] * 1024 * 1024;
+  const total = SIZE_BYTES[model];
   for (let i = 0; i <= 10; i++) {
     post({ type: 'progress', model, loaded: Math.round((total * i) / 10), total });
     if (i < 10) await sleep(downloadMs / 10);
@@ -135,7 +135,7 @@ async function decode(points: [number, number][], labels: number[]): Promise<Pro
 }
 
 async function info(model: ModelName): Promise<ModelInfo> {
-  return { device: 'wasm', sizeMB: SIZE_MB[model], cached: await isCached(model) };
+  return { device: 'wasm', bytes: SIZE_BYTES[model], cached: await isCached(model) };
 }
 
 self.onmessage = async (event: MessageEvent<Request>) => {

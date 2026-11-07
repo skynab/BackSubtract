@@ -11,7 +11,7 @@ import {
   useUI,
   type ToolId,
 } from '../state/store';
-import { refreshModelInfo } from '../ml/status';
+import { refreshModelInfo, toMB } from '../ml/status';
 import { runAuto } from '../tools/auto/auto';
 import { retune } from '../tools/color/pick';
 import { DownloadButton } from './DownloadButton';
@@ -144,7 +144,7 @@ function AutoButton() {
   const label = ran
     ? t('auto.again')
     : info && !info.cached
-      ? t('auto.download', { size: info.sizeMB })
+      ? t('auto.download', { size: toMB(info.bytes) })
       : t('auto.run');
   return (
     <button type="button" className="secondary" disabled={busy} onClick={() => void runAuto()}>

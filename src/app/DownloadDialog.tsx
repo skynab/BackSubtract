@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { answerDownload } from '../ml/status';
+import { answerDownload, toMB } from '../ml/status';
 import { useUI } from '../state/store';
 import { Modal } from './Modal';
 
@@ -24,7 +24,7 @@ export function DownloadDialog() {
   if (!model || !info) return null;
   return (
     <Modal title={t('modelDownload.title')} onClose={() => answerDownload(false)}>
-      <p>{t('modelDownload.body', { tool: t(`tools.${model}`), size: info.sizeMB })}</p>
+      <p>{t('modelDownload.body', { tool: t(`tools.${model}`), size: toMB(info.bytes) })}</p>
       <p className="muted small">{t('modelDownload.note')}</p>
       <div className="modal-actions">
         <button type="button" className="secondary" onClick={() => answerDownload(false)}>

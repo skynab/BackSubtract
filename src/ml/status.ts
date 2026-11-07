@@ -2,7 +2,9 @@ import { useUI } from '../state/store';
 import { CancelledError, modelInfo, onDownloadProgress } from './client';
 import type { ModelInfo, ModelName } from './protocol';
 
-const MB = 1024 * 1024;
+/** Download sizes are shown in decimal megabytes, as Hugging Face and most systems list files. */
+const MB = 1_000_000;
+export const toMB = (bytes: number) => Math.round(bytes / MB);
 
 /** Show model downloads as progress in the task bar, switching to `nextKey` once the download completes. */
 let afterDownload: { model: ModelName; key: string } | null = null;
@@ -15,7 +17,7 @@ onDownloadProgress((model, loaded, total) => {
     useUI.setState({
       task: {
         key: 'task.downloading',
-        params: { loaded: Math.round(loaded / MB), total: Math.round(total / MB) },
+        params: { loaded: toMB(loaded), total: toMB(total) },
         progress: loaded / total,
       },
     });
