@@ -14,6 +14,12 @@ async function fakeAi(page: Page, config: { downloadMs?: number; fail?: boolean 
 }
 
 const autoButton = (page: Page) => page.getByRole('button', { name: /^Remove background|^Run again$/ });
+const downloadDialog = (page: Page) => page.getByRole('dialog', { name: 'Download the AI model?' });
+
+/** Agree to the model's first download. */
+async function confirmDownload(page: Page): Promise<void> {
+  await downloadDialog(page).getByRole('button', { name: 'Download', exact: true }).click();
+}
 
 test('Auto asks first, shows the download, then removes the background', async ({ page }) => {
   await openTestImage(page);
@@ -23,6 +29,8 @@ test('Auto asks first, shows the download, then removes the background', async (
 
   await fakeAi(page, { downloadMs: 1500 });
   await autoButton(page).click();
+  await expect(downloadDialog(page)).toContainText('about 88 MB');
+  await confirmDownload(page);
   await expect(page.getByText(/Downloading AI model… \d+ \/ 88 MB/)).toBeVisible();
   await expect(page.getByRole('progressbar')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 10_000 });
@@ -32,10 +40,35 @@ test('Auto asks first, shows the download, then removes the background', async (
   expect(centre).toBe(255);
 });
 
+test('"Not now" downloads nothing, for Auto and for Select', async ({ page }) => {
+  await openTestImage(page);
+  await fakeAi(page, { downloadMs: 200 });
+  await autoButton(page).click();
+  await downloadDialog(page).getByRole('button', { name: 'Not now' }).click();
+  await expect(downloadDialog(page)).toBeHidden();
+  await expect(page.getByRole('status').filter({ hasText: 'Downloading' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Remove background (88 MB one-time download)' })).toBeVisible();
+
+  await chooseTool(page, 'Select');
+  await tapImage(page, DISK.x, DISK.y);
+  await expect(downloadDialog(page)).toContainText('Select');
+  await page.keyboard.press('Escape');
+  await expect(downloadDialog(page)).toBeHidden();
+  await page.waitForTimeout(500);
+  await expect(page.getByRole('status').filter({ hasText: /Downloading|Getting ready/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled();
+
+  // Asked again on the next tap, and this time it goes ahead.
+  await tapImage(page, DISK.x, DISK.y);
+  await confirmDownload(page);
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled({ timeout: 10_000 });
+});
+
 test('cancelling the download leaves the image untouched, and asking again starts afresh', async ({ page }) => {
   await openTestImage(page);
   await fakeAi(page, { downloadMs: 20_000 });
   await autoButton(page).click();
+  await confirmDownload(page);
   await page.getByRole('button', { name: 'Cancel' }).click();
   await expect(page.getByText(/Download cancelled/)).toBeVisible();
   await expect(page.getByRole('status').filter({ hasText: 'Downloading' })).toHaveCount(0);
@@ -45,6 +78,8 @@ test('cancelling the download leaves the image untouched, and asking again start
 
   await fakeAi(page, { downloadMs: 300 });
   await autoButton(page).click();
+  // A cancelled download is asked about again.
+  await confirmDownload(page);
   await expect(page.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 10_000 });
   const [corner] = await downloadAndReadAlpha(page, [[10, 10]]);
   expect(corner).toBe(0);
@@ -54,6 +89,7 @@ test('once downloaded, Auto runs by itself when the next image opens', async ({ 
   await openTestImage(page);
   await fakeAi(page, { downloadMs: 200 });
   await autoButton(page).click();
+  await confirmDownload(page);
   await expect(page.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 10_000 });
 
   // Open a second image, confirming that the edits to the first may go.
@@ -72,6 +108,7 @@ test('a restored session is not overwritten by Auto', async ({ page }) => {
   await openTestImage(page);
   await fakeAi(page, { downloadMs: 200 });
   await autoButton(page).click();
+  await confirmDownload(page);
   await expect(page.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 10_000 });
   // Bring the background back by hand.
   await chooseTool(page, 'Color');
@@ -91,6 +128,7 @@ test('when the model fails, a message says so and nothing changes', async ({ pag
   await openTestImage(page);
   await fakeAi(page, { downloadMs: 100, fail: true });
   await autoButton(page).click();
+  await confirmDownload(page);
   await expect(page.getByText("The AI model couldn't run. Check your connection and try again.")).toBeVisible({ timeout: 10_000 });
   await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled();
 });
@@ -100,6 +138,7 @@ test('Select: a tap on the object cuts it out', async ({ page }) => {
   await fakeAi(page, { downloadMs: 200 });
   await chooseTool(page, 'Select');
   await tapImage(page, DISK.x, DISK.y);
+  await confirmDownload(page);
   await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled({ timeout: 10_000 });
 
   // Keep on an untouched image hides everything else.
@@ -114,6 +153,7 @@ test('Select: a loop drawn around the object cuts out the object, not the loop',
   await chooseTool(page, 'Select');
   // Let the image be prepared first, so the loop's gesture isn't racing the download.
   await tapImage(page, DISK.x, DISK.y);
+  await confirmDownload(page);
   await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled({ timeout: 10_000 });
   await page.getByRole('button', { name: 'Undo' }).click();
 

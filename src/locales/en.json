@@ -96,6 +96,13 @@
     "download": "Remove background ({{size}} MB one-time download)",
     "again": "Run again"
   },
+  "modelDownload": {
+    "title": "Download the AI model?",
+    "body": "The {{tool}} tool uses an AI model that runs on your device. It needs a one-time download of about {{size}} MB, which is then kept on this device for next time.",
+    "note": "Your images are never uploaded. On mobile data, you may want to wait for Wi-Fi.",
+    "cancel": "Not now",
+    "confirm": "Download"
+  },
   "task": {
     "downloading": "Downloading AI model… {{loaded}} / {{total}} MB (one time)",
     "auto": "Removing background…",

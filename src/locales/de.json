@@ -96,6 +96,13 @@
     "download": "Hintergrund entfernen (einmaliger Download, {{size}} MB)",
     "again": "Erneut ausführen"
   },
+  "modelDownload": {
+    "title": "KI-Modell herunterladen?",
+    "body": "Das Werkzeug „{{tool}}“ nutzt ein KI-Modell, das direkt auf deinem Gerät läuft. Dafür ist ein einmaliger Download von etwa {{size}} MB nötig, der danach auf diesem Gerät bleibt.",
+    "note": "Deine Bilder werden nie hochgeladen. Im Mobilfunknetz wartest du vielleicht lieber auf WLAN.",
+    "cancel": "Nicht jetzt",
+    "confirm": "Herunterladen"
+  },
   "task": {
     "downloading": "KI-Modell wird geladen… {{loaded}} / {{total}} MB (nur einmal)",
     "auto": "Hintergrund wird entfernt…",

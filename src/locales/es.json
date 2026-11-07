@@ -96,6 +96,13 @@
     "download": "Quitar fondo (descarga única de {{size}} MB)",
     "again": "Volver a ejecutar"
   },
+  "modelDownload": {
+    "title": "¿Descargar el modelo de IA?",
+    "body": "La herramienta {{tool}} usa un modelo de IA que funciona en tu dispositivo. Necesita una descarga única de unos {{size}} MB, que luego se guarda en este dispositivo para la próxima vez.",
+    "note": "Tus imágenes nunca se suben. Si usas datos móviles, quizá prefieras esperar a tener Wi-Fi.",
+    "cancel": "Ahora no",
+    "confirm": "Descargar"
+  },
   "task": {
     "downloading": "Descargando modelo de IA… {{loaded}} / {{total}} MB (solo una vez)",
     "auto": "Quitando el fondo…",

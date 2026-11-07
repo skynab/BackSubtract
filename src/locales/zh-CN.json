@@ -96,6 +96,13 @@
     "download": "去除背景（一次性下载 {{size}} MB）",
     "again": "重新运行"
   },
+  "modelDownload": {
+    "title": "下载 AI 模型？",
+    "body": "“{{tool}}”工具使用在你设备上运行的 AI 模型。需要一次性下载约 {{size}} MB，之后会保存在此设备上供下次使用。",
+    "note": "你的图片绝不会被上传。如果正在使用移动数据，建议连上 Wi-Fi 后再下载。",
+    "cancel": "以后再说",
+    "confirm": "下载"
+  },
   "task": {
     "downloading": "正在下载 AI 模型… {{loaded}} / {{total}} MB（仅需一次）",
     "auto": "正在去除背景…",

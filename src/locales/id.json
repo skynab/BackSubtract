@@ -96,6 +96,13 @@
     "download": "Hapus latar belakang (unduhan sekali {{size}} MB)",
     "again": "Jalankan lagi"
   },
+  "modelDownload": {
+    "title": "Unduh model AI?",
+    "body": "Alat {{tool}} memakai model AI yang berjalan di perangkat Anda. Diperlukan unduhan sekali sekitar {{size}} MB, yang lalu disimpan di perangkat ini untuk pemakaian berikutnya.",
+    "note": "Gambar Anda tidak pernah diunggah. Jika memakai data seluler, sebaiknya tunggu sampai ada Wi-Fi.",
+    "cancel": "Nanti saja",
+    "confirm": "Unduh"
+  },
   "task": {
     "downloading": "Mengunduh model AI… {{loaded}} / {{total}} MB (sekali saja)",
     "auto": "Menghapus latar belakang…",

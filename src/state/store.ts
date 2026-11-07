@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { Aspect, ExportFormat } from '../export/exportImage';
 import { DEFAULT_CONTRAST } from '../canvas/checker';
 import type { Mode } from '../mask/mask';
-import type { ModelInfo } from '../ml/protocol';
+import type { ModelInfo, ModelName } from '../ml/protocol';
 import type { LassoKind } from '../tools/lasso/polygon';
 import type { ShapeKind } from '../tools/shape/shape';
 
@@ -91,8 +91,13 @@ interface UIState {
   models: { auto?: ModelInfo; select?: ModelInfo };
   /** Whether Auto has already run on the current image. */
   autoRan: boolean;
-  /** 'replace' asks before a new image replaces one with edits (see openImage). */
-  dialog: 'donate' | 'about' | 'replace' | null;
+  /**
+   * 'replace' asks before a new image replaces one with edits (see openImage);
+   * 'download' asks before an AI model's first download (see ml/status).
+   */
+  dialog: 'donate' | 'about' | 'replace' | 'download' | null;
+  /** The AI model the 'download' dialog asks about. */
+  downloadModel: ModelName | null;
   setTool: (tool: ToolId) => void;
   toggleMode: () => void;
   setMode: (mode: Mode) => void;
@@ -136,6 +141,7 @@ export const useUI = create<UIState>()(
       models: {},
       autoRan: false,
       dialog: null,
+      downloadModel: null,
       setTool: (tool) => {
         if (AVAILABLE_TOOLS.includes(tool)) set({ tool });
       },

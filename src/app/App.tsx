@@ -4,6 +4,7 @@ import { useUI } from '../state/store';
 import { AboutDialog } from './AboutDialog';
 import { BottomBar } from './BottomBar';
 import { DonateDialog } from './DonateDialog';
+import { DownloadDialog } from './DownloadDialog';
 import { DropZone } from './DropZone';
 import { ReplaceDialog } from './ReplaceDialog';
 import { TaskStatus } from './TaskStatus';
@@ -32,6 +33,7 @@ export function App() {
       {dialog === 'donate' && <DonateDialog onClose={closeDialog} />}
       {dialog === 'about' && <AboutDialog onClose={closeDialog} />}
       {dialog === 'replace' && <ReplaceDialog />}
+      {dialog === 'download' && <DownloadDialog />}
     </div>
   );
 }

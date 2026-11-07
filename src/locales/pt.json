@@ -96,6 +96,13 @@
     "download": "Remover fundo (download único de {{size}} MB)",
     "again": "Executar novamente"
   },
+  "modelDownload": {
+    "title": "Baixar o modelo de IA?",
+    "body": "A ferramenta {{tool}} usa um modelo de IA que roda no seu dispositivo. Ela precisa de um download único de cerca de {{size}} MB, que depois fica guardado neste dispositivo para a próxima vez.",
+    "note": "Suas imagens nunca são enviadas. Se estiver usando dados móveis, talvez prefira esperar pelo Wi-Fi.",
+    "cancel": "Agora não",
+    "confirm": "Baixar"
+  },
   "task": {
     "downloading": "Baixando modelo de IA… {{loaded}} / {{total}} MB (só uma vez)",
     "auto": "Removendo o fundo…",

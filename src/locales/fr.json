@@ -96,6 +96,13 @@
     "download": "Supprimer l’arrière-plan (téléchargement unique de {{size}} Mo)",
     "again": "Relancer"
   },
+  "modelDownload": {
+    "title": "Télécharger le modèle d’IA ?",
+    "body": "L’outil {{tool}} utilise un modèle d’IA qui fonctionne sur votre appareil. Il nécessite un téléchargement unique d’environ {{size}} Mo, conservé ensuite sur cet appareil pour la prochaine fois.",
+    "note": "Vos images ne sont jamais envoyées. Avec des données mobiles, vous préférerez peut-être attendre le Wi-Fi.",
+    "cancel": "Pas maintenant",
+    "confirm": "Télécharger"
+  },
   "task": {
     "downloading": "Téléchargement du modèle d’IA… {{loaded}} / {{total}} Mo (une seule fois)",
     "auto": "Suppression de l’arrière-plan…",

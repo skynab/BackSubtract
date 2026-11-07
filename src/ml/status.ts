@@ -29,19 +29,50 @@ export async function refreshModelInfo(model: ModelName): Promise<ModelInfo> {
   return info;
 }
 
+/** Models the user agreed to download during this visit. A cancelled download is asked about again. */
+const approved = new Set<ModelName>();
+
+/** The answer to "Download the AI model?" while it's being asked. */
+let pendingDownload: ((ok: boolean) => void) | null = null;
+
+/** Ask (in the app's own dialog) before a model's first download. True if it's already downloaded or the user agrees. */
+async function confirmDownload(model: ModelName): Promise<boolean> {
+  if (approved.has(model)) return true;
+  if ((await refreshModelInfo(model)).cached) return true;
+  // Asking again replaces the earlier question, which counts as "Not now".
+  pendingDownload?.(false);
+  const ok = await new Promise<boolean>((resolve) => {
+    pendingDownload = resolve;
+    useUI.setState({ dialog: 'download', downloadModel: model });
+  });
+  if (ok) approved.add(model);
+  return ok;
+}
+
+/** Called by the dialog with the user's answer. */
+export function answerDownload(ok: boolean): void {
+  const resolve = pendingDownload;
+  pendingDownload = null;
+  if (useUI.getState().dialog === 'download') useUI.setState({ dialog: null, downloadModel: null });
+  resolve?.(ok);
+}
+
 /**
  * Run a model task with progress shown: "Downloading… x / y MB" the first time,
- * then `workingKey` while it runs. Errors become a notice; returns null on failure.
+ * then `workingKey` while it runs. A model that isn't downloaded yet is asked
+ * about first. Errors become a notice; returns null on failure or "Not now".
  */
 export async function withModelTask<T>(model: ModelName, workingKey: string, run: () => Promise<T>): Promise<T | null> {
-  afterDownload = { model, key: workingKey };
-  useUI.setState({ task: { key: workingKey } });
   try {
+    if (!(await confirmDownload(model))) return null;
+    afterDownload = { model, key: workingKey };
+    useUI.setState({ task: { key: workingKey } });
     const result = await run();
     void refreshModelInfo(model);
     return result;
   } catch (err) {
     if (err instanceof CancelledError) {
+      approved.delete(model);
       useUI.getState().showNotice({ key: 'task.cancelled', tone: 'info' });
     } else {
       console.error(err);
