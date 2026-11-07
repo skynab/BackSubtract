@@ -135,7 +135,11 @@
     "square": "Mantén pulsado al arrastrar para un cuadrado o un círculo",
     "hardness": "Pincel más suave / más duro",
     "cancel": "Cancelar la línea o la forma que estás dibujando",
-    "line": "Pincel: línea recta desde donde terminó el último trazo"
+    "line": "Pincel: línea recta desde donde terminó el último trazo",
+    "lassoKind": "Lazo: cambiar entre Magnético y Poligonal",
+    "close": "Lazo poligonal: cerrar el contorno",
+    "corner": "Lazo poligonal: quitar la última esquina",
+    "angle": "Lazo poligonal: mantén pulsado para lados a 45°"
   },
   "view": {
     "label": "Vista",
@@ -177,6 +181,11 @@
     "label": "Tipo de pincel",
     "paint": "Pintar",
     "refine": "Pelo"
+  },
+  "lassoKind": {
+    "label": "Tipo de lazo",
+    "magnetic": "Magnético",
+    "polygon": "Poligonal"
   },
   "checker": {
     "title": "Fondo",

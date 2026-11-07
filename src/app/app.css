@@ -919,6 +919,18 @@ button:disabled {
   filter: none;
 }
 
+/* Polygon lasso: its first corner, filled in when a tap there would close the outline. */
+.lasso circle.start {
+  fill: transparent;
+  stroke: #fff;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.8));
+}
+
+.lasso circle.start.ready {
+  fill: var(--accent);
+}
+
 /* Brush: the straight line a Shift+click would paint. */
 .lasso path.line-preview {
   fill: none;

@@ -135,7 +135,11 @@
     "square": "Hold while dragging for a square or circle",
     "hardness": "Softer / harder brush",
     "cancel": "Cancel the line or shape being drawn",
-    "line": "Brush: straight line from where the last stroke ended"
+    "line": "Brush: straight line from where the last stroke ended",
+    "lassoKind": "Lasso: switch between Magnetic and Polygon",
+    "close": "Polygon lasso: close the outline",
+    "corner": "Polygon lasso: remove the last corner",
+    "angle": "Polygon lasso: hold for sides at 45° angles"
   },
   "view": {
     "label": "View",
@@ -177,6 +181,11 @@
     "label": "Brush type",
     "paint": "Paint",
     "refine": "Hair"
+  },
+  "lassoKind": {
+    "label": "Lasso type",
+    "magnetic": "Magnetic",
+    "polygon": "Polygon"
   },
   "checker": {
     "title": "Background",

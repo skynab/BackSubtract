@@ -24,8 +24,10 @@ import {
   EllipseIcon,
   ImageIcon,
   LassoIcon,
+  MagnetIcon,
   MinusIcon,
   PlusIcon,
+  PolygonIcon,
   RectIcon,
   RefineIcon,
   SelectIcon,
@@ -203,6 +205,23 @@ function BrushKindToggle() {
   );
 }
 
+function LassoKindToggle() {
+  const { t } = useTranslation();
+  const kind = useUI((s) => s.lassoKind);
+  return (
+    <div className="segmented" role="group" aria-label={t('lassoKind.label')}>
+      <button type="button" aria-pressed={kind === 'magnetic'} onClick={() => useUI.setState({ lassoKind: 'magnetic' })}>
+        <MagnetIcon width={18} height={18} />
+        {t('lassoKind.magnetic')}
+      </button>
+      <button type="button" aria-pressed={kind === 'polygon'} onClick={() => useUI.setState({ lassoKind: 'polygon' })}>
+        <PolygonIcon width={18} height={18} />
+        {t('lassoKind.polygon')}
+      </button>
+    </div>
+  );
+}
+
 function ContextRow() {
   const tool = useUI((s) => s.tool);
   const refining = useUI((s) => s.tool === 'brush' && s.brushKind === 'refine');
@@ -210,6 +229,7 @@ function ContextRow() {
   return (
     <>
       {tool === 'brush' && <BrushKindToggle />}
+      {tool === 'lasso' && <LassoKindToggle />}
       {!refining && <ModeToggle />}
       <ToolSlider />
       {tool === 'shape' && <ShapeKindToggle />}

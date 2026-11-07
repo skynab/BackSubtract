@@ -7,8 +7,9 @@ import { selectMode, useUI } from '../state/store';
 import { coreFraction } from '../tools/brush/brush';
 import { pick } from '../tools/color/pick';
 import { clearPreview, onPreview, previewAt, type Preview } from '../tools/color/preview';
-import { applyLasso } from '../tools/lasso/lasso';
+import { applyLasso, throughCentres } from '../tools/lasso/lasso';
 import { MagneticTrace, type Pixel } from '../tools/lasso/livewire';
+import { PolygonTrace } from '../tools/lasso/polygon';
 import { applyShape } from '../tools/shape/apply';
 import { dragBox } from '../tools/shape/shape';
 import { selectAt, selectLoop } from '../tools/select/select';
@@ -28,6 +29,8 @@ const DRAG_SLOP = 6;
 /** Lasso: how far from the pointer it looks for an edge, and how long a segment gets before it is fixed (screen px). */
 const LASSO_WIDTH = 10;
 const LASSO_SPACING = 30;
+/** Polygon lasso: how near the first corner a tap closes the outline (screen px). */
+const CORNER_REACH = 10;
 
 type Gesture =
   | { kind: 'none' }
@@ -42,6 +45,8 @@ type Gesture =
   | { kind: 'shape'; id: number; start: Point; end: Point; square: boolean }
   /** Lasso: `pending` is the latest pointer position, followed once per frame since path finding takes a few ms. */
   | { kind: 'trace'; id: number; trace: MagneticTrace; pending: Point | null }
+  /** Polygon lasso: a press that adds a corner where it is let go, so dragging first fine-tunes where. */
+  | { kind: 'corner'; id: number; at: Point }
   | { kind: 'pinch'; startDist: number; startMid: Point; startView: View };
 
 const isEditable = (target: EventTarget | null) =>
@@ -58,6 +63,7 @@ export function Viewer() {
   const lassoRef = useRef<SVGPathElement>(null);
   const trailRef = useRef<SVGPathElement>(null);
   const lineRef = useRef<SVGPathElement>(null);
+  const startRef = useRef<SVGCircleElement>(null);
 
   useEffect(() => {
     const wrap = wrapRef.current!;
@@ -68,6 +74,7 @@ export function Viewer() {
     const lasso = lassoRef.current!;
     const trail = trailRef.current!;
     const linePreview = lineRef.current!;
+    const startMark = startRef.current!;
 
     let renderer: Renderer;
     try {
@@ -85,6 +92,8 @@ export function Viewer() {
     let shiftDown = false;
     /** Where the last brush stroke ended (image px): Shift+click paints a straight line from here. */
     let lastBrush: Point | null = null;
+    /** Polygon lasso: the outline being drawn. It lasts across taps, zooming and panning, until it is closed or thrown away. */
+    let polygon: PolygonTrace | null = null;
     let pendingMask: Rect | null = null;
     let preview: Preview | null = null;
     let frame = 0;
@@ -113,6 +122,7 @@ export function Viewer() {
       const ghost = ui.viewMode === 'overlay' ? OVERLAY : selectMode(ui) === 'keep' ? GHOST : 0;
       const original = comparing || ui.viewMode === 'original' ? 1 : 0;
       if (gesture.kind === 'trace') followTrace(gesture);
+      drawPolygon();
       drawLinePreview();
       const shownPreview =
         preview && !comparing ? { mode: preview.mode, tint: preview.mode === 'keep' ? KEEP_TINT : REMOVE_TINT } : null;
@@ -136,6 +146,7 @@ export function Viewer() {
 
     function loadImage() {
       lastBrush = null;
+      discardPolygon();
       if (!editor.image || !editor.mask) return;
       renderer.setImage(editor.image, editor.mask);
       pendingMask = null;
@@ -186,6 +197,7 @@ export function Viewer() {
       }
       if (e) shiftDown = e.shiftKey;
       drawLinePreview();
+      drawPolygon();
     }
 
     const toScreen = (ip: Point): Point => ({ x: ip.x * view.scale + view.x, y: ip.y * view.scale + view.y });
@@ -238,6 +250,47 @@ export function Viewer() {
       lasso.setAttribute('d', d);
     }
 
+    /**
+     * The polygon lasso's outline, with a side from its last corner to the pointer
+     * (pressed, or a mouse or pen hovering). The first corner is marked, and filled
+     * in when a tap there would close the outline.
+     */
+    function drawPolygon() {
+      if (!polygon) return;
+      const live =
+        gesture.kind === 'corner' ? gesture.at
+        : hover && hover.e.pointerType !== 'touch' && gesture.kind === 'none' && !spaceDown ? hover.p
+        : null;
+      const target = live ? polygon.target(toImage(view, live), shiftDown, polygonReach()) : null;
+      const points = target && !target.closes ? [...polygon.corners, target.point] : polygon.corners;
+      const d = points.map(toScreen).map((s, i) => `${i ? 'L' : 'M'}${s.x.toFixed(1)},${s.y.toFixed(1)}`);
+      lasso.setAttribute('d', d.join('') + (target?.closes ? 'Z' : ''));
+      const first = polygon.corners[0];
+      startMark.setAttribute('visibility', first ? 'visible' : 'hidden');
+      if (first) {
+        const s = toScreen(first);
+        startMark.setAttribute('cx', s.x.toFixed(1));
+        startMark.setAttribute('cy', s.y.toFixed(1));
+        startMark.classList.toggle('ready', !!target?.closes);
+      }
+    }
+
+    const polygonReach = () => CORNER_REACH / view.scale;
+
+    function discardPolygon() {
+      if (!polygon) return;
+      polygon = null;
+      drawLasso(null);
+      startMark.setAttribute('visibility', 'hidden');
+    }
+
+    /** Apply the polygon lasso's outline (with three corners or more) and start afresh. */
+    function closePolygon() {
+      const corners = polygon?.canClose ? polygon.corners : null;
+      discardPolygon();
+      if (corners) applyLasso(corners);
+    }
+
     function drawShape(g: Extract<Gesture, { kind: 'shape' }>) {
       const b = dragBox(g.start, g.end, g.square);
       if (useUI.getState().shapeKind === 'rect') {
@@ -273,9 +326,13 @@ export function Viewer() {
         if (tapped) {
           followTrace(gesture);
           const outline = gesture.trace.close(lassoRadius());
-          if (outline.length >= 3) applyLasso(outline);
+          if (outline.length >= 3) applyLasso(throughCentres(outline));
         }
         drawLasso(null);
+      }
+      if (gesture.kind === 'corner' && tapped) {
+        polygon ??= new PolygonTrace();
+        if (polygon.tap(toImage(view, gesture.at), shiftDown, polygonReach())) closePolygon();
       }
       if (gesture.kind === 'shape') {
         const { start, end, square } = gesture;
@@ -315,6 +372,8 @@ export function Viewer() {
           startMid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 },
           startView: view,
         };
+        // A press that would have added a corner is dropped, but the outline stays.
+        drawPolygon();
         return;
       }
       if (pointers.size > 2) return;
@@ -335,6 +394,8 @@ export function Viewer() {
         gesture = { kind: 'stroke', id: e.pointerId, trail: refine ? (from ? [toScreen(from), p] : [p]) : null, last: ip };
         if (refine) drawTrail(gesture.trail);
         linePreview.setAttribute('d', '');
+      } else if (ui.tool === 'lasso' && ui.lassoKind === 'polygon') {
+        gesture = { kind: 'corner', id: e.pointerId, at: p };
       } else if (ui.tool === 'lasso') {
         const { width, height } = editor.image;
         const trace = new MagneticTrace(editor.pixels, width, height, imagePixel(p), lassoRadius());
@@ -411,6 +472,11 @@ export function Viewer() {
           gesture.pending = p;
           requestRender();
           return;
+        case 'corner':
+          if (gesture.id !== e.pointerId) return;
+          gesture.at = p;
+          drawPolygon();
+          return;
         case 'shape':
           if (gesture.id !== e.pointerId) return;
           gesture.end = p;
@@ -445,6 +511,7 @@ export function Viewer() {
         if (pointers.size === 0) gesture = { kind: 'none' };
         return;
       }
+      if (gesture.kind === 'corner' && gesture.id === e.pointerId) gesture.at = local(e);
       if ('id' in gesture && gesture.id === e.pointerId) endGesture(e.type === 'pointerup');
       updateCursor(e, local(e));
     }
@@ -464,11 +531,21 @@ export function Viewer() {
       if (e.key === 'Shift') {
         shiftDown = true;
         drawLinePreview();
+        drawPolygon();
       }
       if (isEditable(e.target) || e.ctrlKey || e.metaKey || e.altKey || document.querySelector('dialog[open]')) return;
-      if (e.key === 'Escape' && (gesture.kind === 'trace' || gesture.kind === 'lasso' || gesture.kind === 'shape')) {
-        // Throw away the line or shape being drawn.
+      if (e.key === 'Escape' && (polygon || gesture.kind === 'trace' || gesture.kind === 'lasso' || gesture.kind === 'shape')) {
+        // Throw away the line, outline or shape being drawn.
         endGesture();
+        discardPolygon();
+      } else if (e.key === 'Enter' && polygon) {
+        e.preventDefault();
+        closePolygon();
+      } else if ((e.key === 'Backspace' || e.key === 'Delete') && polygon) {
+        e.preventDefault();
+        polygon.pop();
+        if (polygon.corners.length) drawPolygon();
+        else discardPolygon();
       } else if (e.key === ' ') {
         if (!(e.target instanceof HTMLButtonElement)) e.preventDefault();
         spaceDown = true;
@@ -486,6 +563,7 @@ export function Viewer() {
       if (e.key === 'Shift') {
         shiftDown = false;
         drawLinePreview();
+        drawPolygon();
       }
       if (e.key === ' ') {
         spaceDown = false;
@@ -521,6 +599,7 @@ export function Viewer() {
       }
     });
     const stopUI = useUI.subscribe((s, prev) => {
+      if (s.tool !== 'lasso' || s.lassoKind !== 'polygon') discardPolygon();
       requestRender();
       if (hover && !cursor.hidden && (s.brushSize !== prev.brushSize || s.brushHardness !== prev.brushHardness)) {
         updateCursor(hover.e, hover.p);
@@ -535,12 +614,14 @@ export function Viewer() {
       cursor.hidden = true;
       hover = null;
       drawLinePreview();
+      drawPolygon();
       if (gesture.kind === 'none') clearPreview();
     };
     const onBlur = () => {
       spaceDown = false;
       shiftDown = false;
       drawLinePreview();
+      drawPolygon();
       setComparing(false);
     };
 
@@ -558,6 +639,7 @@ export function Viewer() {
 
     return () => {
       endGesture();
+      discardPolygon();
       cancelAnimationFrame(frame);
       resizeObserver.disconnect();
       dark.removeEventListener('change', onTheme);
@@ -588,6 +670,7 @@ export function Viewer() {
         <path ref={lassoRef} />
         <path ref={trailRef} className="trail" />
         <path ref={lineRef} className="line-preview" />
+        <circle ref={startRef} className="start" r="5" visibility="hidden" />
       </svg>
       <ViewSwitch />
       <div className="badge" ref={badgeRef} hidden>

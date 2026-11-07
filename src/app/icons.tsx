@@ -42,6 +42,26 @@ export const LassoIcon = icon(
     <path d="M8 18.5c-.4 1.2-1.3 2-2.5 2.2" />
   </>,
 );
+/** A horseshoe magnet, for the lasso that clings to edges. */
+export const MagnetIcon = icon(
+  <>
+    <path d="M5 4h4v7.5a3 3 0 0 0 6 0V4h4v7.5a7 7 0 0 1-14 0z" />
+    <path d="M5 8h4M15 8h4" />
+  </>,
+);
+/** Straight sides between corners, for the polygon lasso. */
+export const PolygonIcon = icon(
+  <>
+    <path d="M5 8l8-4 6.5 7-4 8.5L4.5 17z" />
+    <g fill="currentColor" stroke="none">
+      <circle cx="5" cy="8" r="1.7" />
+      <circle cx="13" cy="4" r="1.7" />
+      <circle cx="19.5" cy="11" r="1.7" />
+      <circle cx="15.5" cy="19.5" r="1.7" />
+      <circle cx="4.5" cy="17" r="1.7" />
+    </g>
+  </>,
+);
 export const BrushIcon = icon(
   <>
     <path d="M20 4L11 13" />

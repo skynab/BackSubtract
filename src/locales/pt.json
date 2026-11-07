@@ -135,7 +135,11 @@
     "square": "Segure ao arrastar para um quadrado ou um círculo",
     "hardness": "Pincel mais suave / mais duro",
     "cancel": "Cancelar a linha ou forma sendo desenhada",
-    "line": "Pincel: linha reta a partir de onde terminou o último traço"
+    "line": "Pincel: linha reta a partir de onde terminou o último traço",
+    "lassoKind": "Laço: alternar entre Magnético e Poligonal",
+    "close": "Laço poligonal: fechar o contorno",
+    "corner": "Laço poligonal: remover o último canto",
+    "angle": "Laço poligonal: segure para lados a 45°"
   },
   "view": {
     "label": "Visualização",
@@ -177,6 +181,11 @@
     "label": "Tipo de pincel",
     "paint": "Pintar",
     "refine": "Cabelo"
+  },
+  "lassoKind": {
+    "label": "Tipo de laço",
+    "magnetic": "Magnético",
+    "polygon": "Poligonal"
   },
   "checker": {
     "title": "Fundo",

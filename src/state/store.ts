@@ -4,6 +4,7 @@ import type { Aspect, ExportFormat } from '../export/exportImage';
 import { DEFAULT_CONTRAST } from '../canvas/checker';
 import type { Mode } from '../mask/mask';
 import type { ModelInfo } from '../ml/protocol';
+import type { LassoKind } from '../tools/lasso/polygon';
 import type { ShapeKind } from '../tools/shape/shape';
 
 export type ToolId = 'auto' | 'select' | 'wand' | 'color' | 'lasso' | 'brush' | 'shape';
@@ -66,6 +67,8 @@ interface UIState {
   brushKind: 'paint' | 'refine';
   /** What the Shape tool draws. */
   shapeKind: ShapeKind;
+  /** Magnetic (drag along an edge) or Polygon (tap corner by corner). */
+  lassoKind: LassoKind;
   tolerances: { wand: number; color: number };
   exportFormat: ExportFormat;
   jpgBackground: string;
@@ -114,6 +117,7 @@ export const useUI = create<UIState>()(
       brushHardness: 60,
       brushKind: 'paint',
       shapeKind: 'rect',
+      lassoKind: 'magnetic',
       tolerances: { wand: 20, color: 15 },
       exportFormat: 'png',
       jpgBackground: '#ffffff',
@@ -157,6 +161,7 @@ export const useUI = create<UIState>()(
         brushHardness: s.brushHardness,
         brushKind: s.brushKind,
         shapeKind: s.shapeKind,
+        lassoKind: s.lassoKind,
         tolerances: s.tolerances,
         exportFormat: s.exportFormat,
         jpgBackground: s.jpgBackground,

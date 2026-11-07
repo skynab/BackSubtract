@@ -67,7 +67,11 @@ export function useGlobalInput(): void {
       }
       if (e.altKey || !ui.hasImage) return;
       const toolKeys: Record<string, ToolId> = { '1': 'auto', '2': 'select', '3': 'wand', '4': 'color', l: 'lasso', b: 'brush', m: 'shape' };
-      if (toolKeys[key]) ui.setTool(toolKeys[key]);
+      if (key === 'l' && e.shiftKey) {
+        // Shift+L switches between the Magnetic and Polygon lasso, as in other image editors.
+        ui.setTool('lasso');
+        useUI.setState({ lassoKind: ui.lassoKind === 'magnetic' ? 'polygon' : 'magnetic' });
+      } else if (toolKeys[key]) ui.setTool(toolKeys[key]);
       else if (key === 'x') ui.toggleMode();
       else if ((e.key === '{' || e.key === '}') && ui.tool === 'brush') {
         // Shift+[ and Shift+] change hardness, as in other image editors.

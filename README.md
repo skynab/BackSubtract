@@ -47,7 +47,10 @@ See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for the licenses of bundl
 | Key | Action |
 |---|---|
 | 1 / 2 / 3 / 4 / L / B / M | Auto / Select / Magic Wand / Color / Lasso / Brush / Shape |
+| Shift + L | Lasso: switch between Magnetic and Polygon |
 | Esc | Cancel the lasso line or shape being drawn |
+| Enter / double-click | Polygon lasso: close the outline |
+| Backspace | Polygon lasso: remove the last corner |
 | X | Toggle Keep / Remove |
 | [ / ] | Smaller / larger brush, or lower / raise tolerance |
 | Shift + [ / ] | Softer / harder brush |
@@ -58,5 +61,6 @@ See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for the licenses of bundl
 | Hold C | Show the original |
 | V | Switch view: Result / Overlay / Original |
 | Shift + drag | Shape: square or circle |
+| Shift + click | Polygon lasso: sides at 45° angles |
 | Shift + click | Brush: straight line from where the last stroke ended |
 | Hold Undo / Redo, or right-click | List every step and jump to one |

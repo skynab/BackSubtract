@@ -93,10 +93,12 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - Default mode is **Remove**.
 
 ### Lasso (manual, no AI)
-- A magnetic lasso, like Photoshop's: drag roughly along an object's edge and the line snaps to it. Letting go closes the loop back to the start (along edges too, unless the gap is very long) and applies it with the shared Keep / Remove toggle. It works the same with a finger or a mouse, and Esc throws the line away.
+- Two kinds, switched with a Magnetic | Polygon toggle next to Keep / Remove (or Shift+L), and remembered.
+- **Magnetic**, like Photoshop's magnetic lasso: drag roughly along an object's edge and the line snaps to it. Letting go closes the loop back to the start (along edges too, unless the gap is very long) and applies it with the shared Keep / Remove toggle. It works the same with a finger or a mouse, and Esc throws the line away.
 - The path finding is "intelligent scissors": the cheapest 8-connected path between two pixels, where each step costs less the stronger the Sobel edge under it. Each search is limited to the box around its two ends plus the lasso's width (10 screen px), so it stays a few milliseconds and runs once per frame while dragging.
 - The pointer only has to be near the edge: each position snaps to the strongest edge within the width. Once the live segment is 30 screen px long, it is fixed and a new one starts from its end.
-- The filled outline's rim is snapped to the image (3 px), like Select. Default mode is **Keep**, and it follows Select's rule: on an untouched image Keep cuts the object out; after that it only brings areas back.
+- **Polygon**, like Photoshop's polygonal lasso: tap corner by corner, with straight sides between them. A press adds its corner where it is let go, so dragging first fine-tunes where (handy under a finger). With a mouse or pen, the next side follows the pointer before you click. Tapping the first corner again (within 10 screen px; its marker fills in when in reach), double-clicking, or Enter closes the outline and applies it. Shift keeps the side at 45° steps, Backspace takes back the last corner, and Esc throws the outline away. The outline survives zooming and panning (wheel, pinch, space-drag) between taps, so long outlines can be drawn zoomed in; picking another tool or lasso kind throws it away. Corners may lie outside the image, to run a side along the image's edge.
+- The filled outline's rim is snapped to the image (3 px), like Select. Only the anti-aliased rim moves, so a polygon's sides stay where they were drawn but settle onto an edge they run along. Default mode is **Keep**, and it follows Select's rule: on an untouched image Keep cuts the object out; after that it only brings areas back.
 
 ### AI marking and data use
 - Auto and Select carry a small "AI" badge (translated: IA, KI, …), and their tooltips say they use a model downloaded once to the device.
@@ -151,7 +153,7 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - **Gestures:** pinch or wheel to zoom, two-finger drag or space-drag to pan, and press-and-hold to compare with the original. None of these needs a button.
 - **Edges** sits with the actions (next to Undo): see section 4.
 - **Background**: a small checkerboard button beside the Result / Overlay / Original switch opens two settings for spotting missed bits, both remembered. **Contrast** runs from one even colour, through the theme's own subtle checkerboard (the default), to black and white. **Move the background** slides the checkerboard slowly (24 px/s), so leftover opaque bits stand still against the motion. It slides rather than flashes, to stay comfortable for people sensitive to flicker, and only redraws while it is on.
-- **Keyboard:** 1–4 pick tools, L the lasso, B the brush, X toggles Keep/Remove, [ and ] change size or tolerance, and Ctrl+Z / Ctrl+Shift+Z undo and redo.
+- **Keyboard:** 1–4 pick tools, L the lasso (Shift+L switches Magnetic / Polygon), B the brush, X toggles Keep/Remove, [ and ] change size or tolerance, and Ctrl+Z / Ctrl+Shift+Z undo and redo.
 - Dropping another file anywhere (or pasting one, or choosing one) starts a new session with it. If the current image has edits, the app's own dialog asks first ("Open a new image?", with **Open new image** focused so Enter accepts). It is not window.confirm, which some browsers and embedded views suppress, leaving a drop doing nothing.
 - **Donate:** a small, quiet ♥ in the top bar. See section 10.
 

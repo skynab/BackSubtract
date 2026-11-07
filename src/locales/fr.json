@@ -135,7 +135,11 @@
     "square": "Maintenir en faisant glisser pour un carré ou un cercle",
     "hardness": "Pinceau plus doux / plus dur",
     "cancel": "Annuler la ligne ou la forme en cours",
-    "line": "Pinceau : ligne droite depuis la fin du dernier trait"
+    "line": "Pinceau : ligne droite depuis la fin du dernier trait",
+    "lassoKind": "Lasso : passer de Magnétique à Polygonal",
+    "close": "Lasso polygonal : fermer le contour",
+    "corner": "Lasso polygonal : retirer le dernier coin",
+    "angle": "Lasso polygonal : maintenir pour des côtés à 45°"
   },
   "view": {
     "label": "Affichage",
@@ -177,6 +181,11 @@
     "label": "Type de pinceau",
     "paint": "Peindre",
     "refine": "Cheveux"
+  },
+  "lassoKind": {
+    "label": "Type de lasso",
+    "magnetic": "Magnétique",
+    "polygon": "Polygonal"
   },
   "checker": {
     "title": "Arrière-plan",

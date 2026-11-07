@@ -1,3 +1,4 @@
+import type { Point } from '../../canvas/view';
 import { editor } from '../../editor/editor';
 import type { Rect } from '../../mask/mask';
 import { snapToEdgesTiled } from '../../mask/snap';
@@ -9,28 +10,27 @@ import type { Pixel } from './livewire';
 const SNAP_RADIUS = 3;
 
 /**
- * Fill a closed outline of pixel positions into a full-size plane with
- * anti-aliased edges. Returns null when it encloses nothing.
+ * Fill a closed outline into a full-size plane with anti-aliased edges. Points
+ * are image coordinates (pixel (x, y) spans x…x+1) and may lie outside the
+ * image. Returns null when it encloses nothing.
  */
-export function fillOutline(points: Pixel[], width: number, height: number): { data: Uint8Array; rect: Rect } | null {
+export function fillOutline(points: Point[], width: number, height: number): { data: Uint8Array; rect: Rect } | null {
   if (points.length < 3) return null;
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const p of points) {
     x0 = Math.min(x0, p.x); y0 = Math.min(y0, p.y);
     x1 = Math.max(x1, p.x); y1 = Math.max(y1, p.y);
   }
-  const rect = {
-    x: Math.max(0, x0 - 1), y: Math.max(0, y0 - 1),
-    w: Math.min(width, x1 + 2) - Math.max(0, x0 - 1), h: Math.min(height, y1 + 2) - Math.max(0, y0 - 1),
-  };
-  if (rect.w < 2 || rect.h < 2) return null;
+  const left = Math.max(0, Math.floor(x0) - 1), top = Math.max(0, Math.floor(y0) - 1);
+  const right = Math.min(width, Math.ceil(x1) + 1), bottom = Math.min(height, Math.ceil(y1) + 1);
+  if (right <= left || bottom <= top) return null;
+  const rect = { x: left, y: top, w: right - left, h: bottom - top };
 
   const canvas = new OffscreenCanvas(rect.w, rect.h);
   const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
   ctx.fillStyle = '#fff';
   ctx.beginPath();
-  // Through pixel centres, so a line along an edge pixel covers about half of it.
-  points.forEach((p, i) => (i ? ctx.lineTo : ctx.moveTo).call(ctx, p.x + 0.5 - rect.x, p.y + 0.5 - rect.y));
+  points.forEach((p, i) => (i ? ctx.lineTo : ctx.moveTo).call(ctx, p.x - rect.x, p.y - rect.y));
   ctx.closePath();
   ctx.fill('nonzero');
   const rgba = ctx.getImageData(0, 0, rect.w, rect.h).data;
@@ -47,8 +47,11 @@ export function fillOutline(points: Pixel[], width: number, height: number): { d
   return any ? { data, rect } : null;
 }
 
-/** Fill a finished lasso outline, snap its rim to the image, and apply it with the Lasso's mode. */
-export function applyLasso(outline: Pixel[]): void {
+/** A magnetic lasso path as an outline through pixel centres, so a line along an edge pixel covers about half of it. */
+export const throughCentres = (path: Pixel[]): Point[] => path.map((p) => ({ x: p.x + 0.5, y: p.y + 0.5 }));
+
+/** Fill a finished lasso outline (image coordinates), snap its rim to the image, and apply it with the Lasso's mode. */
+export function applyLasso(outline: Point[]): void {
   const mask = editor.mask;
   if (!mask) return;
   const W = mask.width, H = mask.height;

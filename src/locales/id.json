@@ -135,7 +135,11 @@
     "square": "Tahan saat menyeret untuk persegi atau lingkaran",
     "hardness": "Kuas lebih lembut / lebih keras",
     "cancel": "Batalkan garis atau bentuk yang sedang digambar",
-    "line": "Kuas: garis lurus dari ujung goresan terakhir"
+    "line": "Kuas: garis lurus dari ujung goresan terakhir",
+    "lassoKind": "Laso: beralih antara Magnetik dan Poligon",
+    "close": "Laso poligon: tutup garis tepi",
+    "corner": "Laso poligon: hapus sudut terakhir",
+    "angle": "Laso poligon: tahan untuk sisi bersudut 45°"
   },
   "view": {
     "label": "Tampilan",
@@ -177,6 +181,11 @@
     "label": "Jenis kuas",
     "paint": "Lukis",
     "refine": "Rambut"
+  },
+  "lassoKind": {
+    "label": "Jenis laso",
+    "magnetic": "Magnetik",
+    "polygon": "Poligon"
   },
   "checker": {
     "title": "Latar",

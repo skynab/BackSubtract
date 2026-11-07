@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { chooseTool, DISK, download, openTestImage, readImage, tapImage, toScreen } from './helpers';
+import { chooseTool, DISK, download, downloadAndReadAlpha, openTestImage, readImage, tapImage, toScreen } from './helpers';
 
 /** Remove the green background with one Magic Wand tap, leaving the disk. */
 async function removeBackground(page: Page): Promise<void> {
@@ -57,6 +57,69 @@ test('Lasso: a rough loop around the disk snaps to its edge and cuts it out', as
   expect(outside).toBe(0);
   expect(above).toBe(0);
   expect(corner).toBe(0);
+});
+
+async function choosePolygonLasso(page: Page): Promise<void> {
+  await chooseTool(page, 'Lasso');
+  const polygon = page.getByRole('group', { name: 'Lasso type' }).getByRole('button', { name: 'Polygon' });
+  await polygon.click();
+  await expect(polygon).toHaveAttribute('aria-pressed', 'true');
+}
+
+test('Polygon lasso: corners tapped around the disk cut out exactly that outline', async ({ page }) => {
+  await openTestImage(page);
+  await choosePolygonLasso(page);
+  const undo = page.getByRole('button', { name: 'Undo' });
+  // An octagon 20 px outside the disk, starting on the right.
+  const corners: [number, number][] = [];
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI) / 4;
+    corners.push([Math.round(DISK.x + (DISK.r + 20) * Math.cos(a)), Math.round(DISK.y + (DISK.r + 20) * Math.sin(a))]);
+  }
+  for (const [x, y] of corners) await tapImage(page, x, y);
+  // A stray corner far to the left, taken back.
+  await tapImage(page, 10, 150);
+  await page.keyboard.press('Backspace');
+  await expect(undo).toBeDisabled();
+
+  // Tapping the first corner again closes the outline.
+  await tapImage(page, ...corners[0]);
+  await expect(undo).toBeEnabled();
+
+  const [centre, between, stray, corner] = await downloadAndReadAlpha(page, [
+    [DISK.x, DISK.y],
+    // Inside the octagon but outside the disk: the sides stay where they were drawn.
+    [DISK.x + DISK.r + 10, DISK.y],
+    // Only inside the outline with the stray corner.
+    [40, 145],
+    [10, 10],
+  ]);
+  expect(centre).toBe(255);
+  expect(between).toBe(255);
+  expect(stray).toBe(0);
+  expect(corner).toBe(0);
+});
+
+test('Polygon lasso: Esc throws the outline away, and Enter closes one', async ({ page }) => {
+  await openTestImage(page);
+  await choosePolygonLasso(page);
+  await page.getByRole('button', { name: 'Remove' }).click();
+  const undo = page.getByRole('button', { name: 'Undo' });
+
+  for (const [x, y] of [[20, 20], [80, 20], [80, 80]] as const) await tapImage(page, x, y);
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Enter');
+  await expect(undo).toBeDisabled();
+
+  // A box inside the disk.
+  for (const [x, y] of [[170, 120], [230, 120], [230, 180], [170, 180]] as const) await tapImage(page, x, y);
+  await page.keyboard.press('Enter');
+  await expect(undo).toBeEnabled();
+
+  const [centre, disk, corner] = await downloadAndReadAlpha(page, [[DISK.x, DISK.y], [DISK.x, DISK.y - 60], [50, 50]]);
+  expect(centre).toBe(0);
+  expect(disk).toBe(255);
+  expect(corner).toBe(255);
 });
 
 test('Crop to subject with a margin and a square shape', async ({ page }) => {

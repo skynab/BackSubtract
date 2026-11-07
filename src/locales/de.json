@@ -135,7 +135,11 @@
     "square": "Beim Ziehen gedrückt halten für Quadrat oder Kreis",
     "hardness": "Weicherer / härterer Pinsel",
     "cancel": "Linie oder Form beim Zeichnen verwerfen",
-    "line": "Pinsel: gerade Linie vom Ende des letzten Strichs"
+    "line": "Pinsel: gerade Linie vom Ende des letzten Strichs",
+    "lassoKind": "Lasso: zwischen Magnetisch und Polygon wechseln",
+    "close": "Polygon-Lasso: Umriss schließen",
+    "corner": "Polygon-Lasso: letzte Ecke entfernen",
+    "angle": "Polygon-Lasso: gedrückt halten für Seiten in 45°-Schritten"
   },
   "view": {
     "label": "Ansicht",
@@ -177,6 +181,11 @@
     "label": "Pinselart",
     "paint": "Malen",
     "refine": "Haare"
+  },
+  "lassoKind": {
+    "label": "Lasso-Art",
+    "magnetic": "Magnetisch",
+    "polygon": "Polygon"
   },
   "checker": {
     "title": "Hintergrund",
