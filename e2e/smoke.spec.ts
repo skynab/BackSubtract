@@ -20,7 +20,7 @@ test('every language fits a small phone: nothing off screen, no tool label spill
   await page.setViewportSize({ width: 375, height: 740 });
   await openTestImage(page);
   const codes = await page.getByRole('combobox').locator('option').evaluateAll((os) => os.map((o) => (o as HTMLOptionElement).value));
-  expect(codes.length).toBeGreaterThanOrEqual(13);
+  expect(codes.length).toBeGreaterThanOrEqual(14);
   for (const code of codes) {
     await page.getByRole('combobox').selectOption(code);
     await expect(page.locator('html')).toHaveAttribute('lang', code);

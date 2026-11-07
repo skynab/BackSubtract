@@ -1,0 +1,197 @@
+{
+  "language": "語言",
+  "empty": {
+    "title": "一鍵移除任何照片的背景",
+    "choose": "選擇圖片",
+    "hint": "或在任何地方拖放或貼上圖片",
+    "privacy": "你的圖片絕不會離開你的裝置。"
+  },
+  "drop": "放開以開啟",
+  "tools": {
+    "label": "工具",
+    "auto": "自動",
+    "select": "選取",
+    "wand": "魔術棒",
+    "color": "顏色",
+    "brush": "筆刷",
+    "shape": "形狀",
+    "lasso": "套索",
+    "ai": "AI",
+    "aiHint": "使用 AI 模型，只需下載一次到此裝置",
+    "edges": "調整邊緣",
+    "refine": "精修邊緣"
+  },
+  "mode": {
+    "label": "模式",
+    "keep": "保留",
+    "remove": "移除"
+  },
+  "brushSize": "筆刷大小",
+  "brushHardness": "硬度",
+  "actions": {
+    "open": "開啟另一張圖片",
+    "undo": "復原",
+    "redo": "重做",
+    "exporting": "正在準備…"
+  },
+  "viewer": {
+    "label": "圖片編輯器",
+    "original": "原圖"
+  },
+  "replace": {
+    "title": "開啟新圖片？",
+    "body": "對這張圖片所做的修改將會遺失。",
+    "cancel": "取消",
+    "open": "開啟新圖片"
+  },
+  "notices": {
+    "resized": "大型圖片已縮小至 {{max}} 像素以便編輯。下載時仍為原始尺寸。",
+    "restored": "歡迎回來，已還原你上次的圖片。"
+  },
+  "errors": {
+    "notImage": "這個檔案不是圖片。",
+    "load": "無法開啟這張圖片。",
+    "webgl": "你的瀏覽器不支援 BackSubtract 所需的 WebGL2。",
+    "export": "無法匯出圖片。",
+    "model": "AI 模型無法執行。請檢查網路連線後再試一次。",
+    "heic": "此瀏覽器無法開啟 iPhone 的 HEIC 照片。請改用 Safari，或先將照片匯出為 JPG（在 iPhone 上：設定 → 相機 → 格式 → 最相容）。",
+    "copy": "無法複製圖片，請改用下載。",
+    "share": "無法分享圖片。"
+  },
+  "dismiss": "關閉",
+  "tolerance": "容許度",
+  "download": {
+    "button": "下載 {{format}}",
+    "options": "下載選項",
+    "format": "格式",
+    "formats": {
+      "png": "PNG",
+      "webp": "WebP",
+      "jpg": "JPG",
+      "mask": "遮罩"
+    },
+    "hints": {
+      "png": "透明背景",
+      "webp": "透明，檔案較小",
+      "jpg": "純色背景",
+      "mask": "黑白圖，供其他編輯器使用"
+    },
+    "background": "背景",
+    "customColor": "自訂顏色",
+    "trim": "裁切至主體",
+    "colors": {
+      "white": "白色",
+      "black": "黑色"
+    },
+    "margin": "邊距",
+    "aspect": "比例",
+    "aspectFree": "貼合",
+    "fullSize": "原始尺寸（{{width}} × {{height}}）",
+    "copy": "複製",
+    "share": "分享",
+    "copied": "圖片已複製。"
+  },
+  "auto": {
+    "run": "移除背景",
+    "download": "移除背景（一次性下載 {{size}} MB）",
+    "again": "重新執行"
+  },
+  "task": {
+    "downloading": "正在下載 AI 模型… {{loaded}} / {{total}} MB（僅需一次）",
+    "auto": "正在移除背景…",
+    "preparing": "正在準備選取…",
+    "selecting": "正在選取…",
+    "cancel": "取消",
+    "cancelled": "已取消下載。在你再次使用 AI 工具之前，不會再下載任何內容。"
+  },
+  "close": "關閉",
+  "donate": {
+    "button": "贊助",
+    "title": "支持 BackSubtract",
+    "body": "BackSubtract 完全免費，沒有廣告，也不需註冊。如果它幫你省下了時間，一點小額贊助就能讓它持續運作。",
+    "other": "其他金額",
+    "note": "付款會在新分頁中由 Stripe 安全處理。贊助屬自願性質，且不可抵稅。",
+    "thanks": "感謝你支持 BackSubtract！"
+  },
+  "about": {
+    "link": "關於",
+    "title": "關於 BackSubtract",
+    "intro": "一個簡單、免費的照片去背工具。開啟圖片，用任一工具移除背景，然後下載結果。",
+    "privacy": "一切都在你的瀏覽器中完成。你的圖片絕不會上傳，也不會收集任何資料。AI 模型只需下載一次，並保存在你的裝置上。",
+    "shortcutsTitle": "鍵盤快速鍵",
+    "creditsTitle": "使用的開放原始碼專案",
+    "source": "原始碼",
+    "contact": "聯絡"
+  },
+  "shortcuts": {
+    "tools": "自動、選取、魔術棒、顏色、套索、筆刷、形狀",
+    "mode": "在保留和移除之間切換",
+    "size": "縮小 / 放大筆刷或容許度",
+    "undo": "復原 / 重做",
+    "pan": "移動圖片",
+    "fit": "讓圖片符合螢幕大小",
+    "compare": "按住以查看原圖",
+    "view": "切換檢視：結果、疊加、原圖",
+    "square": "拖曳時按住可畫正方形或圓形",
+    "hardness": "筆刷更柔和 / 更硬",
+    "cancel": "取消正在繪製的線條或形狀",
+    "line": "筆刷：從上一筆的終點畫一條直線",
+    "lassoKind": "套索：在磁性和多邊形之間切換",
+    "close": "多邊形套索：封閉輪廓",
+    "corner": "多邊形套索：刪除最後一個角點",
+    "angle": "多邊形套索：按住可讓邊保持 45° 角"
+  },
+  "view": {
+    "label": "檢視",
+    "result": "結果",
+    "overlay": "疊加",
+    "original": "原圖",
+    "hints": {
+      "result": "顯示結果",
+      "overlay": "以半透明顯示已移除的區域，方便找出要找回的部分",
+      "original": "顯示原始圖片"
+    }
+  },
+  "history": {
+    "title": "歷史紀錄",
+    "hint": "長按查看歷史紀錄",
+    "start": "開啟圖片",
+    "edit": "編輯",
+    "step": "{{tool}} · {{mode}}"
+  },
+  "shape": {
+    "label": "形狀",
+    "rect": "矩形",
+    "ellipse": "橢圓形"
+  },
+  "edges": {
+    "title": "調整邊緣",
+    "shift": "邊緣位置",
+    "shrink": "收縮",
+    "grow": "擴張",
+    "soften": "邊緣柔和度",
+    "crisp": "銳利",
+    "soft": "柔和",
+    "cleanup": "清除雜點",
+    "off": "關",
+    "strong": "強",
+    "note": "套用於整張圖片，算作一個步驟，可用復原還原。"
+  },
+  "brushKind": {
+    "label": "筆刷類型",
+    "paint": "繪製",
+    "refine": "頭髮"
+  },
+  "lassoKind": {
+    "label": "套索類型",
+    "magnetic": "磁性",
+    "polygon": "多邊形"
+  },
+  "checker": {
+    "title": "背景",
+    "contrast": "對比",
+    "low": "低",
+    "high": "高",
+    "motion": "移動背景"
+  }
+}

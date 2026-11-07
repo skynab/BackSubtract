@@ -14,6 +14,15 @@ describe('pickLanguage', () => {
     expect(pickLanguage(null, ['zh-cn'], supported, 'en')).toBe('zh-CN');
     expect(pickLanguage(null, ['zh-TW'], supported, 'en')).toBe('zh-CN');
   });
+  it('picks Simplified or Traditional Chinese by script and region', () => {
+    const both = [...supported, 'zh-TW'];
+    for (const pref of ['zh-TW', 'zh-HK', 'zh-MO', 'zh-Hant', 'zh-Hant-HK', 'zh-hant-tw']) {
+      expect(pickLanguage(null, [pref], both, 'en'), pref).toBe('zh-TW');
+    }
+    for (const pref of ['zh', 'zh-CN', 'zh-SG', 'zh-Hans', 'zh-Hans-HK']) {
+      expect(pickLanguage(null, [pref], both, 'en'), pref).toBe('zh-CN');
+    }
+  });
   it('falls back', () => {
     expect(pickLanguage(null, ['de-DE'], supported, 'en')).toBe('en');
   });

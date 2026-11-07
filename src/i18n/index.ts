@@ -12,6 +12,7 @@ export const LANGUAGES = [
   { code: 'ru', label: 'Русский' },
   { code: 'id', label: 'Bahasa Indonesia' },
   { code: 'zh-CN', label: '简体中文' },
+  { code: 'zh-TW', label: '繁體中文' },
   { code: 'ja', label: '日本語' },
   { code: 'ko', label: '한국어' },
   { code: 'ar', label: 'العربية' },
