@@ -341,6 +341,27 @@ test('work survives a reload', async ({ page }) => {
   expect(corner).toBe(0);
 });
 
+test("when work can't be saved, a message says so, once", async ({ page }) => {
+  // Storage is full: every save fails.
+  await page.addInitScript(() => {
+    IDBObjectStore.prototype.put = () => {
+      throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+    };
+  });
+  await openTestImage(page);
+  const warning = page.getByRole('alert').filter({ hasText: "can't be saved on this device" });
+  await expect(warning).toBeVisible();
+  await warning.getByRole('button', { name: 'Dismiss' }).click();
+  await expect(warning).toBeHidden();
+
+  // Editing still works, and the saves that keep failing don't repeat the message.
+  await chooseTool(page, 'Magic Wand');
+  await tapImage(page, 10, 10);
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled();
+  await page.waitForTimeout(1500);
+  await expect(warning).toBeHidden();
+});
+
 test('an iPhone HEIC photo the browser cannot decode gets a helpful message', async ({ page }) => {
   await page.goto('/');
   const chooser = page.waitForEvent('filechooser');

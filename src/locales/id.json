@@ -56,7 +56,8 @@
     "model": "Model AI tidak dapat dijalankan. Periksa koneksi Anda lalu coba lagi.",
     "heic": "Browser ini tidak dapat membuka foto HEIC dari iPhone. Coba Safari, atau ekspor foto sebagai JPG terlebih dulu (di iPhone: Pengaturan → Kamera → Format → Paling Kompatibel).",
     "copy": "Gambar tidak dapat disalin. Coba unduh saja.",
-    "share": "Gambar tidak dapat dibagikan."
+    "share": "Gambar tidak dapat dibagikan.",
+    "save": "Pekerjaan Anda tidak dapat disimpan di perangkat ini (penyimpanan mungkin penuh). Unduh gambar Anda sebelum menutup atau memuat ulang halaman."
   },
   "dismiss": "Tutup",
   "tolerance": "Toleransi",

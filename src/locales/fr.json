@@ -56,7 +56,8 @@
     "model": "Le modèle d’IA n’a pas pu s’exécuter. Vérifiez votre connexion et réessayez.",
     "heic": "Ce navigateur ne peut pas ouvrir les photos HEIC d’iPhone. Essayez Safari, ou exportez d’abord la photo en JPG (sur iPhone : Réglages → Appareil photo → Formats → Le plus compatible).",
     "copy": "Impossible de copier l'image. Essayez plutôt de la télécharger.",
-    "share": "Impossible de partager l'image."
+    "share": "Impossible de partager l'image.",
+    "save": "Impossible d’enregistrer votre travail sur cet appareil (le stockage est peut-être plein). Téléchargez votre image avant de fermer ou d’actualiser la page."
   },
   "dismiss": "Fermer",
   "tolerance": "Tolérance",

@@ -56,7 +56,8 @@
     "model": "Das KI-Modell konnte nicht ausgeführt werden. Prüfe deine Verbindung und versuche es erneut.",
     "heic": "Dieser Browser kann HEIC-Fotos vom iPhone nicht öffnen. Verwende Safari oder exportiere das Foto zuerst als JPG (auf dem iPhone: Einstellungen → Kamera → Formate → Maximale Kompatibilität).",
     "copy": "Das Bild konnte nicht kopiert werden. Lade es stattdessen herunter.",
-    "share": "Das Bild konnte nicht geteilt werden."
+    "share": "Das Bild konnte nicht geteilt werden.",
+    "save": "Deine Arbeit kann auf diesem Gerät nicht gespeichert werden (vielleicht ist der Speicher voll). Lade dein Bild herunter, bevor du die Seite schließt oder neu lädst."
   },
   "dismiss": "Schließen",
   "tolerance": "Toleranz",

@@ -1,5 +1,6 @@
 import { editor } from '../editor/editor';
 import type { Edit } from '../mask/history';
+import { useUI } from '../state/store';
 
 /**
  * Saves the work in progress to IndexedDB, on this device only, so a refresh or
@@ -70,15 +71,42 @@ async function save(): Promise<void> {
   await withStore('readwrite', (s) => s.put(session, KEY));
 }
 
+/**
+ * Ask the browser to keep this site's data (the saved session and the downloaded AI
+ * models) rather than clear it when the device runs low on space. Chrome and Safari
+ * decide by themselves, but Firefox asks the user, so this is only called when they
+ * agree to download a model: a moment when keeping data is clearly what they want.
+ */
+export async function requestPersistentStorage(): Promise<void> {
+  try {
+    if (!(await navigator.storage.persisted())) await navigator.storage.persist();
+  } catch {
+    // Unsupported (or not a secure context): the data stays, just without the promise.
+  }
+}
+
 let timer = 0;
+/** Whether the last save failed, so a run of failures warns only once. */
+let failing = false;
 
 /** Save shortly after each change, and when the page is hidden. */
 export function startAutosave(): void {
   const flush = () => {
     clearTimeout(timer);
     timer = 0;
-    // Saving is best-effort: if storage is full or blocked, editing still works.
-    save().catch(() => {});
+    // If storage is full or blocked, editing still works, but a refresh would lose the
+    // work: say so once, and again only if saving starts failing after it worked.
+    save().then(
+      () => {
+        failing = false;
+      },
+      (err) => {
+        if (failing) return;
+        failing = true;
+        console.warn('Autosave failed', err);
+        useUI.getState().showNotice({ key: 'errors.save', tone: 'error' });
+      },
+    );
   };
   const schedule = () => {
     clearTimeout(timer);

@@ -56,7 +56,8 @@
     "model": "The AI model couldn't run. Check your connection and try again.",
     "heic": "This browser can't open iPhone HEIC photos. Try Safari, or export the photo as JPG first (on iPhone: Settings → Camera → Formats → Most Compatible).",
     "copy": "Couldn't copy the image. Try Download instead.",
-    "share": "Couldn't share the image."
+    "share": "Couldn't share the image.",
+    "save": "Your work can't be saved on this device (storage may be full). Download your image before closing or refreshing the page."
   },
   "dismiss": "Dismiss",
   "tolerance": "Tolerance",

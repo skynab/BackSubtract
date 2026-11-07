@@ -1,3 +1,4 @@
+import { requestPersistentStorage } from '../session/autosave';
 import { useUI } from '../state/store';
 import { CancelledError, modelInfo, onDownloadProgress } from './client';
 import type { ModelInfo, ModelName } from './protocol';
@@ -47,7 +48,10 @@ async function confirmDownload(model: ModelName): Promise<boolean> {
     pendingDownload = resolve;
     useUI.setState({ dialog: 'download', downloadModel: model });
   });
-  if (ok) approved.add(model);
+  if (ok) {
+    approved.add(model);
+    void requestPersistentStorage();
+  }
   return ok;
 }
 

@@ -56,7 +56,8 @@
     "model": "Não foi possível executar o modelo de IA. Verifique sua conexão e tente novamente.",
     "heic": "Este navegador não abre fotos HEIC do iPhone. Use o Safari ou exporte a foto como JPG antes (no iPhone: Ajustes → Câmera → Formatos → Mais Compatível).",
     "copy": "Não foi possível copiar a imagem. Tente baixá-la.",
-    "share": "Não foi possível compartilhar a imagem."
+    "share": "Não foi possível compartilhar a imagem.",
+    "save": "Não foi possível salvar seu trabalho neste dispositivo (o armazenamento pode estar cheio). Baixe sua imagem antes de fechar ou recarregar a página."
   },
   "dismiss": "Fechar",
   "tolerance": "Tolerância",

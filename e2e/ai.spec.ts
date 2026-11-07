@@ -64,6 +64,30 @@ test('"Not now" downloads nothing, for Auto and for Select', async ({ page }) =>
   await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled({ timeout: 10_000 });
 });
 
+test('agreeing to a download asks the browser to keep the site data, and "Not now" does not', async ({ page }) => {
+  await page.addInitScript(() => {
+    const w = window as unknown as { persistAsked: number };
+    w.persistAsked = 0;
+    navigator.storage.persisted = async () => false;
+    navigator.storage.persist = async () => {
+      w.persistAsked++;
+      return true;
+    };
+  });
+  const persistAsked = () => page.evaluate(() => (window as unknown as { persistAsked: number }).persistAsked);
+  await openTestImage(page);
+  await fakeAi(page, { downloadMs: 200 });
+
+  await autoButton(page).click();
+  await downloadDialog(page).getByRole('button', { name: 'Not now' }).click();
+  await expect(downloadDialog(page)).toBeHidden();
+  expect(await persistAsked()).toBe(0);
+
+  await autoButton(page).click();
+  await confirmDownload(page);
+  await expect.poll(persistAsked).toBe(1);
+});
+
 test('cancelling the download leaves the image untouched, and asking again starts afresh', async ({ page }) => {
   await openTestImage(page);
   await fakeAi(page, { downloadMs: 20_000 });
