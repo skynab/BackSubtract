@@ -22,7 +22,7 @@
 | Session saving | **IndexedDB** | Work in progress survives a page refresh (stored on the device only) |
 | i18n | **react-i18next** | Standard, handles plurals and lazy-loaded languages |
 | Hosting | Any static host (GitHub Pages, Cloudflare Pages, Netlify) | Free, with no server to maintain |
-| Offline | PWA service worker (optional, phase 4) | Lets users install the app |
+| Offline | PWA service worker | Lets users install the app and use it offline; on GitHub Pages it also adds the isolation headers the host can't send |
 
 ## 3. Non-destructive editing
 
@@ -44,16 +44,16 @@ This works like a layer mask in Photoshop, but the user never sees it as one.
 ```
 Original image (never changed)
         │
-Tool (Auto | Select | Magic Wand | Color | Brush | Shape) ──► selection S + Keep/Remove
+Tool (Auto | Select | Magic Wand | Color | Lasso | Brush | Shape) ──► selection S + Keep/Remove
         │
 Hidden mask  ◄── undo/redo diffs, auto-saved
         │
 Compositor (screen)        Export (PNG / WebP / JPG)
 ```
 
-## 4. Background removal tools (4 + brush)
+## 4. Background removal tools
 
-The tools appear as one row of four large icons. One is always selected, and there is no separate "apply" step. Every tool shares one **Keep / Remove** toggle, and each tool remembers its own default mode.
+The tools appear as one row: the four main ones (Auto, Select, Magic Wand, Color), then, after a divider, the manual ones (Lasso, Brush, Shape). One is always selected, and there is no separate "apply" step. Every tool shares one **Keep / Remove** toggle, and each tool remembers its own default mode.
 
 ### A. Auto (default)
 - A model removes the background as soon as the image opens. This covers most cases (people, products, pets).
@@ -106,7 +106,9 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 
 ### Brush (touch-up, always available)
 - A small brush icon sits next to the tool row, with a size slider and a hardness slider (Shift+[ / ]). It uses the shared Keep / Remove toggle.
+- It covers the last few percent of errors after any tool.
 - Hardness sets how much of the brush paints at full strength before fading (default 60%). At 50% and above, a stroke's rim snaps to the image's edges when you let go; softer brushes paint a plain fade, since they are for blending across edges. Every brush keeps a small solid core so the stroke's path is always fully painted.
+- **Edge-aware:** when a stroke ends, its soft rim snaps to the real edge in the image. Each rim pixel is compared with the average colour just inside the stroke and just outside it. Where those differ, the rim follows the image edge; on flat areas the stroke stays exactly as painted. (A guided filter was tried first, but it blurred strokes on flat areas.)
 
 - **Hair** (a Paint | Hair switch next to the brush size; no Keep / Remove, no hardness): for hair and fur. Nothing changes while painting, only a see-through band shows where; on release the edge under the stroke is worked out from the image. Each pixel's colour is treated as a mix of the subject colour F and the background colour B: F is the average of the certainly kept pixels nearby and B of the certainly removed ones, both sampled outside the stroke (the stroke marks where the mask is unsure), within twice the brush radius so both sides are in reach from anywhere in the stroke. α is where the pixel falls on the line from B to F. The averages are gathered on a grid about 1/12 of that reach and interpolated, so wide strokes on large photos stay quick and small. Where F and B look alike the mask is left as it was.
   - On a 4000×3000 test photo with 900 fine strands cut off by a hard outline, one refine stroke took the error on hair pixels from 0.90 to 0.03 (sky stayed at 0.003), in about 0.3 s.
@@ -120,28 +122,26 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - The work runs in the image worker, and moves made while it's busy are coalesced. Only 64 px tiles near an edge are processed (flat tiles surrounded by the same value can't change), and specks are found once per panel session by labelling runs of pixels, then cached. On a 12 MP hair-heavy test image a change takes 0.1–0.7 s.
 
 ### Shape (boxes and ellipses)
-- Drag to draw a box or ellipse; it is applied when you let go, with the shared Keep / Remove toggle (Remove by default). Shift makes a square or circle. Edges are anti-aliased but not snapped, so the shape is exactly what you drew.
-- It covers the last few percent of errors after any tool.
-- **Edge-aware:** when a stroke ends, its soft rim snaps to the real edge in the image. Each rim pixel is compared with the average colour just inside the stroke and just outside it. Where those differ, the rim follows the image edge; on flat areas the stroke stays exactly as painted. (A guided filter was tried first, but it blurred strokes on flat areas.)
+- Drag to draw a box or ellipse (picked with a Box | Ellipse switch); it is applied when you let go, with the shared Keep / Remove toggle (Remove by default). Shift makes a square or circle. Edges are anti-aliased but not snapped, so the shape is exactly what you drew.
 
 ## 5. UI layout
 
 ```
 ┌───────────────────────────────────────────────┐
-│ BackSubtract              ♥ Donate  🌐 English ▾│  ← top bar
+│ BackSubtract              🌐 English ▾  ♥ Donate│  ← top bar
 ├───────────────────────────────────────────────┤
-│                                               │
+│                    Result|Overlay|Original  ▦ │  ← view switch, background
 │            [ canvas / drop zone ]             │
 │                                               │
 ├───────────────────────────────────────────────┤
-│  ✨Auto   👆Select   🪄Wand   🎨Color   │ 🖌      │  ← tools + brush
-│  [Keep|Remove]   (one slider: tolerance/size) │  ← context row
-│  ↶ ↷                            [ Download ▾ ]│
+│ Auto Select Wand Color │ Lasso Brush Shape    │  ← tools
+│ [Keep|Remove]  (the tool’s sliders, switches) │  ← context row
+│ Open  Edges  ↶ ↷                [ Download ▾ ]│  ← actions
 └───────────────────────────────────────────────┘
 ```
 
 - **Empty state:** the whole canvas is a drop zone, with paste (Ctrl+V) and a single "Choose image" button. On mobile, the button also offers the camera.
-- **After opening an image**, the bottom bar appears. The context row holds the Keep/Remove toggle plus *at most one* slider.
+- **After opening an image**, the bottom bar appears. The context row shows only what the selected tool needs: for Auto, its Remove background / Run again button; for the others, the Keep/Remove toggle, plus the tool's slider (tolerance, or brush size and hardness) and its switch (Magnetic | Polygon, Paint | Hair, Box | Ellipse). Hair needs neither Keep/Remove nor hardness, so it hides them. The actions row holds Open another image, Edges, Undo / Redo and Download.
 - **Download** is one button. Its small ▾ chooses the format (remembered between visits):
   - **PNG** (default, transparent)
   - **WebP** (transparent, smaller)
@@ -153,7 +153,7 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - **Gestures:** pinch or wheel to zoom, two-finger drag or space-drag to pan, and press-and-hold to compare with the original. None of these needs a button.
 - **Edges** sits with the actions (next to Undo): see section 4.
 - **Background**: a small checkerboard button beside the Result / Overlay / Original switch opens two settings for spotting missed bits, both remembered. **Contrast** runs from one even colour, through the theme's own subtle checkerboard (the default), to black and white. **Move the background** slides the checkerboard slowly (24 px/s), so leftover opaque bits stand still against the motion. It slides rather than flashes, to stay comfortable for people sensitive to flicker, and only redraws while it is on.
-- **Keyboard:** 1–4 pick tools, L the lasso (Shift+L switches Magnetic / Polygon), B the brush, X toggles Keep/Remove, [ and ] change size or tolerance, and Ctrl+Z / Ctrl+Shift+Z undo and redo.
+- **Keyboard:** 1–4 pick tools, L the lasso (Shift+L switches Magnetic / Polygon), B the brush, M the shape, X toggles Keep/Remove, [ and ] change size or tolerance, and Ctrl+Z / Ctrl+Shift+Z undo and redo. The README lists every shortcut.
 - Dropping another file anywhere (or pasting one, or choosing one) starts a new session with it. If the current image has edits, the app's own dialog asks first ("Open a new image?", with **Open new image** focused so Enter accepts). It is not window.confirm, which some browsers and embedded views suppress, leaving a drop doing nothing.
 - **Donate:** a small, quiet ♥ in the top bar. See section 10.
 
@@ -168,7 +168,7 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 
 ## 7. Performance and compatibility
 
-- Detect **WebGPU**, and fall back to WASM with SIMD and threads. That fallback needs COOP/COEP headers for `SharedArrayBuffer`; set them on the host. GitHub Pages can't set headers, so either use Cloudflare Pages or Netlify, or use the `coi-serviceworker` shim.
+- Detect **WebGPU**, and fall back to WASM with SIMD and threads. ONNX Runtime's WASM uses shared memory (`SharedArrayBuffer`), which needs a cross-origin isolated page: without it, Firefox won't run it at all and other browsers run it on one thread instead of several. `public/_headers` sets COOP `same-origin` and COEP `credentialless` on Netlify and Cloudflare Pages. GitHub Pages can't set headers, so there the app's own service worker adds them (`public/sw-isolation.js`) instead of the `coi-serviceworker` shim. Safari doesn't support `credentialless`, so it isn't isolated on any host.
 - **Lazy-load** each model the first time its tool is used, with a progress bar, e.g. "Downloading AI model… 34 / 88 MB (one time)". Models stay in the browser's Cache API. Agreeing to a download also asks the browser to keep the site's data (`navigator.storage.persist()`), so the models and the saved session aren't cleared when the device runs low on space. Chrome and Safari decide by themselves; Firefox asks the user, which is why it's asked only at that moment.
 - Prefer **half-precision or quantised models**. Quality background models are about 90–115 MB, more than the original 50 MB target, so Auto asks before its first download.
 - The ONNX Runtime WASM file is about 27 MB. Transformers.js loads it from jsDelivr (about 4.7 MB compressed) and caches it, so it isn't part of the site: `vite.config.ts` keeps Vite from copying in onnxruntime-web's unused local fallback. The build is about 1 MB, and any static host works, Cloudflare Pages (25 MiB per-file limit) included. Earlier versions also kept a second copy in an `ai-runtime` service worker cache; `public/sw-cleanup.js` deletes it.
@@ -180,21 +180,33 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 
 ```
 src/
-  app/            App shell, TopBar, BottomBar, DownloadMenu, DonateDialog
-  state/          Zustand stores (tool, mode, slider values, session)
-  canvas/         Viewer (zoom/pan), WebGL compositor, pointer/gesture handling
+  app/            App shell, TopBar, BottomBar, Download menu, dialogs, toasts, shortcuts
+  state/          Zustand store (tool, modes, slider values, remembered settings, notices)
+  editor/         The open image, its mask and undo history; history memory budget
+  canvas/         Viewer (zoom/pan, gestures), WebGL compositor, checkerboard
+  ml/             AI worker (Transformers.js: Auto and Select models), its client,
+                  download status, and the e2e stand-in worker
+  cv/             Image worker: Magic Wand, Color, Edges and export encoding
   tools/
-    auto/         worker + model wrapper
-    select/       SAM worker (encoder/decoder), tap + loop prompts, GrabCut fallback
-    wand/         contiguous Lab flood fill
-    color/        Lab colour distance, wand flood fill, global colour key, tap + re-tune
-    brush/        stroke rasterising + edge-aware refine
-  mask/           Mask model, Keep/Remove combine, undo diffs, box filter
-  session/        IndexedDB auto-save / restore
+    controller.ts Starts AI work at the right moments (Auto on open, Select's encoding)
+    cutout.ts     Applies an outline the way Select and Lasso do
+    auto/         Auto: runs the background model
+    select/       Select: tap prompts, and loops turned into points
+    color/        Lab colour distance, Magic Wand flood fill, global colour key, hover preview
+    lasso/        Magnetic (intelligent scissors) and Polygon lasso
+    brush/        stroke rasterising, edge snapping, Hair refine
+    shape/        boxes and ellipses
+    edges/        Edges panel: live re-runs, one undo step per opening
+  mask/           Mask model, Keep/Remove combine, undo diffs, filters, resampling,
+                  edge snapping, whole-mask edge adjustments
+  session/        Opening images, IndexedDB auto-save / restore
   export/         PNG/WebP/JPG encoders, trim, edge colour cleanup
   i18n/           react-i18next setup, locale detection, RTL
   locales/        *.json
-public/           icons, manifest
+public/           icons, _headers, service worker add-ons (isolation, cleanup)
+e2e/              Playwright browser tests
+golden/           golden-image tests
+scripts/          icon and golden-image generators
 ```
 
 ## 9. Milestones
@@ -216,7 +228,7 @@ public/           icons, manifest
    - Deploy steps are in the README; the actual deploy is left to the owner.
    - Still open: native-speaker review of the translations, and testing on real phones and other GPUs.
 5. **Testing throughout:**
-   - Vitest unit tests for the mask maths: Keep/Remove combine, recovery after removal, undo diffs, flood fill, colour key, export.
+   - ✅ Vitest unit tests for the mask maths: Keep/Remove combine, recovery after removal, undo diffs, flood fill, colour key, export.
    - ✅ Playwright smoke tests (`npm run test:e2e`) on Desktop Chrome and a Pixel 7 profile, using real touch taps on the phone. They cover the start screen, language and RTL, About, opening an image, Magic Wand, Color with Keep/Remove, brush, undo/redo, restoring after a reload, and the message when saving fails. Each checks the downloaded PNG's actual transparency. The AI tools are covered too, against a stand-in AI worker swapped in by the `e2e` build mode: it speaks the same protocol, simulates downloads (with progress, caching and cancelling) and returns colour-based masks. The tests cover the download dialog (Download, and Not now for Auto and Select), progress and Cancel, Auto running by itself once downloaded, a restored session not being overwritten, a failing model's message, and Select taps and loops. Each was checked to fail when the behaviour it guards is broken. The real models are still only tried by hand.
    - ✅ Golden images (`golden/*.png`): Magic Wand, Color on a green screen, and an edge-snapping brush stroke, each run on fixed photo-like scenes. They're compared on every `npm test` and are viewable as a visual record; regenerate with `npm run golden:update`. They exposed a green fringe left by colour selections, now fixed by anti-aliasing colour selections against the image.
 
@@ -250,11 +262,11 @@ The site is free, with optional donations. Accepting donations can count as comm
 |---|---|---|
 | BiRefNet-lite (Auto, capable GPUs) | MIT | ✅ Use |
 | IS-Net general-use (Auto, everywhere else) | Apache-2.0 weights (DIS); ONNX build tagged MIT | ✅ Use |
-| MODNet (portrait option) | Apache-2.0 | ✅ Optional |
+| MODNet (portrait option) | Apache-2.0 | ✅ Allowed; not added |
 | SlimSAM-77 (Select) | Apache-2.0 | ✅ Use |
 | Transformers.js, ONNX Runtime Web | Apache-2.0 / MIT | ✅ Use |
 | React, Zustand, react-i18next, Vite | MIT | ✅ Use |
-| heic2any | MIT | ✅ Use |
+| heic2any | MIT, but bundles libheif (LGPL-3.0) | ⏸ Not added: needs a licensing decision first (section 7) |
 | RMBG-1.4 / 2.0 (BRIA) | Non-commercial (CC BY-NC / BRIA licence) | ❌ Excluded |
 | @imgly/background-removal | AGPL-3.0 | ❌ Excluded (copyleft; conflicts with Apache-2.0) |
 
@@ -265,7 +277,7 @@ Rules going forward:
 ## 12. Decisions log
 
 - **Framework:** React 19 + Vite + TypeScript.
-- **Tools:** Auto, Select (tap + draw-around merged), Magic Wand, Color, plus the brush.
+- **Tools:** Auto, Select (tap + draw-around merged), Magic Wand, Color, plus the brush. Later added: Lasso (Magnetic and Polygon), Shape, the brush's Hair mode, and the Edges panel.
 - **Editing:** non-destructive hidden mask. Everything is recoverable and the user never manages a mask directly.
 - **Licensing:** permissive licences only (MIT / Apache-2.0 / BSD).
 - **Donations:** custom in-app donate dialog with Stripe Payment Links behind it, and no backend at launch.
