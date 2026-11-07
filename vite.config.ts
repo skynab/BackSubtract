@@ -46,6 +46,28 @@ function fakeAiWorker(): Plugin {
   };
 }
 
+/**
+ * Keeps the 27 MB ONNX Runtime WebAssembly out of the build. onnxruntime-web refers to
+ * it with `new URL('ort-wasm-simd-threaded….wasm', import.meta.url)` as a fallback, so
+ * Vite would copy it into assets/, but Transformers.js always points the runtime at
+ * jsDelivr instead (env.backends.onnx.wasm.wasmPaths), which sends it compressed (about
+ * 4.7 MB). Unused, the file only made deploys bigger and ruled out hosts with a 25 MiB
+ * per-file limit. Changing `import.meta.url` to `'' + import.meta.url` keeps the fallback
+ * working code but stops Vite from treating it as an asset.
+ */
+function skipLocalOrtWasm(): Plugin {
+  const reference = /new URL\(("ort-wasm-simd-threaded[\w.]*\.wasm"),\s*import\.meta\.url\)/g;
+  return {
+    name: 'skip-local-ort-wasm',
+    enforce: 'pre',
+    transform(code, id) {
+      if (!id.replace(/\\/g, '/').includes('/onnxruntime-web/')) return;
+      const out = code.replace(reference, 'new URL($1, "" + import.meta.url)');
+      return out === code ? undefined : { code: out, map: null };
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const base = mode === PAGES ? pagesBase() : '/';
   return {
@@ -54,7 +76,7 @@ export default defineConfig(({ mode }) => {
   plugins: [
     react(),
     // Installable and usable offline: the app itself is cached on first visit.
-    // The AI models are cached separately by Transformers.js when first used.
+    // The AI models and their runtime are cached separately by Transformers.js when first used.
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
@@ -74,24 +96,17 @@ export default defineConfig(({ mode }) => {
         ],
       },
       workbox: {
-        // Adds the cross-origin isolation headers where the host can't (GitHub Pages).
-        importScripts: ['sw-isolation.js'],
+        // Adds the cross-origin isolation headers where the host can't (GitHub Pages), and
+        // deletes caches earlier versions left behind.
+        importScripts: ['sw-isolation.js', 'sw-cleanup.js'],
         globPatterns: ['**/*.{js,css,html,svg,png}'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
-        // The ~27 MB AI runtime is cached the first time an AI tool is used, not on install.
-        runtimeCaching: [
-          {
-            urlPattern: ({ url }) => url.pathname.endsWith('.wasm') || url.pathname.endsWith('.mjs'),
-            handler: 'CacheFirst',
-            options: { cacheName: 'ai-runtime', expiration: { maxEntries: 8 } },
-          },
-        ],
       },
     }),
   ],
   server: { headers: isolation },
   preview: { headers: mode === PAGES ? {} : isolation },
-  worker: { format: 'es', plugins: () => (mode === E2E ? [fakeAiWorker()] : []) },
+  worker: { format: 'es', plugins: () => (mode === E2E ? [fakeAiWorker()] : [skipLocalOrtWasm()]) },
   // Pre-bundle the AI library at startup, so the dev page doesn't reload the first time a model is used.
   optimizeDeps: { include: ['@huggingface/transformers'] },
   test: {
