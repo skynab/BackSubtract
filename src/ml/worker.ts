@@ -104,28 +104,60 @@ function files(model: ModelName, s: Setup): ModelFiles {
  * about 4.7 MB over the network, 27 MB unpacked.
  */
 const RUNTIME_BYTES = 4_704_500;
+/** Its unpacked size: reading it yields unpacked bytes, which this turns into download progress. */
+const RUNTIME_UNPACKED_BYTES = 26_861_777;
 
 function runtimeUrl(): string | undefined {
   const paths = env.backends.onnx.wasm?.wasmPaths;
   return typeof paths === 'object' && paths.wasm ? String(paths.wasm) : undefined;
 }
 
+async function isRuntimeCached(): Promise<boolean> {
+  try {
+    const runtime = runtimeUrl();
+    return !!runtime && !!(await (await caches.open(env.cacheKey)).match(runtime));
+  } catch {
+    return false;
+  }
+}
+
+/** While a model loads with the runtime still to download: told how much of RUNTIME_BYTES has arrived. */
+let onRuntimeProgress: ((loaded: number) => void) | null = null;
+
+// Transformers.js downloads the runtime with env.fetch (and gives no progress for it), so count it here.
+const defaultFetch = env.fetch;
+env.fetch = async (input, init) => {
+  const response: globalThis.Response = await defaultFetch(input, init);
+  const report = onRuntimeProgress;
+  if (!report || String(input) !== runtimeUrl() || !response.ok || !response.body) return response;
+  let read = 0;
+  const counted = response.body.pipeThrough(
+    new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        read += chunk.byteLength;
+        report(Math.min(read / RUNTIME_UNPACKED_BYTES, 1) * RUNTIME_BYTES);
+        controller.enqueue(chunk);
+      },
+      flush: () => report(RUNTIME_BYTES),
+    }),
+  );
+  return new globalThis.Response(counted, { status: response.status, statusText: response.statusText, headers: response.headers });
+};
+
 async function info(model: ModelName, avoidBirefnet?: boolean): Promise<ModelInfo> {
   if (avoidBirefnet) birefnetFailed = true;
   const s = await setup();
   const f = files(model, s);
   let cached = false;
-  let runtimeCached = false;
   try {
     const cache = await caches.open(env.cacheKey);
     const hits = await Promise.all(f.paths.map((p) => cache.match(`${env.remoteHost}${f.id}/resolve/main/${p}`)));
     cached = hits.every(Boolean);
-    const runtime = runtimeUrl();
-    runtimeCached = !!runtime && !!(await cache.match(runtime));
   } catch {
     // No Cache API (e.g. some private modes): treat as not downloaded.
   }
-  return { device: s.device, bytes: f.bytes + (runtimeCached ? 0 : RUNTIME_BYTES), cached };
+  const runtimeBytes = (await isRuntimeCached()) ? 0 : RUNTIME_BYTES;
+  return { device: s.device, bytes: f.bytes + runtimeBytes, cached };
 }
 
 function post(message: Response, transfer: Transferable[] = []) {
@@ -133,13 +165,25 @@ function post(message: Response, transfer: Transferable[] = []) {
 }
 
 /**
- * Download progress against the size of the files this device uses. Transformers.js's
- * own total can count files it never fetches (Select's other vision encoder).
+ * Download progress for a model and, the first time, the runtime, measured against the
+ * size of the files this device uses. Transformers.js's own total can count files it
+ * never fetches (Select's other vision encoder), and leaves out the runtime.
  */
-function progressFor(model: ModelName, total: number) {
+async function trackProgress(model: ModelName, f: ModelFiles) {
+  const total = f.bytes + ((await isRuntimeCached()) ? 0 : RUNTIME_BYTES);
+  let modelLoaded = 0;
+  let runtimeLoaded = 0;
+  const report = () => post({ type: 'progress', model, loaded: Math.min(modelLoaded + runtimeLoaded, total), total });
+  if (total > f.bytes) {
+    onRuntimeProgress = (n) => {
+      runtimeLoaded = n;
+      report();
+    };
+  }
   return (p: { status: string; loaded?: number; total?: number }) => {
     if (p.status === 'progress_total' && p.total) {
-      post({ type: 'progress', model, loaded: Math.min(p.loaded ?? 0, total), total });
+      modelLoaded = Math.min(p.loaded ?? 0, f.bytes);
+      report();
     }
   };
 }
@@ -150,13 +194,17 @@ function load(name: ModelName, f: ModelFiles) {
   let p = loaded.get(f.id);
   if (!p) {
     p = (async () => {
-      const options = { dtype: f.dtype, device: f.device, progress_callback: progressFor(name, f.bytes) } as never;
+      const options = { dtype: f.dtype, device: f.device, progress_callback: await trackProgress(name, f) } as never;
       const Model = name === 'auto' ? AutoModel : SamModel;
-      const [model, processor] = await Promise.all([
-        Model.from_pretrained(f.id, options),
-        AutoProcessor.from_pretrained(f.id),
-      ]);
-      return { model, processor };
+      try {
+        const [model, processor] = await Promise.all([
+          Model.from_pretrained(f.id, options),
+          AutoProcessor.from_pretrained(f.id),
+        ]);
+        return { model, processor };
+      } finally {
+        onRuntimeProgress = null;
+      }
     })();
     // If loading fails (e.g. offline), allow a retry next time.
     p.catch(() => loaded.delete(f.id));
