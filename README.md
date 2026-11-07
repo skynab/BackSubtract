@@ -33,7 +33,7 @@ The site is static: deploy the `dist/` folder.
 
 ### GitHub Pages (for testing)
 
-`.github/workflows/pages.yml` publishes the site to `https://<user>.github.io/<repo>/` on every push to `dev`, or by hand from the Actions tab. It runs the unit tests first, then `npm run build:pages`.
+`.github/workflows/pages.yml` publishes the site to `https://<user>.github.io/<repo>/` on every push to `dev`, or by hand from the Actions tab. It runs the unit tests and `npm run build:pages`, and alongside them the browser tests (`npm run test:e2e`, in Chromium on Linux). The site is deployed only if all of them pass. On CI a failed browser test gets one retry (reported as flaky if it then passes), and the traces of failed tests are attached to the run as `e2e-results`.
 
 - **One-time setup:** in the repository's Settings → Pages → Build and deployment, set Source to **GitHub Actions**.
 - **Subfolder:** Pages serves the site from `/<repo>/`, so that build sets Vite's `base` from `PAGES_BASE` (the workflow fills in the repository name; `/BackSubtract/` locally) and goes to `dist-pages/`. `npm run build` and `dist/` are unaffected.

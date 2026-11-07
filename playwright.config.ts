@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = 4174;
+/** Set by GitHub Actions (.github/workflows/pages.yml). */
+const CI = !!process.env.CI;
 
 /**
  * Browser tests against a production build (`npm run test:e2e`). It is built in
@@ -12,7 +14,11 @@ export default defineConfig({
   testDir: 'e2e',
   timeout: 30_000,
   fullyParallel: true,
-  reporter: [['list']],
+  // On CI: a stray test.only fails the run instead of skipping the rest, a failed test
+  // gets one more try (shown as flaky if it then passes), and failures are annotated.
+  forbidOnly: CI,
+  retries: CI ? 1 : 0,
+  reporter: CI ? [['list'], ['github']] : [['list']],
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: 'retain-on-failure',
