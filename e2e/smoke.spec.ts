@@ -19,9 +19,13 @@ test('every language fits a small phone: nothing off screen, no tool label spill
   test.skip(test.info().project.name !== 'mobile', 'A phone layout check');
   await page.setViewportSize({ width: 375, height: 740 });
   await openTestImage(page);
+  // The e2e build has a placeholder donate link (.env.e2e), so the top bar is as full as on a real site.
+  await expect(page.getByRole('button', { name: 'Donate' })).toBeVisible();
   const codes = await page.getByRole('combobox').locator('option').evaluateAll((os) => os.map((o) => (o as HTMLOptionElement).value));
   expect(codes.length).toBeGreaterThanOrEqual(14);
-  for (const code of codes) {
+  // A typical phone, and the smallest ones (iPhone SE 1st gen and similar).
+  for (const width of [375, 320]) for (const code of codes) {
+    await page.setViewportSize({ width, height: 740 });
     await page.getByRole('combobox').selectOption(code);
     await expect(page.locator('html')).toHaveAttribute('lang', code);
     const problems = await page.evaluate(() => {
@@ -41,7 +45,7 @@ test('every language fits a small phone: nothing off screen, no tool label spill
       if (document.documentElement.scrollWidth > vw) out.push('page scrolls sideways');
       return [...new Set(out)];
     });
-    expect(problems, code).toEqual([]);
+    expect(problems, `${code} at ${width} px`).toEqual([]);
   }
 });
 

@@ -889,6 +889,22 @@ button:disabled {
   }
 }
 
+@media (max-width: 360px) {
+  /*
+   * The name, the language picker and the Donate heart don't all fit on the smallest
+   * phones ("Bahasa Indonesia" is the longest language name), so the logo stands alone.
+   * The name stays for screen readers, as the button's label.
+   */
+  .brand span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 /* Select loop */
 
 .lasso {
