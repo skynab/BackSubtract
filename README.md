@@ -1,7 +1,7 @@
 # BackSubtract
 A website dedicated to just providing a few quick ways to subtract a background from an image.
 
-Everything runs in the browser — images never leave the device. See [PLAN.md](PLAN.md) for the full design.
+Everything runs in the browser — images never leave the device. See [PLAN.md](PLAN.md) for the full design, and [ISSUES.md](ISSUES.md) for known problems still to fix.
 
 ## Development
 
