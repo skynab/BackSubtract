@@ -115,6 +115,9 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 6px;
+  /* With .topbar-end's, lets the picker shrink and cut its text short where the row is
+     too tight (a long language name in a wide font), rather than push off the screen. */
+  min-width: 0;
   color: var(--muted);
 }
 
@@ -504,6 +507,9 @@ button:disabled {
   display: flex;
   align-items: flex-start;
   gap: 6px;
+  /* Never wider than the image area: where even the narrow-screen sizing below isn't
+     enough (long labels in a wide font), the labels are cut short instead. */
+  max-width: calc(100% - 20px);
 }
 
 .view-switch,
@@ -514,10 +520,26 @@ button:disabled {
   backdrop-filter: blur(6px);
 }
 
+.view-switch {
+  min-width: 0;
+}
+
 .view-switch button {
+  display: block;
+  min-width: 0;
   min-height: 30px;
   padding: 0 10px;
+  overflow: hidden;
   font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 360px) {
+  .view-switch button {
+    padding: 0 6px;
+    font-size: 12px;
+  }
 }
 
 /* Checkerboard contrast and motion */
@@ -1045,6 +1067,7 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .donate-button {

@@ -23,7 +23,11 @@ test('every language fits a small phone: nothing off screen, no tool label spill
   await expect(page.getByRole('button', { name: 'Donate' })).toBeVisible();
   const codes = await page.getByRole('combobox').locator('option').evaluateAll((os) => os.map((o) => (o as HTMLOptionElement).value));
   expect(codes.length).toBeGreaterThanOrEqual(14);
-  // A typical phone, and the smallest ones (iPhone SE 1st gen and similar).
+  // A typical phone, and the smallest ones (iPhone SE 1st gen and similar). Then all again
+  // in a wide font: the same words come out wider on Linux (DejaVu Sans) than in Segoe UI,
+  // Roboto or San Francisco, so a layout that only just fits on one machine fails on CI.
+  for (const font of ['', 'Verdana, "DejaVu Sans", sans-serif']) {
+  if (font) await page.addStyleTag({ content: `* { font-family: ${font} !important; }` });
   for (const width of [375, 320]) for (const code of codes) {
     await page.setViewportSize({ width, height: 740 });
     await page.getByRole('combobox').selectOption(code);
@@ -45,7 +49,8 @@ test('every language fits a small phone: nothing off screen, no tool label spill
       if (document.documentElement.scrollWidth > vw) out.push('page scrolls sideways');
       return [...new Set(out)];
     });
-    expect(problems, `${code} at ${width} px`).toEqual([]);
+    expect(problems, `${code} at ${width} px${font ? ' in a wide font' : ''}`).toEqual([]);
+  }
   }
 });
 
