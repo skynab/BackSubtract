@@ -16,10 +16,12 @@ permissions:
   pages: write
   id-token: write
 
-# One deployment at a time; a newer push replaces one still waiting.
+# One run at a time; a newer push replaces one still waiting. A run in progress is never
+# cancelled (as in GitHub's own Pages workflow): a deployment cut off halfway can stay
+# "in progress" on GitHub's side and make the next one fail.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
