@@ -13,10 +13,11 @@ npm run dev      # start the dev server at http://localhost:5173
 npm test         # unit tests + golden-image comparisons
 npm run golden:update  # regenerate golden/*.png after an intended change (look at them first!)
 npm run test:e2e # browser tests (desktop + phone), against a fresh test build
+npm run test:e2e:browsers  # the same tests in Firefox and WebKit (best on Linux or macOS)
 npm run build    # type-check and build to dist/
 ```
 
-The first time, install the browser for the e2e tests with `npx playwright install chromium`. The e2e tests build in `e2e` mode (into `dist-e2e/`, so `dist/` is never touched): the real app, except that the AI worker is a stand-in (`src/ml/fake-worker.ts`) that simulates the model downloads and returns simple colour-based results. That covers everything around the AI tools without downloading over 100 MB of models on every run; the real models still need trying by hand.
+The first time, install the browser for the e2e tests with `npx playwright install chromium` (and `npx playwright install firefox webkit` for `test:e2e:browsers`). Run Firefox and WebKit on Linux or macOS, or leave them to CI: Playwright's Windows build of WebKit has no `OffscreenCanvas`, which the app needs and Safari has had since 16.4, so nearly every test fails there for a reason Safari users never meet. The e2e tests build in `e2e` mode (into `dist-e2e/`, so `dist/` is never touched): the real app, except that the AI worker is a stand-in (`src/ml/fake-worker.ts`) that simulates the model downloads and returns simple colour-based results. That covers everything around the AI tools without downloading over 100 MB of models on every run; the real models still need trying by hand.
 
 `npm run preview` serves the production build (with the offline service worker) at http://localhost:4173.
 
@@ -33,7 +34,7 @@ The site is static: deploy the `dist/` folder.
 
 ### GitHub Pages (for testing)
 
-`.github/workflows/pages.yml` publishes the site to `https://<user>.github.io/<repo>/` on every push to `dev`, or by hand from the Actions tab. It runs the unit tests and `npm run build:pages`, and alongside them the browser tests (`npm run test:e2e`, in Chromium on Linux). The site is deployed only if all of them pass. On CI a failed browser test gets one retry (reported as flaky if it then passes), and the traces of failed tests are attached to the run as `e2e-results`.
+`.github/workflows/pages.yml` publishes the site to `https://<user>.github.io/<repo>/` on every push to `dev`, or by hand from the Actions tab. It runs the unit tests and `npm run build:pages`, and alongside them the browser tests (`npm run test:e2e`, in Chromium on Linux). The site is deployed only if all of them pass. On CI a failed browser test gets one retry (reported as flaky if it then passes), and the traces of failed tests are attached to the run as `e2e-results`. A third job runs the same tests in Firefox and WebKit (`npm run test:e2e:browsers`). It doesn't hold up the deploy yet: its failures show on that job (with traces as `e2e-browsers-results`), but the run still passes.
 
 - **One-time setup:** in the repository's Settings → Pages → Build and deployment, set Source to **GitHub Actions**.
 - **Subfolder:** Pages serves the site from `/<repo>/`, so that build sets Vite's `base` from `PAGES_BASE` (the workflow fills in the repository name; `/BackSubtract/` locally) and goes to `dist-pages/`. `npm run build` and `dist/` are unaffected.

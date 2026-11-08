@@ -12,7 +12,8 @@
     "preview:pages": "vite preview --mode pages",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --project=desktop --project=mobile",
+    "test:e2e:browsers": "playwright test --project=firefox --project=webkit",
     "golden:update": "node scripts/update-golden.mjs"
   },
   "dependencies": {

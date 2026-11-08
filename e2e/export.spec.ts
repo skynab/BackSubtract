@@ -153,7 +153,8 @@ test('Mask downloads a black-and-white image of what is kept', async ({ page }) 
   expect(pixels[1]).toEqual([0, 0, 0, 255]);
 });
 
-test('Copy puts the transparent PNG on the clipboard', async ({ page, context }) => {
+test('Copy puts the transparent PNG on the clipboard', async ({ page, context, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Only Chromium lets Playwright grant clipboard access');
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await openTestImage(page);
   await removeBackground(page);
