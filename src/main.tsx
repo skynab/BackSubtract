@@ -4,7 +4,8 @@ import { App } from './app/App';
 import './app/app.css';
 import { editor } from './editor/editor';
 import { initI18n } from './i18n';
-import { startAutosave } from './session/autosave';
+import { startBackdrop } from './canvas/backdrop';
+import { loadBackgroundImage, startAutosave } from './session/autosave';
 import { restoreSession } from './session/openImage';
 import { useUI } from './state/store';
 import './tools/controller';
@@ -24,8 +25,16 @@ function thankSupporter() {
   useUI.setState({ notice: { key: 'donate.thanks', tone: 'info' } });
 }
 
+/** Bring back the photo picked as the Image background; without it, Image falls back to no background. */
+async function restoreBackgroundImage() {
+  const image = await loadBackgroundImage();
+  if (image) useUI.setState({ bgImage: image });
+  else if (useUI.getState().background === 'image') useUI.setState({ background: 'none' });
+}
+
 async function start() {
-  await Promise.all([initI18n(), restoreSession()]);
+  await Promise.all([initI18n(), restoreSession(), restoreBackgroundImage()]);
+  startBackdrop();
   // Start saving only after restoring, so the restore itself isn't saved straight back.
   startAutosave();
   thankSupporter();

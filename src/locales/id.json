@@ -72,13 +72,21 @@
       "mask": "Masker"
     },
     "hints": {
-      "png": "Latar transparan",
-      "webp": "Transparan, file lebih kecil",
-      "jpg": "Latar warna polos",
+      "png": "Tetap transparan",
+      "webp": "Tetap transparan, file lebih kecil",
+      "jpg": "Tanpa transparansi, bisa dibuka di mana saja",
       "mask": "Hitam putih, untuk editor lain"
     },
     "background": "Latar",
+    "backgrounds": {
+      "none": "Tanpa",
+      "color": "Warna",
+      "blur": "Buram",
+      "image": "Gambar"
+    },
     "customColor": "Warna khusus",
+    "blurStrength": "Kekuatan",
+    "changeImage": "Ganti gambar",
     "trim": "Potong sesuai objek",
     "colors": {
       "white": "Putih",

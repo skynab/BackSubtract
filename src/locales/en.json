@@ -72,13 +72,21 @@
       "mask": "Mask"
     },
     "hints": {
-      "png": "Transparent background",
-      "webp": "Transparent, smaller file",
-      "jpg": "Solid background color",
+      "png": "Keeps transparency",
+      "webp": "Keeps transparency, smaller file",
+      "jpg": "No transparency, works everywhere",
       "mask": "Black and white, for other editors"
     },
     "background": "Background",
+    "backgrounds": {
+      "none": "None",
+      "color": "Color",
+      "blur": "Blur",
+      "image": "Image"
+    },
     "customColor": "Custom color",
+    "blurStrength": "Strength",
+    "changeImage": "Change image",
     "trim": "Crop to subject",
     "colors": {
       "white": "White",

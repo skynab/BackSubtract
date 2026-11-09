@@ -72,13 +72,21 @@
       "mask": "마스크"
     },
     "hints": {
-      "png": "투명 배경",
-      "webp": "투명, 더 작은 파일",
-      "jpg": "단색 배경",
+      "png": "투명도 유지",
+      "webp": "투명도 유지, 더 작은 파일",
+      "jpg": "투명도 없음, 어디서나 사용 가능",
       "mask": "흑백, 다른 편집기용"
     },
     "background": "배경",
+    "backgrounds": {
+      "none": "없음",
+      "color": "색상",
+      "blur": "흐림",
+      "image": "이미지"
+    },
     "customColor": "사용자 지정 색상",
+    "blurStrength": "강도",
+    "changeImage": "이미지 변경",
     "trim": "피사체에 맞춰 자르기",
     "colors": {
       "white": "흰색",

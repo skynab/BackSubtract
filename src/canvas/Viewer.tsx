@@ -13,6 +13,7 @@ import { PolygonTrace } from '../tools/lasso/polygon';
 import { applyShape } from '../tools/shape/apply';
 import { dragBox } from '../tools/shape/shape';
 import { selectAt, selectLoop } from '../tools/select/select';
+import { onBackdrop, type Backdrop } from './backdrop';
 import { CHECKER_SPEED, checkerColors } from './checker';
 import { cssColor, Renderer } from './renderer';
 import { clamp, fitView, MAX_SCALE, minScale, toImage, zoomAt, type Point, type View } from './view';
@@ -96,6 +97,9 @@ export function Viewer() {
     let polygon: PolygonTrace | null = null;
     let pendingMask: Rect | null = null;
     let preview: Preview | null = null;
+    /** While the Download menu is open: the download's background and frame. */
+    let backdrop: Backdrop | null = null;
+    let backdropUploaded = 0;
     let frame = 0;
     let gesture: Gesture = { kind: 'none' };
     const pointers = new Map<number, Point>();
@@ -119,8 +123,9 @@ export function Viewer() {
       if (pendingMask && editor.mask) renderer.updateMask(editor.mask, pendingMask);
       pendingMask = null;
       const ui = useUI.getState();
-      const ghost = ui.viewMode === 'overlay' ? OVERLAY : selectMode(ui) === 'keep' ? GHOST : 0;
-      const original = comparing || ui.viewMode === 'original' ? 1 : 0;
+      // Showing the download: the result as it will be, so no ghost and not the original (unless held to compare).
+      const ghost = backdrop ? 0 : ui.viewMode === 'overlay' ? OVERLAY : selectMode(ui) === 'keep' ? GHOST : 0;
+      const original = comparing || (!backdrop && ui.viewMode === 'original') ? 1 : 0;
       if (gesture.kind === 'trace') followTrace(gesture);
       drawPolygon();
       drawLinePreview();
@@ -132,9 +137,13 @@ export function Viewer() {
       renderer.render({
         view, width: size.w, height: size.h, dpr: size.dpr, ghost, original, preview: shownPreview,
         background: colors.background, checkerA, checkerB, checkerOffset: [slid, slid],
+        frame: backdrop?.frame,
+        fill: !backdrop || backdrop.fill.kind === 'checker' ? undefined
+          : backdrop.fill.kind === 'color' ? backdrop.fill
+          : { kind: 'texture', rect: backdrop.fill.rect },
       });
       // Keep drawing while it moves (the browser pauses this in hidden tabs).
-      if (ui.checkerMotion && editor.image) requestRender();
+      if (ui.checkerMotion && editor.image && (!backdrop || backdrop.fill.kind === 'checker')) requestRender();
     }
 
     function fit() {
@@ -605,6 +614,14 @@ export function Viewer() {
         updateCursor(hover.e, hover.p);
       }
     });
+    const stopBackdrop = onBackdrop((next) => {
+      backdrop = next;
+      if (next?.fill.kind === 'texture' && next.fill.id !== backdropUploaded) {
+        renderer.setBackdrop(next.fill.source);
+        backdropUploaded = next.fill.id;
+      }
+      requestRender();
+    });
     const stopPreview = onPreview((next) => {
       preview = next;
       if (next && editor.image) renderer.setPreview(next.selection.data, editor.image.width, editor.image.height);
@@ -645,6 +662,7 @@ export function Viewer() {
       dark.removeEventListener('change', onTheme);
       stopEditor();
       stopUI();
+      stopBackdrop();
       stopPreview();
       clearPreview();
       canvas.removeEventListener('pointerdown', onPointerDown);

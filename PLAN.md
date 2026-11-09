@@ -143,13 +143,18 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - **Empty state:** the whole canvas is a drop zone, with paste (Ctrl+V) and a single "Choose image" button. On mobile, the button also offers the camera.
 - **After opening an image**, the bottom bar appears. The context row shows only what the selected tool needs: for Auto, its Remove background / Run again button; for the others, the Keep/Remove toggle, plus the tool's slider (tolerance, or brush size and hardness) and its switch (Magnetic | Polygon, Paint | Hair, Box | Ellipse). Hair needs neither Keep/Remove nor hardness, so it hides them. The actions row holds Open another image, Edges, Undo / Redo and Download.
 - **Download** is one button. Its small ▾ chooses the format (remembered between visits):
-  - **PNG** (default, transparent)
-  - **WebP** (transparent, smaller)
-  - **JPG** with a background colour picker (the white default covers e-commerce photos)
+  - **PNG** (default; keeps transparency)
+  - **WebP** (keeps transparency, smaller)
+  - **JPG** (no transparency, opens everywhere)
   - **Mask**: the hidden mask itself as a black-and-white PNG, for finishing in another editor
-  - **Trim to subject** (crop to the visible area's bounding box) as a checkbox in the same menu, with a **margin** slider (0–30% of the subject's longer side) and a **shape**: Fit, 1:1, 4:5 or 16:9. The frame grows around the subject and may reach past the image's edges; that part is transparent (or the JPG colour).
+  - **Background**, for every format but Mask, remembered between visits: **None** (transparent; not offered for JPG, which gets the colour instead), **Colour** (white, black or any colour; white covers e-commerce photos), **Blur** and **Image**.
+    - **Blur** is the photo's own background, blurred like a phone's portrait mode, with a strength slider (a radius of up to 5% of the photo's longer side). Blurring the whole photo would smear the subject's colours into a halo, so only removed pixels feed it: it is weighted by the mask (blur of image × removed, divided by blur of removed). Soft edge pixels (mask 32 and above) hold some of the subject and are left out. Where the blur finds no background, such as behind a large subject, the colour fills in from the background around it through a pyramid of coarser levels ("push-pull"). This works because nothing is ever deleted. A blur has no fine detail, so it runs on cells of about 1/8 of the radius and is scaled up, which keeps it quick on large photos. If nothing has been removed, the whole photo is blurred.
+    - **Image** is a photo picked from the device, scaled to cover the frame and centred. It is kept in IndexedDB under its own key, so it stays when another image is opened and is there next visit.
+    - Edge colour cleanup runs first, so soft edges lose the old backdrop's fringe before they meet the new background.
+    - While the menu is open, the canvas shows the download as it will be: the chosen background in place of the checkerboard, and with Trim, the frame (reaching past the image's edges where it does). Removed areas are not ghosted meanwhile. Closing the menu brings the checkerboard back, since it is better for spotting missed bits. The four choices may wrap onto two lines in languages with long words.
+  - **Trim to subject** (crop to the visible area's bounding box) as a checkbox in the same menu, with a **margin** slider (0–30% of the subject's longer side) and a **shape**: Fit, 1:1, 4:5 or 16:9. The frame grows around the subject and may reach past the image's edges; that part is transparent, or gets the background (Blur extends its edge pixels outward).
   - **Full size**: a photo scaled down to 4096 px on opening still exports at its original size. The original file is decoded again in the image worker, the mask is scaled up, and its hard edges snap to the full-size photo (soft brush edges are wider than the snap radius and stay soft). If the browser can't hold the full size (e.g. iOS canvas limits), the export falls back to the edited size. A checkbox turns this off.
-  - **Copy** (PNG to the clipboard; JPG keeps its background colour) and **Share** (the system share sheet, where it takes files) sit at the bottom of the menu.
+  - **Copy** (PNG to the clipboard, with the chosen background) and **Share** (the system share sheet, where it takes files) sit at the bottom of the menu.
 - **Gestures:** pinch or wheel to zoom, two-finger drag or space-drag to pan, and press-and-hold to compare with the original. None of these needs a button.
 - **Edges** sits with the actions (next to Undo): see section 4.
 - **Background**: a small checkerboard button beside the Result / Overlay / Original switch opens two settings for spotting missed bits, both remembered. **Contrast** runs from one even colour, through the theme's own subtle checkerboard (the default), to black and white. **Move the background** slides the checkerboard slowly (24 px/s), so leftover opaque bits stand still against the motion. It slides rather than flashes, to stay comfortable for people sensitive to flicker, and only redraws while it is on.
@@ -164,7 +169,7 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - Strings live in `src/locales/<code>.json` and load through react-i18next. Each language loads only when chosen. Few strings are needed, since the UI is mostly icons with tooltips and accessible labels.
 - **RTL support:** the app sets `dir="rtl"` for Arabic and Hebrew and uses CSS logical properties throughout.
 - Launch set (suggested): en, es, fr, de, pt, zh-CN, ja, ar, hi.
-- Added since: ru, id, ko, bn, zh-TW, he (15 in all). Hebrew is also picked for the old code `iw`, and Indonesian for `in`, which some older Android and Java-based browsers still report. Chinese is picked by script: Traditional for zh-Hant, Taiwan, Hong Kong and Macau, Simplified otherwise. The picker lists each in its own language, next to related ones. A browser test opens an image on a 375 px and a 320 px phone in every language, in the platform's own font and again in a wide one (Verdana, or DejaVu Sans on Linux, where CI runs), and checks nothing goes off screen and no tool label spills over. On phones tool buttons are at least as wide as their longest word and share the rest equally. Where a row is still too tight, text shortens with an ellipsis rather than overflowing: a long Download label, the language picker, and the view switch's labels. At 360 px and below, the view switch also uses tighter padding and smaller text.
+- Added since: ru, id, ko, bn, zh-TW, he (15 in all). Hebrew is also picked for the old code `iw`, and Indonesian for `in`, which some older Android and Java-based browsers still report. Chinese is picked by script: Traditional for zh-Hant, Taiwan, Hong Kong and Macau, Simplified otherwise. The picker lists each in its own language, next to related ones. A browser test opens an image on a 375 px and a 320 px phone in every language, in the platform's own font and again in a wide one (Verdana, or DejaVu Sans on Linux, where CI runs), and checks nothing goes off screen, no tool label spills over, and nothing sticks out of the Download menu. On phones tool buttons are at least as wide as their longest word and share the rest equally. Where a row is still too tight, text shortens with an ellipsis rather than overflowing: a long Download label, the language picker, and the view switch's labels. At 360 px and below, the view switch also uses tighter padding and smaller text.
 
 ## 7. Performance and compatibility
 
@@ -184,7 +189,8 @@ src/
   app/            App shell, TopBar, BottomBar, Download menu, dialogs, toasts, shortcuts
   state/          Zustand store (tool, modes, slider values, remembered settings, notices)
   editor/         The open image, its mask and undo history; history memory budget
-  canvas/         Viewer (zoom/pan, gestures), WebGL compositor, checkerboard
+  canvas/         Viewer (zoom/pan, gestures), WebGL compositor, checkerboard,
+                  the download's background and frame shown while its menu is open
   ml/             AI worker (Transformers.js: Auto and Select models), its client,
                   download status, and the e2e stand-in worker
   cv/             Image worker: Magic Wand, Color, Edges and export encoding
@@ -201,7 +207,7 @@ src/
   mask/           Mask model, Keep/Remove combine, undo diffs, filters, resampling,
                   edge snapping, whole-mask edge adjustments
   session/        Opening images, IndexedDB auto-save / restore
-  export/         PNG/WebP/JPG encoders, trim, edge colour cleanup
+  export/         PNG/WebP/JPG encoders, trim, backgrounds (colour, blur, image), edge colour cleanup
   i18n/           react-i18next setup, locale detection, RTL
   locales/        *.json
 public/           icons, _headers, service worker add-ons (isolation, cleanup)
@@ -230,9 +236,11 @@ scripts/          icon and golden-image generators
    - Still open: native-speaker review of the translations, and testing on real phones and other GPUs.
 5. **Testing throughout:**
    - ✅ Vitest unit tests for the mask maths: Keep/Remove combine, recovery after removal, undo diffs, flood fill, colour key, export.
-   - ✅ Playwright smoke tests (`npm run test:e2e`) on Desktop Chrome and a Pixel 7 profile, using real touch taps on the phone. They run in the GitHub Pages workflow on every push, and the site is only deployed if they pass. The same tests also run there in Firefox and WebKit, without holding up the deploy until their failures are sorted out. They cover the start screen, language and RTL, About, opening an image, Magic Wand, Color with Keep/Remove, brush, undo/redo, restoring after a reload, and the message when saving fails. Each checks the downloaded PNG's actual transparency. The AI tools are covered too, against a stand-in AI worker swapped in by the `e2e` build mode: it speaks the same protocol, simulates downloads (with progress, caching and cancelling) and returns colour-based masks. The tests cover the download dialog (Download, and Not now for Auto and Select), progress and Cancel, Auto running by itself once downloaded, a restored session not being overwritten, a failing model's message, and Select taps and loops. Each was checked to fail when the behaviour it guards is broken. The real models are still only tried by hand.
+   - ✅ Playwright smoke tests (`npm run test:e2e`) on Desktop Chrome and a Pixel 7 profile, using real touch taps on the phone. They run in the GitHub Pages workflow on every push, and the site is only deployed if they pass. The same tests also run there in Firefox and WebKit, without holding up the deploy until their failures are sorted out. They cover the start screen, language and RTL, About, opening an image, Magic Wand, Color with Keep/Remove, brush, undo/redo, restoring after a reload, the message when saving fails, and the download backgrounds (Colour and its canvas preview, Blur with no halo of the subject's colour, Image with Trim and after a reload, and JPG without None). Each checks the downloaded PNG's actual transparency. The AI tools are covered too, against a stand-in AI worker swapped in by the `e2e` build mode: it speaks the same protocol, simulates downloads (with progress, caching and cancelling) and returns colour-based masks. The tests cover the download dialog (Download, and Not now for Auto and Select), progress and Cancel, Auto running by itself once downloaded, a restored session not being overwritten, a failing model's message, and Select taps and loops. Each was checked to fail when the behaviour it guards is broken. The real models are still only tried by hand.
    - ✅ Golden images (`golden/*.png`): Magic Wand, Color on a green screen, and an edge-snapping brush stroke, each run on fixed photo-like scenes. They're compared on every `npm test` and are viewable as a visual record; regenerate with `npm run golden:update`. They exposed a green fringe left by colour selections, now fixed by anti-aliasing colour selections against the image.
-6. **Next features** (planned, not started): background options for every format, a touch loupe, and Batch Auto. See section 13.
+6. **Next features:**
+   - ✅ Background options for every format: None, Colour, Blur and Image, previewed on the canvas while the Download menu is open (section 5).
+   - Planned, not started: a touch loupe and Batch Auto (section 13).
 
 ## 10. Donations (custom, no third-party donation platform)
 
@@ -287,14 +295,6 @@ Rules going forward:
 ## 13. Planned features
 
 Not started. Each keeps to section 1: no new buttons on the main screen, nothing destroyed, nothing uploaded.
-
-### Background options for every format
-- Today PNG and WebP come out transparent and only JPG takes a background colour. Instead, the Download menu gets one **Background** choice for every format: **None** (transparent; not offered for JPG), **Colour** (the existing picker), **Blur** and **Image**. It is remembered between visits, like the format. Mask ignores it.
-- **Blur**: the photo's own background, blurred, like a phone's portrait mode, with one strength slider. Blurring the whole original would smear the subject's colours into a halo around it, so the blur is weighted by the mask (blur of image × removed, divided by blur of removed). Only removed pixels feed it, and the area behind the subject fills in from the background around it. This is possible because nothing is ever deleted: the original background is still there.
-- **Image**: pick a photo from the device. It is scaled to cover the frame and centred, and stays on the device, saved with the session in IndexedDB.
-- Edge colour cleanup still runs first, so soft edges lose the old backdrop's fringe before they meet the new background.
-- While the Download menu is open, the canvas shows the chosen background in place of the checkerboard, so what you see is what you download. Closing the menu brings the checkerboard back, since it is better for spotting missed bits.
-- It works with Trim (the frame past the image's edges gets the colour or image; Blur extends its edge pixels outward), Full size, Copy and Share.
 
 ### Touch loupe
 - A finger hides the exact spot it is working on. While one finger is down with the brush, either lasso, the shape tool or a Select loop, a round magnifier (about 120 px) appears above the finger. It shows the image and its removed areas at twice the current zoom, with the brush ring, the lasso line or the shape's corner, and a small crosshair at the touch point.

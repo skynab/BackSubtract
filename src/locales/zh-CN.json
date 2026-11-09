@@ -72,13 +72,21 @@
       "mask": "蒙版"
     },
     "hints": {
-      "png": "透明背景",
-      "webp": "透明，文件更小",
-      "jpg": "纯色背景",
+      "png": "保留透明",
+      "webp": "保留透明，文件更小",
+      "jpg": "不透明，兼容性最好",
       "mask": "黑白图，供其他编辑器使用"
     },
     "background": "背景",
+    "backgrounds": {
+      "none": "无",
+      "color": "颜色",
+      "blur": "模糊",
+      "image": "图片"
+    },
     "customColor": "自定义颜色",
+    "blurStrength": "强度",
+    "changeImage": "更换图片",
     "trim": "裁剪到主体",
     "colors": {
       "white": "白色",

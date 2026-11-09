@@ -1,6 +1,8 @@
 import { editor } from '../editor/editor';
+import type { RgbaImage } from '../export/background';
 import type { ExportOptions } from '../export/exportImage';
 import type { EdgeAdjust } from '../mask/adjust';
+import type { Rect } from '../mask/mask';
 import type { CvRequest, CvResponse, PickRequest, SelectionResult } from './protocol';
 
 type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never;
@@ -64,6 +66,13 @@ export async function adjustInWorker(base: Uint8Array, adjust: EdgeAdjust, key: 
   const copy = base.slice();
   const result = await call<{ data: Uint8Array }>({ type: 'edges', mask: copy, adjust, key }, [copy.buffer]);
   return result.data;
+}
+
+/** The Blur background over `frame` (image px), as a small image to scale up to it. */
+export function blurInWorker(mask: Uint8Array, strength: number, frame: Rect): Promise<RgbaImage> {
+  ensureImage();
+  const copy = mask.slice();
+  return call({ type: 'blur', mask: copy, strength, frame }, [copy.buffer]);
 }
 
 /** Export the image; passing the original file exports at its full size. */

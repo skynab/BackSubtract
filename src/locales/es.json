@@ -72,13 +72,21 @@
       "mask": "Máscara"
     },
     "hints": {
-      "png": "Fondo transparente",
-      "webp": "Transparente, archivo más pequeño",
-      "jpg": "Color de fondo sólido",
+      "png": "Conserva la transparencia",
+      "webp": "Conserva la transparencia, archivo más pequeño",
+      "jpg": "Sin transparencia, funciona en todas partes",
       "mask": "En blanco y negro, para otros editores"
     },
     "background": "Fondo",
+    "backgrounds": {
+      "none": "Ninguno",
+      "color": "Color",
+      "blur": "Desenfoque",
+      "image": "Imagen"
+    },
     "customColor": "Color personalizado",
+    "blurStrength": "Intensidad",
+    "changeImage": "Cambiar imagen",
     "trim": "Recortar al sujeto",
     "colors": {
       "white": "Blanco",

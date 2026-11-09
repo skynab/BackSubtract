@@ -1,6 +1,7 @@
 import { boundingBox, type Rect } from '../mask/mask';
 import { resizePlane } from '../mask/resample';
 import { snapToEdgesTiled } from '../mask/snap';
+import { blurredBackground, coverRect, type Background } from './background';
 import { cleanEdges } from './edges';
 
 /** 'mask' is the visibility mask itself as a black-and-white PNG, for finishing in another editor. */
@@ -15,15 +16,15 @@ const RATIO: Record<Exclude<Aspect, 'free'>, number> = { '1:1': 1, '4:5': 4 / 5,
 
 export interface ExportOptions {
   format: ExportFormat;
-  /** Background colour for JPG, which has no transparency. */
-  background: string;
+  /** What goes behind the subject. JPG has no transparency, so 'none' comes out white there. Mask ignores it. */
+  background: Background;
   /** Crop to the visible part of the image. */
   trim: boolean;
   /** When trimming: space around the subject, as a percentage of its longer side. */
   margin: number;
   /** When trimming: the shape of the picture, centred on the subject. */
   aspect: Aspect;
-  /** Encode as PNG whatever the format (the clipboard only takes PNG). JPG keeps its background colour. */
+  /** Encode as PNG whatever the format (the clipboard only takes PNG). The background is kept. */
   asPng?: boolean;
 }
 
@@ -57,7 +58,7 @@ export function exportName(fileName: string, ext: string, suffix = 'no-bg'): str
 /**
  * The area to export when cropping to the subject: its bounding box, grown by a
  * margin and then widened or heightened to the aspect ratio, staying centred.
- * It can reach past the image's edges; that part comes out transparent (or the background colour).
+ * It can reach past the image's edges; that part comes out transparent (or gets the background).
  */
 export function frameRect(subject: Rect, margin: number, aspect: Aspect): Rect {
   const pad = Math.round((Math.max(subject.w, subject.h) * margin) / 100);
@@ -88,10 +89,62 @@ export function canEncodeWebp(): boolean {
   return webpSupport;
 }
 
+/** The background a format actually gets: Mask has none, and JPG can't be transparent. */
+export function backgroundFor(format: ExportFormat, background: Background): Background {
+  if (format === 'mask') return { kind: 'none' };
+  if (format === 'jpg' && background.kind === 'none') return { kind: 'color', color: '#ffffff' };
+  return background;
+}
+
+/** The part of the image (image px) a download covers: all of it, or the frame around the subject. */
+export function exportFrame(mask: Uint8Array, width: number, height: number, options: Pick<ExportOptions, 'trim' | 'margin' | 'aspect'>): Rect {
+  const subject = options.trim ? boundingBox(mask, width, height) : null;
+  return subject ? frameRect(subject, options.margin, options.aspect) : { x: 0, y: 0, w: width, h: height };
+}
+
+/** Paint the background over the whole of the crop. Blur reads `pixels`, so this runs before edge cleanup changes them. */
+async function paintBackground(
+  ctx: OffscreenCanvasRenderingContext2D,
+  background: Background,
+  crop: Rect,
+  pixels: Uint8ClampedArray,
+  mask: Uint8Array,
+  width: number,
+  height: number,
+): Promise<void> {
+  switch (background.kind) {
+    case 'none':
+      return;
+    case 'color':
+      ctx.fillStyle = background.color;
+      ctx.fillRect(0, 0, crop.w, crop.h);
+      return;
+    case 'blur': {
+      const small = blurredBackground(pixels, mask, width, height, background.strength, crop);
+      const layer = new OffscreenCanvas(small.width, small.height);
+      layer.getContext('2d')!.putImageData(new ImageData(small.data as Uint8ClampedArray<ArrayBuffer>, small.width, small.height), 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(layer, 0, 0, crop.w, crop.h);
+      return;
+    }
+    case 'image': {
+      const bitmap = await createImageBitmap(background.image, { imageOrientation: 'from-image' });
+      const r = coverRect(bitmap.width, bitmap.height, { x: 0, y: 0, w: crop.w, h: crop.h });
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(bitmap, r.x, r.y, r.w, r.h);
+      bitmap.close();
+      return;
+    }
+  }
+}
+
 /**
  * Build the final image: the original pixels with the mask applied as transparency
- * (and edge colours cleaned). Uses OffscreenCanvas, so it runs in the image worker.
- * With `owned`, `pixels` is a private copy that may be changed in place.
+ * (and edge colours cleaned), over the chosen background. Uses OffscreenCanvas, so
+ * it runs in the image worker. With `owned`, `pixels` is a private copy that may be
+ * changed in place.
  */
 export async function exportImage(
   pixels: Uint8ClampedArray,
@@ -101,9 +154,18 @@ export async function exportImage(
   options: ExportOptions,
   owned = false,
 ): Promise<Blob> {
-  const full: Rect = { x: 0, y: 0, w: width, h: height };
-  const subject = options.trim ? boundingBox(mask, width, height) : null;
-  const crop = subject ? frameRect(subject, options.margin, options.aspect) : full;
+  const crop = exportFrame(mask, width, height, options);
+  const background = backgroundFor(options.format, options.background);
+
+  const canvas = new OffscreenCanvas(crop.w, crop.h);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 2D is unavailable');
+  if (options.format === 'mask') {
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, crop.w, crop.h);
+  } else {
+    await paintBackground(ctx, background, crop, pixels, mask, width, height);
+  }
 
   let rgba: Uint8ClampedArray;
   if (options.format === 'mask') {
@@ -115,18 +177,11 @@ export async function exportImage(
     applyMaskAlpha(rgba, mask);
   }
 
-  const canvas = new OffscreenCanvas(crop.w, crop.h);
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Canvas 2D is unavailable');
-
   const image = new ImageData(rgba as Uint8ClampedArray<ArrayBuffer>, width, height);
-  const fill = options.format === 'jpg' ? options.background : options.format === 'mask' ? '#000000' : null;
-  if (fill) {
-    // putImageData ignores compositing, so go through a second canvas to draw over the colour.
+  if (options.format === 'mask' || background.kind !== 'none') {
+    // putImageData ignores compositing, so go through a second canvas to draw over the background.
     const layer = new OffscreenCanvas(width, height);
     layer.getContext('2d')!.putImageData(image, 0, 0);
-    ctx.fillStyle = fill;
-    ctx.fillRect(0, 0, crop.w, crop.h);
     ctx.drawImage(layer, -crop.x, -crop.y);
   } else {
     ctx.putImageData(image, -crop.x, -crop.y);

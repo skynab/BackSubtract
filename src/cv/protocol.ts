@@ -32,6 +32,8 @@ export type CvRequest =
   | ({ id: number; type: 'preview' } & PickRequest)
   /** With `source`, export at the original file's full size (it was scaled down on opening). */
   | { id: number; type: 'export'; mask: Uint8Array; options: ExportOptions; source?: Blob }
+  /** The Blur background over `frame` (image px), for showing on the canvas. Returns a small RgbaImage to scale up. */
+  | { id: number; type: 'blur'; mask: Uint8Array; strength: number; frame: Rect }
   /** Adjust the edges of `mask` (the mask from before the adjustment, so settings don't compound). Returns a new plane. */
   /** `key` is the same for every request from one Edges panel session (same mask), so the worker can reuse its work. */
   | { id: number; type: 'edges'; mask: Uint8Array; adjust: EdgeAdjust; key: number };

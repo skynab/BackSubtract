@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { BACKGROUND_KINDS, BLUR_DEFAULT, type Background, type BackgroundKind } from '../export/background';
 import type { Aspect, ExportFormat } from '../export/exportImage';
 import { DEFAULT_CONTRAST } from '../canvas/checker';
 import type { Mode } from '../mask/mask';
@@ -71,7 +72,16 @@ interface UIState {
   lassoKind: LassoKind;
   tolerances: { wand: number; color: number };
   exportFormat: ExportFormat;
-  jpgBackground: string;
+  /** What goes behind the subject in the download (selectBackground gives what a format actually gets). */
+  background: BackgroundKind;
+  /** The Colour background. */
+  bgColor: string;
+  /** The Blur background's strength, BLUR_MIN–BLUR_MAX. */
+  bgBlur: number;
+  /** The Image background: a photo picked from the device, kept in IndexedDB (not in settings). */
+  bgImage: Blob | null;
+  /** Whether the Download menu is open: the canvas then shows the download's background and frame. */
+  downloadOpen: boolean;
   trim: boolean;
   /** Space around the subject when trimming, in % of its longer side. */
   margin: number;
@@ -125,7 +135,11 @@ export const useUI = create<UIState>()(
       lassoKind: 'magnetic',
       tolerances: { wand: 20, color: 15 },
       exportFormat: 'png',
-      jpgBackground: '#ffffff',
+      background: 'none',
+      bgColor: '#ffffff',
+      bgBlur: BLUR_DEFAULT,
+      bgImage: null,
+      downloadOpen: false,
       trim: false,
       margin: 0,
       aspect: 'free',
@@ -159,7 +173,18 @@ export const useUI = create<UIState>()(
     }),
     {
       name: 'backsubtract.settings',
-      version: 1,
+      version: 2,
+      // Version 1 had a background colour for JPG only.
+      migrate: (saved, version) => {
+        const s = (saved ?? {}) as Record<string, unknown>;
+        if (version < 2) {
+          if (typeof s.jpgBackground === 'string') s.bgColor = s.jpgBackground;
+          s.background = s.exportFormat === 'jpg' ? 'color' : 'none';
+          delete s.jpgBackground;
+        }
+        // Anything still missing is filled in by merge, from the defaults.
+        return s as unknown as UIState;
+      },
       // Only remember preferences, never anything about the current image.
       partialize: (s) => ({
         tool: s.tool,
@@ -170,7 +195,9 @@ export const useUI = create<UIState>()(
         lassoKind: s.lassoKind,
         tolerances: s.tolerances,
         exportFormat: s.exportFormat,
-        jpgBackground: s.jpgBackground,
+        background: s.background,
+        bgColor: s.bgColor,
+        bgBlur: s.bgBlur,
         trim: s.trim,
         margin: s.margin,
         aspect: s.aspect,
@@ -181,6 +208,7 @@ export const useUI = create<UIState>()(
       merge: (saved, current) => {
         const merged = { ...current, ...(saved as Partial<UIState>) };
         if (!AVAILABLE_TOOLS.includes(merged.tool)) merged.tool = current.tool;
+        if (!BACKGROUND_KINDS.includes(merged.background)) merged.background = current.background;
         return merged;
       },
     },
@@ -188,3 +216,26 @@ export const useUI = create<UIState>()(
 );
 
 export const selectMode = (s: UIState): Mode => s.modes[s.tool];
+
+/**
+ * The background the download gets: Mask has none, JPG can't be transparent (so it
+ * gets the colour), and Image without a picked photo is no background.
+ */
+export function selectBackground(
+  s: Pick<UIState, 'exportFormat' | 'background' | 'bgColor' | 'bgBlur' | 'bgImage'>,
+): Background {
+  if (s.exportFormat === 'mask') return { kind: 'none' };
+  let kind = s.background;
+  if (kind === 'image' && !s.bgImage) kind = 'none';
+  if (kind === 'none' && s.exportFormat === 'jpg') kind = 'color';
+  switch (kind) {
+    case 'color':
+      return { kind, color: s.bgColor };
+    case 'blur':
+      return { kind, strength: s.bgBlur };
+    case 'image':
+      return { kind, image: s.bgImage! };
+    default:
+      return { kind: 'none' };
+  }
+}

@@ -56,6 +56,27 @@ export async function loadSession(): Promise<SavedSession | null> {
   }
 }
 
+/** The photo picked as the Image background. Kept under its own key, so it stays when another image is opened. */
+const BACKGROUND_KEY = 'background';
+
+export async function saveBackgroundImage(file: Blob): Promise<void> {
+  try {
+    await withStore('readwrite', (s) => s.put(file, BACKGROUND_KEY));
+  } catch (err) {
+    // It still works until the page closes; it just won't be there next visit.
+    console.warn('Saving the background image failed', err);
+  }
+}
+
+export async function loadBackgroundImage(): Promise<Blob | null> {
+  try {
+    const saved = await withStore<unknown>('readonly', (s) => s.get(BACKGROUND_KEY));
+    return saved instanceof Blob ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
 async function save(): Promise<void> {
   const { image, mask, source } = editor;
   if (!image || !mask || !source) return;

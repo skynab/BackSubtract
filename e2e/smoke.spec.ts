@@ -53,6 +53,23 @@ test('every language fits a small phone: nothing off screen, no tool label spill
       return [...new Set(out)];
     });
     expect(problems, `${code} at ${width} px${font ? ' in a wide font' : ''}`).toEqual([]);
+
+    // The Download menu: its four background choices may wrap, but nothing may stick out.
+    await page.locator('.download .split-toggle').click();
+    const menuProblems = await page.locator('.download-menu').evaluate((menu) => {
+      const vw = document.documentElement.clientWidth;
+      const box = menu.getBoundingClientRect();
+      const out: string[] = [];
+      if (box.left < -0.5 || box.right > vw + 0.5) out.push('menu off screen');
+      for (const e of menu.querySelectorAll('*')) {
+        const r = e.getBoundingClientRect();
+        if (r.width && (r.left < box.left - 0.5 || r.right > box.right + 0.5)) out.push(`sticks out: ${e.textContent?.trim().slice(0, 20)}`);
+      }
+      return [...new Set(out)];
+    });
+    expect(menuProblems, `Download menu in ${code} at ${width} px${font ? ' in a wide font' : ''}`).toEqual([]);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.download-menu')).toHaveCount(0);
   }
   }
 });

@@ -72,13 +72,21 @@
       "mask": "マスク"
     },
     "hints": {
-      "png": "透明な背景",
-      "webp": "透明・ファイルが小さい",
-      "jpg": "単色の背景",
+      "png": "透明を保持",
+      "webp": "透明を保持・ファイルが小さい",
+      "jpg": "透明なし・どこでも使える",
       "mask": "白黒画像。ほかの編集ソフト用"
     },
     "background": "背景",
+    "backgrounds": {
+      "none": "なし",
+      "color": "色",
+      "blur": "ぼかし",
+      "image": "画像"
+    },
     "customColor": "カスタムの色",
+    "blurStrength": "強さ",
+    "changeImage": "画像を変更",
     "trim": "被写体に合わせて切り抜く",
     "colors": {
       "white": "白",

@@ -779,7 +779,45 @@ button:disabled {
   cursor: pointer;
 }
 
+/* Background: its name, the choice, then that choice's own control. */
+.menu-row.stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+/* Four choices: in languages with long words they wrap onto a second line rather than being cut off. */
+.menu-row.stack .segmented {
+  flex-wrap: wrap;
+}
+
+.menu-row.stack .segmented button {
+  flex: 1 1 auto;
+  white-space: nowrap;
+}
+
+.bg-image {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bg-image img {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.bg-image .secondary {
+  flex: 1;
+  justify-content: center;
+  min-height: 36px;
+}
+
 .download-menu {
+  width: min(288px, calc(100vw - 24px));
   max-height: calc(100dvh - 120px);
   overflow-y: auto;
 }

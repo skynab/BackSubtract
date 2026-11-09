@@ -3,6 +3,7 @@
  * Image work that can take a noticeable moment on large photos (Magic Wand,
  * Color, export encoding) runs here, so the page never freezes.
  */
+import { blurredBackground } from '../export/background';
 import { exportFullSize, exportImage } from '../export/exportImage';
 import { adjustEdges, CLEANUP_MAX, cleanupArea, findSpecks, type Speck } from '../mask/adjust';
 import { distanceMap, rgbToLab } from '../tools/color/lab';
@@ -91,6 +92,10 @@ self.onmessage = async (event: MessageEvent<CvRequest>) => {
           }
         }
         value ??= await exportImage(pixels, req.mask, width, height, req.options);
+        break;
+      case 'blur':
+        if (!pixels) throw new Error('No image');
+        value = blurredBackground(pixels, req.mask, width, height, req.strength, req.frame);
         break;
     }
     const buffer = (value as SelectionResult | null)?.data?.buffer;

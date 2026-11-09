@@ -72,13 +72,21 @@
       "mask": "Masque"
     },
     "hints": {
-      "png": "Arrière-plan transparent",
-      "webp": "Transparent, fichier plus léger",
-      "jpg": "Arrière-plan de couleur unie",
+      "png": "Garde la transparence",
+      "webp": "Garde la transparence, fichier plus léger",
+      "jpg": "Sans transparence, s’ouvre partout",
       "mask": "Noir et blanc, pour d'autres éditeurs"
     },
     "background": "Arrière-plan",
+    "backgrounds": {
+      "none": "Aucun",
+      "color": "Couleur",
+      "blur": "Flou",
+      "image": "Image"
+    },
     "customColor": "Couleur personnalisée",
+    "blurStrength": "Intensité",
+    "changeImage": "Changer d’image",
     "trim": "Recadrer sur le sujet",
     "colors": {
       "white": "Blanc",

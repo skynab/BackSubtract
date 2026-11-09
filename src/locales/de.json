@@ -72,13 +72,21 @@
       "mask": "Maske"
     },
     "hints": {
-      "png": "Transparenter Hintergrund",
-      "webp": "Transparent, kleinere Datei",
-      "jpg": "Einfarbiger Hintergrund",
+      "png": "Behält die Transparenz",
+      "webp": "Behält die Transparenz, kleinere Datei",
+      "jpg": "Ohne Transparenz, funktioniert überall",
       "mask": "Schwarz-weiß, für andere Programme"
     },
     "background": "Hintergrund",
+    "backgrounds": {
+      "none": "Keiner",
+      "color": "Farbe",
+      "blur": "Unschärfe",
+      "image": "Bild"
+    },
     "customColor": "Eigene Farbe",
+    "blurStrength": "Stärke",
+    "changeImage": "Bild ändern",
     "trim": "Auf Motiv zuschneiden",
     "colors": {
       "white": "Weiß",

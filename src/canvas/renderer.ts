@@ -1,23 +1,27 @@
+import type { RgbaImage } from '../export/background';
 import type { Mask, Mode, Rect } from '../mask/mask';
 import type { View } from './view';
 
 const VERTEX = `#version 300 es
 in vec2 a_pos;
-uniform vec2 u_imageSize;
+/** The area drawn, in image px (x, y, w, h): the image, or a download's frame, which can reach past it. */
+uniform vec4 u_frame;
 uniform float u_scale;
 uniform vec2 u_offset;
 uniform vec2 u_viewport;
-out vec2 v_uv;
+out vec2 v_px;
 void main() {
-  vec2 css = a_pos * u_imageSize * u_scale + u_offset;
+  vec2 px = u_frame.xy + a_pos * u_frame.zw;
+  vec2 css = px * u_scale + u_offset;
   vec2 clip = css / u_viewport * 2.0 - 1.0;
   gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
-  v_uv = a_pos;
+  v_px = px;
 }`;
 
 const FRAGMENT = `#version 300 es
 precision highp float;
-in vec2 v_uv;
+in vec2 v_px;
+uniform vec2 u_imageSize;
 uniform sampler2D u_image;
 uniform sampler2D u_mask;
 uniform sampler2D u_preview;
@@ -31,22 +35,38 @@ uniform float u_checkerSize;
 uniform vec2 u_checkerOffset;
 uniform vec3 u_checkerA;
 uniform vec3 u_checkerB;
+/** Behind the image: 0 the checkerboard, 1 a colour, 2 a picture over u_bgRect (image px). */
+uniform int u_bgMode;
+uniform vec3 u_bgColor;
+uniform sampler2D u_bg;
+uniform vec4 u_bgRect;
 out vec4 outColor;
 void main() {
-  vec4 color = texture(u_image, v_uv);
-  float m = texture(u_mask, v_uv).r;
+  vec2 uv = v_px / u_imageSize;
+  // Outside the image (a frame reaching past it) there is only background.
+  vec2 inside = step(vec2(0.0), uv) * step(uv, vec2(1.0));
+  float within = inside.x * inside.y;
+  vec4 color = texture(u_image, uv) * within;
+  float m = texture(u_mask, uv).r * within;
   // Show the mask as it would be after the previewed tap, and tint what would change.
   float change = 0.0;
   if (u_previewMode != 0.0) {
-    float s = texture(u_preview, v_uv).r;
+    float s = texture(u_preview, uv).r;
     float next = u_previewMode > 0.0 ? max(m, s) : min(m, 1.0 - s);
     change = abs(next - m);
     m = next;
   }
   m = mix(m, 1.0, u_original);
   m = m + (1.0 - m) * u_ghost;
-  vec2 cell = floor((gl_FragCoord.xy + u_checkerOffset) / u_checkerSize);
-  vec3 bg = mod(cell.x + cell.y, 2.0) < 1.0 ? u_checkerA : u_checkerB;
+  vec3 bg;
+  if (u_bgMode == 1) {
+    bg = u_bgColor;
+  } else if (u_bgMode == 2) {
+    bg = texture(u_bg, (v_px - u_bgRect.xy) / u_bgRect.zw).rgb;
+  } else {
+    vec2 cell = floor((gl_FragCoord.xy + u_checkerOffset) / u_checkerSize);
+    bg = mod(cell.x + cell.y, 2.0) < 1.0 ? u_checkerA : u_checkerB;
+  }
   vec3 rgb = mix(bg, color.rgb, color.a * m);
   outColor = vec4(mix(rgb, u_previewTint, change * 0.45), 1.0);
 }`;
@@ -70,6 +90,10 @@ export interface RenderParams {
   checkerB: RGB;
   /** How far the checkerboard has slid, in CSS px. */
   checkerOffset: [number, number];
+  /** The area to draw (image px); the whole image when left out. */
+  frame?: Rect;
+  /** What shows behind the image in place of the checkerboard: a colour, or the picture from setBackdrop over `rect` (image px). */
+  fill?: { kind: 'color'; color: RGB } | { kind: 'texture'; rect: Rect };
 }
 
 function compile(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
@@ -82,7 +106,10 @@ function compile(gl: WebGL2RenderingContext, type: number, source: string): WebG
   return shader;
 }
 
-/** Draws the original image with the hidden mask applied, over a transparency checkerboard. */
+/**
+ * Draws the original image with the hidden mask applied, over a transparency
+ * checkerboard (or, while the Download menu is open, over the download's background).
+ */
 export class Renderer {
   private gl: WebGL2RenderingContext;
   private program: WebGLProgram;
@@ -90,6 +117,7 @@ export class Renderer {
   private imageTex: WebGLTexture;
   private maskTex: WebGLTexture;
   private previewTex: WebGLTexture;
+  private bgTex: WebGLTexture;
   private imageSize: [number, number] | null = null;
   private uniforms: Record<string, WebGLUniformLocation | null> = {};
 
@@ -107,9 +135,9 @@ export class Renderer {
     }
     this.program = program;
     for (const name of [
-      'u_imageSize', 'u_scale', 'u_offset', 'u_viewport', 'u_image', 'u_mask',
+      'u_imageSize', 'u_frame', 'u_scale', 'u_offset', 'u_viewport', 'u_image', 'u_mask',
       'u_ghost', 'u_original', 'u_checkerSize', 'u_checkerOffset', 'u_checkerA', 'u_checkerB',
-      'u_preview', 'u_previewMode', 'u_previewTint',
+      'u_preview', 'u_previewMode', 'u_previewTint', 'u_bgMode', 'u_bgColor', 'u_bg', 'u_bgRect',
     ]) {
       this.uniforms[name] = gl.getUniformLocation(program, name);
     }
@@ -125,6 +153,9 @@ export class Renderer {
     this.imageTex = this.createTexture(gl.LINEAR_MIPMAP_LINEAR);
     this.maskTex = this.createTexture(gl.LINEAR);
     this.previewTex = this.createTexture(gl.LINEAR);
+    this.bgTex = this.createTexture(gl.LINEAR_MIPMAP_LINEAR);
+    // One pixel until there is a picture, so the texture is complete whenever the shader is used.
+    this.setBackdrop({ data: new Uint8ClampedArray([0, 0, 0, 255]), width: 1, height: 1 });
   }
 
   private createTexture(minFilter: number): WebGLTexture {
@@ -173,6 +204,19 @@ export class Renderer {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, width, height, 0, gl.RED, gl.UNSIGNED_BYTE, data);
   }
 
+  /** Upload the picture shown behind the image (a download's Image or Blur background). */
+  setBackdrop(source: ImageBitmap | RgbaImage): void {
+    const gl = this.gl;
+    gl.bindTexture(gl.TEXTURE_2D, this.bgTex);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+    if (source instanceof ImageBitmap) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, source);
+    } else {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, source.width, source.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, source.data);
+    }
+    gl.generateMipmap(gl.TEXTURE_2D);
+  }
+
   render(p: RenderParams): void {
     const gl = this.gl;
     const u = this.uniforms;
@@ -184,6 +228,8 @@ export class Renderer {
     gl.useProgram(this.program);
     gl.bindVertexArray(this.vao);
     gl.uniform2f(u.u_imageSize, ...this.imageSize);
+    const frame = p.frame ?? { x: 0, y: 0, w: this.imageSize[0], h: this.imageSize[1] };
+    gl.uniform4f(u.u_frame, frame.x, frame.y, frame.w, frame.h);
     gl.uniform1f(u.u_scale, p.view.scale);
     gl.uniform2f(u.u_offset, p.view.x, p.view.y);
     gl.uniform2f(u.u_viewport, p.width, p.height);
@@ -207,6 +253,13 @@ export class Renderer {
     gl.uniform1i(u.u_preview, 2);
     gl.uniform1f(u.u_previewMode, p.preview ? (p.preview.mode === 'keep' ? 1 : -1) : 0);
     gl.uniform3f(u.u_previewTint, ...(p.preview?.tint ?? [0, 0, 0]));
+    gl.uniform1i(u.u_bgMode, p.fill?.kind === 'color' ? 1 : p.fill?.kind === 'texture' ? 2 : 0);
+    gl.uniform3f(u.u_bgColor, ...(p.fill?.kind === 'color' ? p.fill.color : ([0, 0, 0] as RGB)));
+    const bgRect = p.fill?.kind === 'texture' ? p.fill.rect : frame;
+    gl.uniform4f(u.u_bgRect, bgRect.x, bgRect.y, bgRect.w, bgRect.h);
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D, this.bgTex);
+    gl.uniform1i(u.u_bg, 3);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 
@@ -215,6 +268,7 @@ export class Renderer {
     gl.deleteTexture(this.imageTex);
     gl.deleteTexture(this.maskTex);
     gl.deleteTexture(this.previewTex);
+    gl.deleteTexture(this.bgTex);
     gl.deleteProgram(this.program);
     gl.deleteVertexArray(this.vao);
   }

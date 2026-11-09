@@ -72,13 +72,21 @@
       "mask": "遮罩"
     },
     "hints": {
-      "png": "透明背景",
-      "webp": "透明，檔案較小",
-      "jpg": "純色背景",
+      "png": "保留透明",
+      "webp": "保留透明，檔案較小",
+      "jpg": "不透明，相容性最好",
       "mask": "黑白圖，供其他編輯器使用"
     },
     "background": "背景",
+    "backgrounds": {
+      "none": "無",
+      "color": "顏色",
+      "blur": "模糊",
+      "image": "圖片"
+    },
     "customColor": "自訂顏色",
+    "blurStrength": "強度",
+    "changeImage": "更換圖片",
     "trim": "裁切至主體",
     "colors": {
       "white": "白色",

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { editor } from '../editor/editor';
 import { exportInWorker } from '../cv/client';
+import { BACKGROUND_KINDS, BLUR_MAX, BLUR_MIN, type BackgroundKind } from '../export/background';
 import {
   ASPECTS,
   canEncodeWebp,
@@ -12,7 +13,9 @@ import {
   type ExportFormat,
   type ExportOptions,
 } from '../export/exportImage';
-import { MARGIN_MAX, useUI } from '../state/store';
+import { saveBackgroundImage } from '../session/autosave';
+import { isHeic } from '../session/openImage';
+import { MARGIN_MAX, selectBackground, useUI } from '../state/store';
 import { ChevronIcon, CopyIcon, DownloadIcon, ShareIcon } from './icons';
 
 const SWATCHES = [
@@ -22,6 +25,27 @@ const SWATCHES = [
 
 /** The clipboard takes images where ClipboardItem exists (it needs a secure page). */
 const canCopy = () => typeof ClipboardItem !== 'undefined' && !!navigator.clipboard?.write;
+
+/** Pick a photo for the Image background. It stays on the device, kept for next time. */
+function pickBackgroundImage(): void {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*,.heic,.heif';
+  input.addEventListener('change', async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    try {
+      // Only take a photo this browser can open (Safari opens HEIC; others can't).
+      (await createImageBitmap(file)).close();
+    } catch {
+      useUI.getState().showNotice({ key: isHeic(file) ? 'errors.heic' : 'errors.load', tone: 'error' });
+      return;
+    }
+    useUI.setState({ bgImage: file, background: 'image' });
+    void saveBackgroundImage(file);
+  });
+  input.click();
+}
 
 let shareSupport: boolean | undefined;
 
@@ -40,17 +64,50 @@ function canShareFiles(): boolean {
 export function DownloadButton() {
   const { t } = useTranslation();
   const format = useUI((s) => s.exportFormat);
-  const background = useUI((s) => s.jpgBackground);
+  const bgKind = useUI((s) => s.background);
+  const bgColor = useUI((s) => s.bgColor);
+  const bgBlur = useUI((s) => s.bgBlur);
+  const bgImage = useUI((s) => s.bgImage);
   const trim = useUI((s) => s.trim);
   const margin = useUI((s) => s.margin);
   const aspect = useUI((s) => s.aspect);
   const fullSize = useUI((s) => s.fullSize);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [thumb, setThumb] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const formats: ExportFormat[] = canEncodeWebp() ? ['png', 'webp', 'jpg', 'mask'] : ['png', 'jpg', 'mask'];
   const active = formats.includes(format) ? format : 'png';
+  const background = selectBackground({ exportFormat: active, background: bgKind, bgColor, bgBlur, bgImage });
+  // JPG can't be transparent.
+  const kinds = active === 'jpg' ? BACKGROUND_KINDS.filter((k) => k !== 'none') : BACKGROUND_KINDS;
+
+  // The canvas shows the download's background while the menu is open.
+  useEffect(() => {
+    useUI.setState({ downloadOpen: open });
+  }, [open]);
+  useEffect(
+    () => () => {
+      useUI.setState({ downloadOpen: false });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!bgImage) {
+      setThumb(null);
+      return;
+    }
+    const url = URL.createObjectURL(bgImage);
+    setThumb(url);
+    return () => URL.revokeObjectURL(url);
+  }, [bgImage]);
+
+  const chooseBackground = (kind: BackgroundKind) => {
+    if (kind === 'image' && !bgImage) pickBackgroundImage();
+    else useUI.setState({ background: kind });
+  };
   // Read when the menu renders; the menu is closed whenever a new image opens.
   const reduced = editor.isReduced;
   const { width: fullW, height: fullH } = editor.sourceSize;
@@ -153,35 +210,65 @@ export function DownloadButton() {
             ))}
           </fieldset>
 
-          {active === 'jpg' && (
-            <div className="menu-row" role="group" aria-label={t('download.background')}>
+          {active !== 'mask' && (
+            <div className="menu-row stack" role="group" aria-label={t('download.background')}>
               <span>{t('download.background')}</span>
-              <div className="swatches">
-                {SWATCHES.map(({ color, name }) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className="swatch"
-                    style={{ background: color }}
-                    title={t(`download.colors.${name}`)}
-                    aria-label={t(`download.colors.${name}`)}
-                    aria-pressed={background === color}
-                    onClick={() => useUI.setState({ jpgBackground: color })}
-                  />
+              <div className="segmented small">
+                {kinds.map((k) => (
+                  <button key={k} type="button" aria-pressed={background.kind === k} onClick={() => chooseBackground(k)}>
+                    {t(`download.backgrounds.${k}`)}
+                  </button>
                 ))}
-                <label
-                  className="swatch custom"
-                  aria-pressed={!SWATCHES.some((s) => s.color === background)}
-                  title={t('download.customColor')}
-                >
-                  <input
-                    type="color"
-                    value={background}
-                    aria-label={t('download.customColor')}
-                    onChange={(e) => useUI.setState({ jpgBackground: e.target.value })}
-                  />
-                </label>
               </div>
+              {background.kind === 'color' && (
+                <div className="swatches">
+                  {SWATCHES.map(({ color, name }) => (
+                    <button
+                      key={color}
+                      type="button"
+                      className="swatch"
+                      style={{ background: color }}
+                      title={t(`download.colors.${name}`)}
+                      aria-label={t(`download.colors.${name}`)}
+                      aria-pressed={bgColor === color}
+                      onClick={() => useUI.setState({ bgColor: color })}
+                    />
+                  ))}
+                  <label
+                    className="swatch custom"
+                    aria-pressed={!SWATCHES.some((s) => s.color === bgColor)}
+                    title={t('download.customColor')}
+                  >
+                    <input
+                      type="color"
+                      value={bgColor}
+                      aria-label={t('download.customColor')}
+                      onChange={(e) => useUI.setState({ bgColor: e.target.value })}
+                    />
+                  </label>
+                </div>
+              )}
+              {background.kind === 'blur' && (
+                <label className="menu-slider">
+                  <span>{t('download.blurStrength')}</span>
+                  <input
+                    type="range"
+                    min={BLUR_MIN}
+                    max={BLUR_MAX}
+                    value={bgBlur}
+                    onChange={(e) => useUI.setState({ bgBlur: Number(e.target.value) })}
+                  />
+                  <output>{bgBlur}</output>
+                </label>
+              )}
+              {background.kind === 'image' && (
+                <div className="bg-image">
+                  {thumb && <img src={thumb} alt="" />}
+                  <button type="button" className="secondary" onClick={pickBackgroundImage}>
+                    {t('download.changeImage')}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

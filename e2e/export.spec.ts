@@ -1,5 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
-import { chooseTool, DISK, download, downloadAndReadAlpha, openTestImage, readImage, tapImage, toScreen } from './helpers';
+import { expect, test, type Locator, type Page } from '@playwright/test';
+import { encodePng } from '../scripts/png.mjs';
+import { chooseTool, DISK, download, downloadAndReadAlpha, openTestImage, readImage, screenColor, tapImage, toScreen } from './helpers';
 
 /** Remove the green background with one Magic Wand tap, leaving the disk. */
 async function removeBackground(page: Page): Promise<void> {
@@ -138,6 +139,101 @@ test('Crop to subject with a margin and a square shape', async ({ page }) => {
   expect(width).toBeLessThan(225);
   // The margin is transparent.
   expect(pixels[0][3]).toBe(0);
+});
+
+/** Choose a background in the open Download options. */
+async function chooseBackground(menu: Locator, name: string) {
+  const button = menu.getByRole('group', { name: 'Background' }).getByRole('button', { name, exact: true });
+  await button.click();
+  return button;
+}
+
+/** A small solid-colour PNG, to pick as an Image background. */
+function solidPng(rgb: [number, number, number], w = 40, h = 30): Buffer {
+  const rgba = new Uint8Array(w * h * 4);
+  for (let i = 0; i < w * h; i++) rgba.set([...rgb, 255], i * 4);
+  return encodePng(w, h, rgba);
+}
+
+test('a Color background fills what was removed, in PNG too, and shows on the canvas while the menu is open', async ({ page }) => {
+  await openTestImage(page);
+  await removeBackground(page);
+  const before = await screenColor(page, 10, 10);
+  const menu = await openOptions(page);
+  await expect(await chooseBackground(menu, 'Color')).toHaveAttribute('aria-pressed', 'true');
+  await menu.getByRole('button', { name: 'Black' }).click();
+  // The canvas shows the download's background in place of the checkerboard.
+  await expect.poll(() => screenColor(page, 10, 10)).toEqual([0, 0, 0]);
+  await page.keyboard.press('Escape');
+  await expect.poll(() => screenColor(page, 10, 10)).toEqual(before);
+
+  const { pixels } = await download(page, [[10, 10], [DISK.x, DISK.y]]);
+  expect(pixels[0]).toEqual([0, 0, 0, 255]);
+  expect(pixels[1]).toEqual([220, 40, 40, 255]);
+});
+
+test("Blur fills what was removed with the photo's own background, without the subject's colour", async ({ page }) => {
+  await openTestImage(page);
+  await removeBackground(page);
+  const menu = await openOptions(page);
+  await chooseBackground(menu, 'Blur');
+  await menu.getByLabel('Strength').fill('100');
+  await page.keyboard.press('Escape');
+
+  const { pixels } = await download(page, [[10, 10], [DISK.x + DISK.r + 3, DISK.y], [DISK.x, DISK.y]]);
+  const [corner, nextToDisk, centre] = pixels;
+  // The background is flat green, so blurred it is still green, right up to the disk: no red halo.
+  for (const p of [corner, nextToDisk]) {
+    expect(p[3]).toBe(255);
+    expect(Math.abs(p[0] - 30)).toBeLessThan(6);
+    expect(Math.abs(p[1] - 170)).toBeLessThan(6);
+  }
+  expect(centre).toEqual([220, 40, 40, 255]);
+});
+
+test('an Image background covers the frame, and is still there after a reload', async ({ page }) => {
+  await openTestImage(page);
+  await removeBackground(page);
+  let menu = await openOptions(page);
+  const chooser = page.waitForEvent('filechooser');
+  await chooseBackground(menu, 'Image');
+  await (await chooser).setFiles({ name: 'blue.png', mimeType: 'image/png', buffer: solidPng([20, 40, 230]) });
+  await expect(menu.getByRole('button', { name: 'Image', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(menu.getByRole('button', { name: 'Change image' })).toBeVisible();
+  // Crop to subject with a margin: the picture covers the whole frame, past the image's edges too.
+  await menu.getByLabel('Crop to subject').check();
+  await menu.locator('.menu-sub .menu-slider input').fill('30');
+  await page.keyboard.press('Escape');
+
+  const { width, pixels } = await download(page, [[1, 1], [DISK.x - DISK.r + 2, DISK.y]]);
+  expect(width).toBeGreaterThan(2 * DISK.r * 1.5);
+  expect(pixels[0]).toEqual([20, 40, 230, 255]);
+
+  // The photo is kept on the device, so the choice still works next visit.
+  await page.reload();
+  await expect(page.getByRole('img', { name: 'Image editor' })).toBeVisible();
+  menu = await openOptions(page);
+  await expect(menu.getByRole('button', { name: 'Image', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.press('Escape');
+  const after = await download(page, [[1, 1]]);
+  expect(after.pixels[0]).toEqual([20, 40, 230, 255]);
+});
+
+test("JPG doesn't offer None, since it can't be transparent", async ({ page }) => {
+  await openTestImage(page);
+  await removeBackground(page);
+  const menu = await openOptions(page);
+  const backgrounds = menu.getByRole('group', { name: 'Background' });
+  await expect(backgrounds.getByRole('button', { name: 'None' })).toHaveAttribute('aria-pressed', 'true');
+  await menu.getByText('JPG', { exact: true }).click();
+  await expect(backgrounds.getByRole('button', { name: 'None' })).toHaveCount(0);
+  await expect(backgrounds.getByRole('button', { name: 'Color', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.press('Escape');
+
+  const { name, pixels } = await download(page, [[10, 10]]);
+  expect(name).toBe('disk-no-bg.jpg');
+  // White by default (JPG is lossy, so nearly).
+  for (const c of pixels[0].slice(0, 3)) expect(c).toBeGreaterThan(245);
 });
 
 test('Mask downloads a black-and-white image of what is kept', async ({ page }) => {
