@@ -66,6 +66,8 @@ jobs:
 
   # The same tests in Firefox and WebKit (Safari's engine). Not required for deploying
   # yet: a failure shows on this job, but the run still passes and the deploy goes ahead.
+  # Headless, neither has WebGL on Linux, so they run headed on a virtual display
+  # (see playwright.config.ts).
   e2e-browsers:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -78,7 +80,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps firefox webkit
-      - run: npm run test:e2e:browsers
+      - run: xvfb-run --auto-servernum npm run test:e2e:browsers
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

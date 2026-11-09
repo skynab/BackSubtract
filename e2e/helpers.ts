@@ -41,9 +41,20 @@ export async function confirmDownload(page: Page): Promise<void> {
   await downloadDialog(page).getByRole('button', { name: 'Download', exact: true }).click();
 }
 
+/**
+ * Fail straight away, saying why, if the browser has no WebGL2: the editor then can't draw
+ * or take input, and tests would fail later on a tap that did nothing. (Headless Firefox
+ * and WebKit have none on Linux; see playwright.config.ts.)
+ */
+export async function expectWebGl2(page: Page): Promise<void> {
+  const ok = await page.evaluate(() => !!document.createElement('canvas').getContext('webgl2'));
+  expect(ok, 'WebGL2 is unavailable in this browser, so the editor cannot work').toBe(true);
+}
+
 /** Open the test image through the real "Choose image" button and file picker. */
 export async function openTestImage(page: Page): Promise<void> {
   await page.goto('/');
+  await expectWebGl2(page);
   const chooser = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: 'Choose image' }).click();
   await (await chooser).setFiles({ name: 'disk.png', mimeType: 'image/png', buffer: testImage() });
