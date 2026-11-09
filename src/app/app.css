@@ -1016,6 +1016,41 @@ button:disabled {
   filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.9));
 }
 
+/*
+ * Touch loupe. The image inside it is drawn on the canvas; this is what goes over it.
+ * The lines copied in are scaled up with the image but keep their screen width
+ * (the Hair band's width is part of the image, so it scales).
+ */
+.loupe .loupe-lines path:not(.trail),
+.loupe .loupe-lines circle {
+  vector-effect: non-scaling-stroke;
+}
+
+.loupe circle.rim {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 3;
+  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.4));
+}
+
+/* The brush's outline, at the loupe's zoom. */
+.loupe circle.ring {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.8));
+}
+
+/* Where the finger is, with a gap so the pixel itself stays visible. */
+.loupe path.cross {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.5;
+  stroke-dasharray: none;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.9));
+}
+
 /* Tool context */
 
 .secondary {

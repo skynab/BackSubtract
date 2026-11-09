@@ -15,6 +15,7 @@ import { dragBox } from '../tools/shape/shape';
 import { selectAt, selectLoop } from '../tools/select/select';
 import { onBackdrop, type Backdrop } from './backdrop';
 import { CHECKER_SPEED, checkerColors } from './checker';
+import { LOUPE_DELAY_MS, LOUPE_SIZE, LOUPE_ZOOM, loupeTransform, loupeView, placeLoupe } from './loupe';
 import { cssColor, Renderer } from './renderer';
 import { clamp, fitView, MAX_SCALE, minScale, toImage, zoomAt, type Point, type View } from './view';
 
@@ -65,6 +66,17 @@ export function Viewer() {
   const trailRef = useRef<SVGPathElement>(null);
   const lineRef = useRef<SVGPathElement>(null);
   const startRef = useRef<SVGCircleElement>(null);
+  const overlayRef = useRef<SVGGElement>(null);
+  const holeRef = useRef<SVGCircleElement>(null);
+  const loupeRef = useRef<SVGSVGElement>(null);
+  const loupeClipRef = useRef<SVGCircleElement>(null);
+  const loupeRimRef = useRef<SVGCircleElement>(null);
+  const loupeLinesRef = useRef<SVGGElement>(null);
+  const lassoCopyRef = useRef<SVGPathElement>(null);
+  const trailCopyRef = useRef<SVGPathElement>(null);
+  const startCopyRef = useRef<SVGCircleElement>(null);
+  const ringRef = useRef<SVGCircleElement>(null);
+  const crossRef = useRef<SVGPathElement>(null);
 
   useEffect(() => {
     const wrap = wrapRef.current!;
@@ -76,6 +88,17 @@ export function Viewer() {
     const trail = trailRef.current!;
     const linePreview = lineRef.current!;
     const startMark = startRef.current!;
+    const overlay = overlayRef.current!;
+    const hole = holeRef.current!;
+    const loupeSvg = loupeRef.current!;
+    const loupeClip = loupeClipRef.current!;
+    const loupeRim = loupeRimRef.current!;
+    const loupeLines = loupeLinesRef.current!;
+    const lassoCopy = lassoCopyRef.current!;
+    const trailCopy = trailCopyRef.current!;
+    const startCopy = startCopyRef.current!;
+    const ring = ringRef.current!;
+    const cross = crossRef.current!;
 
     let renderer: Renderer;
     try {
@@ -100,6 +123,11 @@ export function Viewer() {
     /** While the Download menu is open: the download's background and frame. */
     let backdrop: Backdrop | null = null;
     let backdropUploaded = 0;
+    /**
+     * Touch: the loupe, while one finger draws. It shows (`shown`) once the finger
+     * has been down a moment or has moved, so quick taps don't flash it.
+     */
+    let loupe: { id: number; start: Point; at: Point; shown: boolean; timer: number } | null = null;
     let frame = 0;
     let gesture: Gesture = { kind: 'none' };
     const pointers = new Map<number, Point>();
@@ -134,6 +162,7 @@ export function Viewer() {
       const [checkerA, checkerB] = checkerColors(colors.checkerA, colors.checkerB, ui.checkerContrast);
       // A sliding checkerboard makes leftover bits stand out: they stay still while it moves behind them.
       const slid = ui.checkerMotion ? (performance.now() / 1000) * CHECKER_SPEED : 0;
+      const loupeAt = loupe?.shown && editor.image ? placeLoupe(loupe.at, size.w, size.h) : null;
       renderer.render({
         view, width: size.w, height: size.h, dpr: size.dpr, ghost, original, preview: shownPreview,
         background: colors.background, checkerA, checkerB, checkerOffset: [slid, slid],
@@ -141,7 +170,9 @@ export function Viewer() {
         fill: !backdrop || backdrop.fill.kind === 'checker' ? undefined
           : backdrop.fill.kind === 'color' ? backdrop.fill
           : { kind: 'texture', rect: backdrop.fill.rect },
+        loupe: loupe && loupeAt ? { centre: loupeAt, radius: LOUPE_SIZE / 2, view: loupeView(view, loupe.at, loupeAt) } : undefined,
       });
+      drawLoupe(loupeAt);
       // Keep drawing while it moves (the browser pauses this in hidden tabs).
       if (ui.checkerMotion && editor.image && (!backdrop || backdrop.fill.kind === 'checker')) requestRender();
     }
@@ -300,6 +331,68 @@ export function Viewer() {
       if (corners) applyLasso(corners);
     }
 
+    function startLoupe(e: PointerEvent, p: Point, shown = false) {
+      if (e.pointerType !== 'touch') return;
+      stopLoupe();
+      const next = { id: e.pointerId, start: p, at: p, shown, timer: 0 };
+      if (!shown) {
+        next.timer = window.setTimeout(() => {
+          next.shown = true;
+          requestRender();
+        }, LOUPE_DELAY_MS);
+      }
+      loupe = next;
+      requestRender();
+    }
+
+    function moveLoupe(e: PointerEvent, p: Point) {
+      if (!loupe || loupe.id !== e.pointerId) return;
+      loupe.at = p;
+      if (Math.hypot(p.x - loupe.start.x, p.y - loupe.start.y) > DRAG_SLOP) loupe.shown = true;
+      requestRender();
+    }
+
+    function stopLoupe() {
+      if (!loupe) return;
+      clearTimeout(loupe.timer);
+      loupe = null;
+      requestRender();
+    }
+
+    /**
+     * Over the loupe: its rim, the lines drawn over the image (copied in at its zoom),
+     * the brush's outline and a crosshair at the finger. The lines outside stay out of it.
+     */
+    function drawLoupe(centre: Point | null) {
+      loupeSvg.setAttribute('visibility', centre ? 'visible' : 'hidden');
+      if (!centre || !loupe) {
+        overlay.removeAttribute('mask');
+        return;
+      }
+      const cx = centre.x.toFixed(1);
+      const cy = centre.y.toFixed(1);
+      for (const c of [loupeClip, loupeRim, hole, ring]) {
+        c.setAttribute('cx', cx);
+        c.setAttribute('cy', cy);
+      }
+      overlay.setAttribute('mask', 'url(#loupe-hole)');
+      loupeLines.setAttribute('transform', loupeTransform(loupe.at, centre));
+      lassoCopy.setAttribute('d', lasso.getAttribute('d') ?? '');
+      trailCopy.setAttribute('d', trail.getAttribute('d') ?? '');
+      trailCopy.style.strokeWidth = trail.style.strokeWidth;
+      for (const name of ['cx', 'cy']) {
+        const value = startMark.getAttribute(name);
+        if (value !== null) startCopy.setAttribute(name, value);
+      }
+      startCopy.setAttribute('visibility', startMark.getAttribute('visibility') ?? 'hidden');
+      startCopy.classList.toggle('ready', startMark.classList.contains('ready'));
+      const ui = useUI.getState();
+      ring.setAttribute('visibility', ui.tool === 'brush' ? 'visible' : 'hidden');
+      ring.setAttribute('r', String((ui.brushSize / 2) * LOUPE_ZOOM));
+      const { x, y } = centre;
+      cross.setAttribute('d', `M${x - 9},${y}H${x - 3}M${x + 3},${y}H${x + 9}M${x},${y - 9}V${y - 3}M${x},${y + 3}V${y + 9}`);
+    }
+
     function drawShape(g: Extract<Gesture, { kind: 'shape' }>) {
       const b = dragBox(g.start, g.end, g.square);
       if (useUI.getState().shapeKind === 'rect') {
@@ -352,6 +445,7 @@ export function Viewer() {
         drawLasso(null);
       }
       gesture = { kind: 'none' };
+      stopLoupe();
     }
 
     function onPointerDown(e: PointerEvent) {
@@ -368,6 +462,7 @@ export function Viewer() {
 
       if (pointers.size === 2) {
         // A second finger turns whatever the first one started into a pinch.
+        stopLoupe();
         if (gesture.kind === 'stroke') editor.cancelStroke();
         if (gesture.kind === 'stroke') lastBrush = null;
         if (gesture.kind === 'hold') clearTimeout(gesture.timer);
@@ -420,6 +515,10 @@ export function Viewer() {
           timer: window.setTimeout(() => setComparing(true), HOLD_MS),
         };
       }
+      // Drawing with a finger hides the spot it draws on, so the loupe shows it.
+      if (gesture.kind === 'stroke' || gesture.kind === 'corner' || gesture.kind === 'trace' || gesture.kind === 'shape') {
+        startLoupe(e, p);
+      }
       updateCursor(e, p);
     }
 
@@ -434,6 +533,7 @@ export function Viewer() {
       }
       if (!pointers.has(e.pointerId)) return;
       pointers.set(e.pointerId, p);
+      moveLoupe(e, p);
 
       switch (gesture.kind) {
         case 'stroke':
@@ -465,6 +565,7 @@ export function Viewer() {
               useUI.getState().tool === 'select'
                 ? { kind: 'lasso', id: e.pointerId, points: [gesture.start, p] }
                 : { kind: 'pan', id: e.pointerId, last: p };
+            if (gesture.kind === 'lasso') startLoupe(e, p, true);
           }
           return;
         case 'lasso': {
@@ -515,6 +616,7 @@ export function Viewer() {
 
     function onPointerUp(e: PointerEvent) {
       if (!pointers.delete(e.pointerId)) return;
+      if (loupe?.id === e.pointerId) stopLoupe();
       if (gesture.kind === 'pinch') {
         // Wait until every finger is lifted before starting anything new.
         if (pointers.size === 0) gesture = { kind: 'none' };
@@ -635,6 +737,7 @@ export function Viewer() {
       if (gesture.kind === 'none') clearPreview();
     };
     const onBlur = () => {
+      stopLoupe();
       spaceDown = false;
       shiftDown = false;
       drawLinePreview();
@@ -656,6 +759,7 @@ export function Viewer() {
 
     return () => {
       endGesture();
+      stopLoupe();
       discardPolygon();
       cancelAnimationFrame(frame);
       resizeObserver.disconnect();
@@ -685,15 +789,41 @@ export function Viewer() {
         <div className="brush-core" ref={coreRef} />
       </div>
       <svg className="lasso" aria-hidden="true">
-        <path ref={lassoRef} />
-        <path ref={trailRef} className="trail" />
-        <path ref={lineRef} className="line-preview" />
-        <circle ref={startRef} className="start" r="5" visibility="hidden" />
+        <defs>
+          {/* Keeps the lines out of the loupe, which shows its own copy of them. */}
+          <mask id="loupe-hole" maskUnits="userSpaceOnUse" x="-100%" y="-100%" width="300%" height="300%">
+            <rect x="-100%" y="-100%" width="300%" height="300%" fill="white" />
+            <circle ref={holeRef} r={LOUPE_SIZE / 2 + 1} fill="black" />
+          </mask>
+        </defs>
+        <g ref={overlayRef}>
+          <path ref={lassoRef} />
+          <path ref={trailRef} className="trail" />
+          <path ref={lineRef} className="line-preview" />
+          <circle ref={startRef} className="start" r="5" visibility="hidden" />
+        </g>
       </svg>
       <ViewSwitch />
       <div className="badge" ref={badgeRef} hidden>
         {t('viewer.original')}
       </div>
+      <svg className="lasso loupe" ref={loupeRef} aria-hidden="true" visibility="hidden">
+        <defs>
+          <clipPath id="loupe-clip">
+            <circle ref={loupeClipRef} r={LOUPE_SIZE / 2} />
+          </clipPath>
+        </defs>
+        <g clipPath="url(#loupe-clip)">
+          <g ref={loupeLinesRef} className="loupe-lines">
+            <path ref={lassoCopyRef} />
+            <path ref={trailCopyRef} className="trail" />
+            <circle ref={startCopyRef} className="start" r={5 / LOUPE_ZOOM} visibility="hidden" />
+          </g>
+          <circle ref={ringRef} className="ring" visibility="hidden" />
+          <path ref={crossRef} className="cross" />
+        </g>
+        <circle ref={loupeRimRef} className="rim" r={LOUPE_SIZE / 2} />
+      </svg>
     </div>
   );
 }

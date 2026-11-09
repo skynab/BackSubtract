@@ -156,6 +156,11 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
   - **Full size**: a photo scaled down to 4096 px on opening still exports at its original size. The original file is decoded again in the image worker, the mask is scaled up, and its hard edges snap to the full-size photo (soft brush edges are wider than the snap radius and stay soft). If the browser can't hold the full size (e.g. iOS canvas limits), the export falls back to the edited size. A checkbox turns this off.
   - **Copy** (PNG to the clipboard, with the chosen background) and **Share** (the system share sheet, where it takes files) sit at the bottom of the menu.
 - **Gestures:** pinch or wheel to zoom, two-finger drag or space-drag to pan, and press-and-hold to compare with the original. None of these needs a button.
+- **Touch loupe:** a finger hides the exact spot it is working on. While one finger draws with the brush, either lasso, the shape tool or a Select loop, a round magnifier (120 px) shows that spot at twice the view's zoom, with its removed areas, the lines being drawn (lasso, outline, shape, Hair band), the brush's outline and a small crosshair at the finger.
+  - It sits above the finger and to its left, clear of a right hand; near the left edge it moves to the right, and near the top, where there is no room above, it goes beside the finger. It stays inside the canvas and below the view switch.
+  - It shows once the finger has been down 150 ms or has moved, so quick taps (a polygon corner) don't flash it. It goes when the finger lifts, and as soon as a second finger lands to pinch or pan.
+  - Only for touch: a mouse or pen doesn't hide the spot. There is no setting.
+  - The WebGL compositor draws it as a second, scissored and round pass on the same canvas, so it costs no copy of the image. The lines are copied into an SVG over it, scaled with the image but keeping their screen width, and masked out of the main overlay where the loupe is.
 - **Edges** sits with the actions (next to Undo): see section 4.
 - **Background**: a small checkerboard button beside the Result / Overlay / Original switch opens two settings for spotting missed bits, both remembered. **Contrast** runs from one even colour, through the theme's own subtle checkerboard (the default), to black and white. **Move the background** slides the checkerboard slowly (24 px/s), so leftover opaque bits stand still against the motion. It slides rather than flashes, to stay comfortable for people sensitive to flicker, and only redraws while it is on.
 - **Keyboard:** 1–4 pick tools, L the lasso (Shift+L switches Magnetic / Polygon), B the brush, M the shape, X toggles Keep/Remove, [ and ] change size or tolerance, and Ctrl+Z / Ctrl+Shift+Z undo and redo. The README lists every shortcut.
@@ -189,7 +194,7 @@ src/
   app/            App shell, TopBar, BottomBar, Download menu, dialogs, toasts, shortcuts
   state/          Zustand store (tool, modes, slider values, remembered settings, notices)
   editor/         The open image, its mask and undo history; history memory budget
-  canvas/         Viewer (zoom/pan, gestures), WebGL compositor, checkerboard,
+  canvas/         Viewer (zoom/pan, gestures), WebGL compositor, checkerboard, touch loupe,
                   the download's background and frame shown while its menu is open
   ml/             AI worker (Transformers.js: Auto and Select models), its client,
                   download status, and the e2e stand-in worker
@@ -236,11 +241,12 @@ scripts/          icon and golden-image generators
    - Still open: native-speaker review of the translations, and testing on real phones and other GPUs.
 5. **Testing throughout:**
    - ✅ Vitest unit tests for the mask maths: Keep/Remove combine, recovery after removal, undo diffs, flood fill, colour key, export.
-   - ✅ Playwright smoke tests (`npm run test:e2e`) on Desktop Chrome and a Pixel 7 profile, using real touch taps on the phone. They run in the GitHub Pages workflow on every push, and the site is only deployed if they pass. The same tests also run there in Firefox and WebKit, without holding up the deploy until their failures are sorted out. They cover the start screen, language and RTL, About, opening an image, Magic Wand, Color with Keep/Remove, brush, undo/redo, restoring after a reload, the message when saving fails, and the download backgrounds (Colour and its canvas preview, Blur with no halo of the subject's colour, Image with Trim and after a reload, and JPG without None). Each checks the downloaded PNG's actual transparency. The AI tools are covered too, against a stand-in AI worker swapped in by the `e2e` build mode: it speaks the same protocol, simulates downloads (with progress, caching and cancelling) and returns colour-based masks. The tests cover the download dialog (Download, and Not now for Auto and Select), progress and Cancel, Auto running by itself once downloaded, a restored session not being overwritten, a failing model's message, and Select taps and loops. Each was checked to fail when the behaviour it guards is broken. The real models are still only tried by hand.
+   - ✅ Playwright smoke tests (`npm run test:e2e`) on Desktop Chrome and a Pixel 7 profile, using real touch taps on the phone. They run in the GitHub Pages workflow on every push, and the site is only deployed if they pass. The same tests also run there in Firefox and WebKit, without holding up the deploy until their failures are sorted out. They cover the start screen, language and RTL, About, opening an image, Magic Wand, Color with Keep/Remove, brush, undo/redo, restoring after a reload, the message when saving fails, the download backgrounds (Colour and its canvas preview, Blur with no halo of the subject's colour, Image with Trim and after a reload, and JPG without None), and the touch loupe (real touch input on the phone profile: its 2× view, the wait before it shows, a second finger, the brush outline; and never for a mouse). Each checks the downloaded PNG's actual transparency. The AI tools are covered too, against a stand-in AI worker swapped in by the `e2e` build mode: it speaks the same protocol, simulates downloads (with progress, caching and cancelling) and returns colour-based masks. The tests cover the download dialog (Download, and Not now for Auto and Select), progress and Cancel, Auto running by itself once downloaded, a restored session not being overwritten, a failing model's message, and Select taps and loops. Each was checked to fail when the behaviour it guards is broken. The real models are still only tried by hand.
    - ✅ Golden images (`golden/*.png`): Magic Wand, Color on a green screen, and an edge-snapping brush stroke, each run on fixed photo-like scenes. They're compared on every `npm test` and are viewable as a visual record; regenerate with `npm run golden:update`. They exposed a green fringe left by colour selections, now fixed by anti-aliasing colour selections against the image.
 6. **Next features:**
    - ✅ Background options for every format: None, Colour, Blur and Image, previewed on the canvas while the Download menu is open (section 5).
-   - Planned, not started: a touch loupe and Batch Auto (section 13).
+   - ✅ Touch loupe (section 5).
+   - Planned, not started: Batch Auto (section 13).
 
 ## 10. Donations (custom, no third-party donation platform)
 
@@ -295,12 +301,6 @@ Rules going forward:
 ## 13. Planned features
 
 Not started. Each keeps to section 1: no new buttons on the main screen, nothing destroyed, nothing uploaded.
-
-### Touch loupe
-- A finger hides the exact spot it is working on. While one finger is down with the brush, either lasso, the shape tool or a Select loop, a round magnifier (about 120 px) appears above the finger. It shows the image and its removed areas at twice the current zoom, with the brush ring, the lasso line or the shape's corner, and a small crosshair at the touch point.
-- It sits up and to the side of the finger, and moves to the other side near the top or a side of the screen. It goes away when the finger lifts, and while two fingers pinch or pan.
-- Only for touch. A mouse or pen doesn't hide the spot, so they never see it. There is no setting.
-- The WebGL compositor draws it as a second, scissored viewport on the same canvas, so it costs no extra copy of the image.
 
 ### Batch Auto
 - Choosing, dropping or pasting several images at once opens a **batch** instead of one image. A single image works as it does today.

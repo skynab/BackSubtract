@@ -40,6 +40,11 @@ uniform int u_bgMode;
 uniform vec3 u_bgColor;
 uniform sampler2D u_bg;
 uniform vec4 u_bgRect;
+/** The area with something in it (image px); beyond it, the canvas background. Wider than u_frame only in the loupe. */
+uniform vec4 u_content;
+uniform vec3 u_canvasBg;
+/** The touch loupe's circle (device px: x, y from the bottom, radius); radius 0 when not drawing it. */
+uniform vec3 u_loupe;
 out vec4 outColor;
 void main() {
   vec2 uv = v_px / u_imageSize;
@@ -69,6 +74,9 @@ void main() {
   }
   vec3 rgb = mix(bg, color.rgb, color.a * m);
   outColor = vec4(mix(rgb, u_previewTint, change * 0.45), 1.0);
+  vec2 cin = step(u_content.xy, v_px) * step(v_px, u_content.xy + u_content.zw);
+  if (cin.x * cin.y < 0.5) outColor = vec4(u_canvasBg, 1.0);
+  if (u_loupe.z > 0.0 && distance(gl_FragCoord.xy, u_loupe.xy) > u_loupe.z) discard;
 }`;
 
 export type RGB = [number, number, number];
@@ -94,6 +102,8 @@ export interface RenderParams {
   frame?: Rect;
   /** What shows behind the image in place of the checkerboard: a colour, or the picture from setBackdrop over `rect` (image px). */
   fill?: { kind: 'color'; color: RGB } | { kind: 'texture'; rect: Rect };
+  /** Touch loupe: a circle (CSS px) drawn again with its own view, over the rest. */
+  loupe?: { centre: { x: number; y: number }; radius: number; view: View };
 }
 
 function compile(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
@@ -138,6 +148,7 @@ export class Renderer {
       'u_imageSize', 'u_frame', 'u_scale', 'u_offset', 'u_viewport', 'u_image', 'u_mask',
       'u_ghost', 'u_original', 'u_checkerSize', 'u_checkerOffset', 'u_checkerA', 'u_checkerB',
       'u_preview', 'u_previewMode', 'u_previewTint', 'u_bgMode', 'u_bgColor', 'u_bg', 'u_bgRect',
+      'u_content', 'u_canvasBg', 'u_loupe',
     ]) {
       this.uniforms[name] = gl.getUniformLocation(program, name);
     }
@@ -230,6 +241,9 @@ export class Renderer {
     gl.uniform2f(u.u_imageSize, ...this.imageSize);
     const frame = p.frame ?? { x: 0, y: 0, w: this.imageSize[0], h: this.imageSize[1] };
     gl.uniform4f(u.u_frame, frame.x, frame.y, frame.w, frame.h);
+    gl.uniform4f(u.u_content, frame.x, frame.y, frame.w, frame.h);
+    gl.uniform3f(u.u_canvasBg, ...p.background);
+    gl.uniform3f(u.u_loupe, 0, 0, 0);
     gl.uniform1f(u.u_scale, p.view.scale);
     gl.uniform2f(u.u_offset, p.view.x, p.view.y);
     gl.uniform2f(u.u_viewport, p.width, p.height);
@@ -261,6 +275,25 @@ export class Renderer {
     gl.bindTexture(gl.TEXTURE_2D, this.bgTex);
     gl.uniform1i(u.u_bg, 3);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    if (p.loupe) {
+      // Again, at the loupe's zoom, over a quad covering the whole circle and only inside it.
+      const { centre, radius, view } = p.loupe;
+      const d = radius * 2;
+      gl.uniform4f(u.u_frame, (centre.x - radius - view.x) / view.scale, (centre.y - radius - view.y) / view.scale, d / view.scale, d / view.scale);
+      gl.uniform1f(u.u_scale, view.scale);
+      gl.uniform2f(u.u_offset, view.x, view.y);
+      gl.uniform3f(u.u_loupe, centre.x * p.dpr, (p.height - centre.y) * p.dpr, radius * p.dpr);
+      gl.enable(gl.SCISSOR_TEST);
+      gl.scissor(
+        Math.floor((centre.x - radius) * p.dpr),
+        Math.floor((p.height - centre.y - radius) * p.dpr),
+        Math.ceil(d * p.dpr) + 1,
+        Math.ceil(d * p.dpr) + 1,
+      );
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      gl.disable(gl.SCISSOR_TEST);
+    }
   }
 
   dispose(): void {
