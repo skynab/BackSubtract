@@ -1,6 +1,8 @@
 import { useEffect, type ComponentType, type SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
-import { chooseImage } from '../session/openImage';
+import { backToBatch } from '../batch/batch';
+import { useBatch } from '../batch/state';
+import { chooseImages } from '../session/open';
 import {
   AI_TOOLS,
   BRUSH_MAX,
@@ -22,6 +24,7 @@ import {
   BrushIcon,
   ColorIcon,
   EllipseIcon,
+  GridIcon,
   ImageIcon,
   LassoIcon,
   MagnetIcon,
@@ -239,6 +242,8 @@ function ContextRow() {
 
 export function BottomBar() {
   const { t } = useTranslation();
+  // An image of a batch: the way back to its grid takes the place of opening another image.
+  const fromBatch = useBatch((s) => s.open !== null);
 
   return (
     <footer className="bottombar">
@@ -257,9 +262,21 @@ export function BottomBar() {
       </div>
 
       <div className="actions">
-        <button type="button" className="icon" title={t('actions.open')} aria-label={t('actions.open')} onClick={chooseImage}>
-          <ImageIcon />
-        </button>
+        {fromBatch ? (
+          <button
+            type="button"
+            className="secondary batch-back"
+            title={t('batch.back')}
+            aria-label={t('batch.back')}
+            onClick={() => void backToBatch()}
+          >
+            <GridIcon width={20} height={20} />
+          </button>
+        ) : (
+          <button type="button" className="icon" title={t('actions.open')} aria-label={t('actions.open')} onClick={chooseImages}>
+            <ImageIcon />
+          </button>
+        )}
         <EdgesButton />
         <HistoryButtons />
         <DownloadButton />

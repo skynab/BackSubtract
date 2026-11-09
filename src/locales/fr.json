@@ -4,6 +4,7 @@
     "title": "Supprimez l’arrière-plan de n’importe quelle photo",
     "choose": "Choisir une image",
     "hint": "ou déposez ou collez une image n’importe où",
+    "many": "Choisissez-en plusieurs pour supprimer tous leurs arrière-plans d’un coup.",
     "privacy": "Vos images ne quittent jamais votre appareil."
   },
   "drop": "Déposez pour ouvrir",
@@ -40,9 +41,11 @@
   },
   "replace": {
     "title": "Ouvrir une nouvelle image ?",
+    "titleMany": "Ouvrir ces images ?",
     "body": "Les modifications de celle-ci seront perdues.",
     "cancel": "Annuler",
-    "open": "Ouvrir la nouvelle image"
+    "open": "Ouvrir la nouvelle image",
+    "openMany": "Ouvrir les images"
   },
   "notices": {
     "resized": "Grande image réduite à {{max}} px pour l'édition. Les téléchargements restent en taille réelle.",
@@ -209,5 +212,34 @@
     "low": "Faible",
     "high": "Fort",
     "motion": "Faire défiler l'arrière-plan"
+  },
+  "batch": {
+    "label": "Lot",
+    "progress": "Terminées : {{done}} sur {{total}}",
+    "add": "Ajouter des images",
+    "back": "Retour au lot",
+    "close": "Fermer le lot",
+    "run": "Supprimer les arrière-plans",
+    "runDownload": "Supprimer les arrière-plans (téléchargement unique de {{size}} Mo)",
+    "task": "Suppression des arrière-plans…",
+    "downloadAll": "Tout télécharger",
+    "preparing": "Préparation : {{done}} sur {{total}}…",
+    "fullSize": "Taille réelle",
+    "status": {
+      "waiting": "En attente",
+      "running": "En cours…",
+      "done": "Terminée",
+      "edited": "Modifiée"
+    },
+    "item": "{{name}} : {{status}}",
+    "tooMany": "Un lot contient au plus {{max}} images ; les autres ont été laissées de côté.",
+    "skipped": "Certains fichiers n’ont pas pu être ouverts et ont été laissés de côté.",
+    "restored": "Bon retour ! Votre lot a été restauré.",
+    "closeTitle": "Fermer le lot ?",
+    "closeBody": "Ses images et vos modifications seront supprimées de cet appareil. Téléchargez-les d’abord pour les garder.",
+    "closeConfirm": "Fermer le lot",
+    "shareTitle": "Vos images sont prêtes",
+    "shareBody": "Touchez « Partager » pour les envoyer.",
+    "shareFailed": "Impossible de partager les images. Essayez plutôt « Tout télécharger »."
   }
 }

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { editor } from '../editor/editor';
-import { openImage } from '../session/openImage';
+import { openFiles } from '../session/open';
 import { useUI, type ToolId } from '../state/store';
 import { retune } from '../tools/color/pick';
 
@@ -37,16 +37,17 @@ export function useGlobalInput(): void {
       e.preventDefault();
       dragDepth = 0;
       setDragging(false);
-      const file = e.dataTransfer?.files[0];
-      if (file) void openImage(file);
+      void openFiles([...(e.dataTransfer?.files ?? [])]);
     };
     const onPaste = (e: ClipboardEvent) => {
       if (isEditable(e.target)) return;
-      const item = [...(e.clipboardData?.items ?? [])].find((i) => i.kind === 'file' && i.type.startsWith('image/'));
-      const file = item?.getAsFile();
-      if (file) {
+      const files = [...(e.clipboardData?.items ?? [])]
+        .filter((i) => i.kind === 'file' && i.type.startsWith('image/'))
+        .map((i) => i.getAsFile())
+        .filter((f): f is File => !!f);
+      if (files.length) {
         e.preventDefault();
-        void openImage(file);
+        void openFiles(files);
       }
     };
 

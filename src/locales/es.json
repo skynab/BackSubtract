@@ -4,6 +4,7 @@
     "title": "Quita el fondo de cualquier foto",
     "choose": "Elegir imagen",
     "hint": "o suelta o pega una imagen en cualquier lugar",
+    "many": "Elige varias para quitar todos sus fondos a la vez.",
     "privacy": "Tus imágenes nunca salen de tu dispositivo."
   },
   "drop": "Suelta para abrir",
@@ -40,9 +41,11 @@
   },
   "replace": {
     "title": "¿Abrir una imagen nueva?",
+    "titleMany": "¿Abrir estas imágenes?",
     "body": "Se perderán los cambios hechos en esta.",
     "cancel": "Cancelar",
-    "open": "Abrir imagen nueva"
+    "open": "Abrir imagen nueva",
+    "openMany": "Abrir imágenes"
   },
   "notices": {
     "resized": "Imagen grande reducida a {{max}} px para editarla. Las descargas mantienen el tamaño completo.",
@@ -209,5 +212,34 @@
     "low": "Bajo",
     "high": "Alto",
     "motion": "Mover el fondo"
+  },
+  "batch": {
+    "label": "Lote",
+    "progress": "Listas: {{done}} de {{total}}",
+    "add": "Añadir imágenes",
+    "back": "Volver al lote",
+    "close": "Cerrar lote",
+    "run": "Quitar fondos",
+    "runDownload": "Quitar fondos (descarga única de {{size}} MB)",
+    "task": "Quitando los fondos…",
+    "downloadAll": "Descargar todo",
+    "preparing": "Preparando {{done}} de {{total}}…",
+    "fullSize": "Tamaño completo",
+    "status": {
+      "waiting": "En espera",
+      "running": "Procesando…",
+      "done": "Lista",
+      "edited": "Editada"
+    },
+    "item": "{{name}}: {{status}}",
+    "tooMany": "Un lote admite hasta {{max}} imágenes, así que el resto se dejó fuera.",
+    "skipped": "Algunos archivos no se pudieron abrir, así que se dejaron fuera.",
+    "restored": "Bienvenido de nuevo: se restauró tu lote.",
+    "closeTitle": "¿Cerrar el lote?",
+    "closeBody": "Sus imágenes y ediciones se eliminarán de este dispositivo. Descárgalas antes si quieres conservarlas.",
+    "closeConfirm": "Cerrar lote",
+    "shareTitle": "Tus imágenes están listas",
+    "shareBody": "Toca Compartir para enviarlas.",
+    "shareFailed": "No se pudieron compartir las imágenes. Prueba con Descargar todo."
   }
 }

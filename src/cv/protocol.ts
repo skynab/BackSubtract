@@ -32,6 +32,11 @@ export type CvRequest =
   | ({ id: number; type: 'preview' } & PickRequest)
   /** With `source`, export at the original file's full size (it was scaled down on opening). */
   | { id: number; type: 'export'; mask: Uint8Array; options: ExportOptions; source?: Blob }
+  /**
+   * Export an image that isn't open (one of a batch): the worker decodes `source` itself, at
+   * `width` × `height` (the size `mask` is for), or at its full size with `fullSize`. Leaves the open image alone.
+   */
+  | { id: number; type: 'exportFile'; source: Blob; mask: Uint8Array; width: number; height: number; options: ExportOptions; fullSize: boolean }
   /** The Blur background over `frame` (image px), for showing on the canvas. Returns a small RgbaImage to scale up. */
   | { id: number; type: 'blur'; mask: Uint8Array; strength: number; frame: Rect }
   /** Adjust the edges of `mask` (the mask from before the adjustment, so settings don't compound). Returns a new plane. */

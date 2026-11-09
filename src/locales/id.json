@@ -4,6 +4,7 @@
     "title": "Hapus latar belakang dari foto apa pun",
     "choose": "Pilih gambar",
     "hint": "atau seret atau tempel gambar di mana saja",
+    "many": "Pilih beberapa untuk menghapus semua latar belakangnya sekaligus.",
     "privacy": "Gambar Anda tidak pernah keluar dari perangkat Anda."
   },
   "drop": "Lepaskan untuk membuka",
@@ -40,9 +41,11 @@
   },
   "replace": {
     "title": "Buka gambar baru?",
+    "titleMany": "Buka gambar-gambar ini?",
     "body": "Hasil edit pada gambar ini akan hilang.",
     "cancel": "Batal",
-    "open": "Buka gambar baru"
+    "open": "Buka gambar baru",
+    "openMany": "Buka gambar"
   },
   "notices": {
     "resized": "Gambar besar diperkecil menjadi {{max}} px untuk diedit. Unduhan tetap berukuran penuh.",
@@ -209,5 +212,34 @@
     "low": "Rendah",
     "high": "Tinggi",
     "motion": "Gerakkan latar"
+  },
+  "batch": {
+    "label": "Kumpulan",
+    "progress": "{{done}} dari {{total}} selesai",
+    "add": "Tambah gambar",
+    "back": "Kembali ke kumpulan",
+    "close": "Tutup kumpulan",
+    "run": "Hapus semua latar belakang",
+    "runDownload": "Hapus semua latar belakang (unduhan sekali {{size}} MB)",
+    "task": "Menghapus latar belakang…",
+    "downloadAll": "Unduh semua",
+    "preparing": "Menyiapkan {{done}} dari {{total}}…",
+    "fullSize": "Ukuran penuh",
+    "status": {
+      "waiting": "Menunggu",
+      "running": "Memproses…",
+      "done": "Selesai",
+      "edited": "Diedit"
+    },
+    "item": "{{name}}: {{status}}",
+    "tooMany": "Satu kumpulan memuat hingga {{max}} gambar, jadi sisanya tidak dimasukkan.",
+    "skipped": "Beberapa file tidak dapat dibuka, jadi tidak dimasukkan.",
+    "restored": "Selamat datang kembali — kumpulan Anda telah dipulihkan.",
+    "closeTitle": "Tutup kumpulan?",
+    "closeBody": "Gambar dan editannya akan dihapus dari perangkat ini. Unduh dulu jika ingin menyimpannya.",
+    "closeConfirm": "Tutup kumpulan",
+    "shareTitle": "Gambar Anda sudah siap",
+    "shareBody": "Ketuk Bagikan untuk mengirimnya.",
+    "shareFailed": "Gambar tidak dapat dibagikan. Coba Unduh semua."
   }
 }

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { downloadAll, shareAll } from '../batch/batch';
+import { useBatch } from '../batch/state';
 import { editor } from '../editor/editor';
 import { exportInWorker } from '../cv/client';
 import { BACKGROUND_KINDS, BLUR_MAX, BLUR_MIN, type BackgroundKind } from '../export/background';
@@ -61,7 +63,11 @@ function canShareFiles(): boolean {
   return shareSupport;
 }
 
-export function DownloadButton() {
+/**
+ * The Download button and its menu of settings. With `batch`, it downloads every finished
+ * image of the batch as one zip (Share sends them as separate files, and there is no Copy).
+ */
+export function DownloadButton({ batch = false }: { batch?: boolean }) {
   const { t } = useTranslation();
   const format = useUI((s) => s.exportFormat);
   const bgKind = useUI((s) => s.background);
@@ -74,6 +80,10 @@ export function DownloadButton() {
   const fullSize = useUI((s) => s.fullSize);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  /** While a batch is being exported: which image of how many. */
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const batchDone = useBatch((s) => (batch ? s.items.filter((i) => i.status === 'done').length : 0));
+  const batchReduced = useBatch((s) => batch && s.items.some((i) => i.status === 'done' && i.sourceWidth > i.width));
   const [thumb, setThumb] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -83,15 +93,15 @@ export function DownloadButton() {
   // JPG can't be transparent.
   const kinds = active === 'jpg' ? BACKGROUND_KINDS.filter((k) => k !== 'none') : BACKGROUND_KINDS;
 
-  // The canvas shows the download's background while the menu is open.
+  // The canvas shows the download's background while the menu is open (a batch's grid has no canvas).
   useEffect(() => {
-    useUI.setState({ downloadOpen: open });
-  }, [open]);
+    if (!batch) useUI.setState({ downloadOpen: open });
+  }, [open, batch]);
   useEffect(
     () => () => {
-      useUI.setState({ downloadOpen: false });
+      if (!batch) useUI.setState({ downloadOpen: false });
     },
-    [],
+    [batch],
   );
 
   useEffect(() => {
@@ -109,7 +119,7 @@ export function DownloadButton() {
     else useUI.setState({ background: kind });
   };
   // Read when the menu renders; the menu is closed whenever a new image opens.
-  const reduced = editor.isReduced;
+  const reduced = batch ? batchReduced : editor.isReduced;
   const { width: fullW, height: fullH } = editor.sourceSize;
 
   useEffect(() => {
@@ -128,18 +138,20 @@ export function DownloadButton() {
     };
   }, [open]);
 
+  const options = (extra?: Partial<ExportOptions>): ExportOptions => ({ format: active, background, trim, margin, aspect, ...extra });
+
   /** Encode the image in the image worker, so the page stays responsive meanwhile. */
   const render = (extra?: Partial<ExportOptions>): Promise<Blob> => {
-    const options: ExportOptions = { format: active, background, trim, margin, aspect, ...extra };
     const source = fullSize && editor.isReduced ? editor.source ?? undefined : undefined;
-    return exportInWorker(editor.mask!.data, options, source);
+    return exportInWorker(editor.mask!.data, options(extra), source);
   };
+  const onProgress = (done: number, total: number) => setProgress({ done, total });
 
   const fileName = () => exportName(editor.fileName, extensionFor(active), active === 'mask' ? 'mask' : 'no-bg');
 
   /** Run one way of getting the result out, with the button busy meanwhile. */
   const run = async (action: () => Promise<void>, errorKey: string) => {
-    if (!editor.image || !editor.mask) return;
+    if (batch ? !batchDone : !editor.image || !editor.mask) return;
     setOpen(false);
     setBusy(true);
     try {
@@ -152,10 +164,14 @@ export function DownloadButton() {
       }
     } finally {
       setBusy(false);
+      setProgress(null);
     }
   };
 
-  const download = () => run(async () => downloadBlob(await render(), fileName()), 'errors.export');
+  const download = () =>
+    batch
+      ? run(() => downloadAll(options(), fullSize, onProgress), 'errors.export')
+      : run(async () => downloadBlob(await render(), fileName()), 'errors.export');
 
   const copy = () =>
     run(async () => {
@@ -165,18 +181,27 @@ export function DownloadButton() {
     }, 'errors.copy');
 
   const share = () =>
-    run(async () => {
-      const file = new File([await render()], fileName(), { type: MIME[active] });
-      await navigator.share({ files: [file] });
-    }, 'errors.share');
+    batch
+      ? run(() => shareAll(options(), fullSize, onProgress), 'batch.shareFailed')
+      : run(async () => {
+          const file = new File([await render()], fileName(), { type: MIME[active] });
+          await navigator.share({ files: [file] });
+        }, 'errors.share');
+
+  const label = busy
+    ? progress
+      ? t('batch.preparing', progress)
+      : t('actions.exporting')
+    : batch
+      ? t('batch.downloadAll')
+      : t('download.button', { format: t(`download.formats.${active}`) });
+  const copyable = !batch && canCopy();
 
   return (
     <div className="download" ref={rootRef}>
-      <button type="button" className="primary split-main" disabled={busy} onClick={download}>
+      <button type="button" className="primary split-main" disabled={busy || (batch && !batchDone)} onClick={download}>
         <DownloadIcon />
-        <span className="label">
-          {busy ? t('actions.exporting') : t('download.button', { format: t(`download.formats.${active}`) })}
-        </span>
+        <span className="label">{label}</span>
       </button>
       <button
         type="button"
@@ -311,20 +336,20 @@ export function DownloadButton() {
                 checked={fullSize}
                 onChange={(e) => useUI.setState({ fullSize: e.target.checked })}
               />
-              {t('download.fullSize', { width: fullW, height: fullH })}
+              {batch ? t('batch.fullSize') : t('download.fullSize', { width: fullW, height: fullH })}
             </label>
           )}
 
-          {(canCopy() || canShareFiles()) && (
+          {(copyable || canShareFiles()) && (
             <div className="menu-row menu-actions">
-              {canCopy() && (
+              {copyable && (
                 <button type="button" className="secondary" onClick={copy}>
                   <CopyIcon width={18} height={18} />
                   {t('download.copy')}
                 </button>
               )}
               {canShareFiles() && (
-                <button type="button" className="secondary" onClick={share}>
+                <button type="button" className="secondary" disabled={batch && !batchDone} onClick={share}>
                   <ShareIcon width={18} height={18} />
                   {t('download.share')}
                 </button>

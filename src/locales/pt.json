@@ -4,6 +4,7 @@
     "title": "Remova o fundo de qualquer foto",
     "choose": "Escolher imagem",
     "hint": "ou solte ou cole uma imagem em qualquer lugar",
+    "many": "Escolha várias para remover todos os fundos de uma vez.",
     "privacy": "Suas imagens nunca saem do seu dispositivo."
   },
   "drop": "Solte para abrir",
@@ -40,9 +41,11 @@
   },
   "replace": {
     "title": "Abrir uma nova imagem?",
+    "titleMany": "Abrir estas imagens?",
     "body": "As edições feitas nesta serão perdidas.",
     "cancel": "Cancelar",
-    "open": "Abrir nova imagem"
+    "open": "Abrir nova imagem",
+    "openMany": "Abrir imagens"
   },
   "notices": {
     "resized": "Imagem grande reduzida para {{max}} px para edição. Os downloads mantêm o tamanho original.",
@@ -209,5 +212,34 @@
     "low": "Baixo",
     "high": "Alto",
     "motion": "Mover o fundo"
+  },
+  "batch": {
+    "label": "Lote",
+    "progress": "Prontas: {{done}} de {{total}}",
+    "add": "Adicionar imagens",
+    "back": "Voltar ao lote",
+    "close": "Fechar lote",
+    "run": "Remover fundos",
+    "runDownload": "Remover fundos (download único de {{size}} MB)",
+    "task": "Removendo os fundos…",
+    "downloadAll": "Baixar tudo",
+    "preparing": "Preparando {{done}} de {{total}}…",
+    "fullSize": "Tamanho original",
+    "status": {
+      "waiting": "Aguardando",
+      "running": "Processando…",
+      "done": "Pronta",
+      "edited": "Editada"
+    },
+    "item": "{{name}}: {{status}}",
+    "tooMany": "Um lote comporta até {{max}} imagens, então o restante ficou de fora.",
+    "skipped": "Alguns arquivos não puderam ser abertos e ficaram de fora.",
+    "restored": "Bem-vindo de volta! Seu lote foi restaurado.",
+    "closeTitle": "Fechar o lote?",
+    "closeBody": "As imagens e edições dele serão removidas deste dispositivo. Baixe-as antes para mantê-las.",
+    "closeConfirm": "Fechar lote",
+    "shareTitle": "Suas imagens estão prontas",
+    "shareBody": "Toque em Compartilhar para enviá-las.",
+    "shareFailed": "Não foi possível compartilhar as imagens. Tente Baixar tudo."
   }
 }

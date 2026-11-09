@@ -4,6 +4,7 @@
     "title": "一鍵移除任何照片的背景",
     "choose": "選擇圖片",
     "hint": "或在任何地方拖放或貼上圖片",
+    "many": "可一次選擇多張，批次移除背景。",
     "privacy": "你的圖片絕不會離開你的裝置。"
   },
   "drop": "放開以開啟",
@@ -40,9 +41,11 @@
   },
   "replace": {
     "title": "開啟新圖片？",
+    "titleMany": "開啟這些圖片？",
     "body": "對這張圖片所做的修改將會遺失。",
     "cancel": "取消",
-    "open": "開啟新圖片"
+    "open": "開啟新圖片",
+    "openMany": "開啟圖片"
   },
   "notices": {
     "resized": "大型圖片已縮小至 {{max}} 像素以便編輯。下載時仍為原始尺寸。",
@@ -209,5 +212,34 @@
     "low": "低",
     "high": "高",
     "motion": "移動背景"
+  },
+  "batch": {
+    "label": "批次處理",
+    "progress": "已完成 {{done}}/{{total}}",
+    "add": "新增圖片",
+    "back": "返回批次清單",
+    "close": "關閉批次處理",
+    "run": "批次移除背景",
+    "runDownload": "批次移除背景（一次性下載 {{size}} MB）",
+    "task": "正在移除背景…",
+    "downloadAll": "全部下載",
+    "preparing": "正在準備 {{done}}/{{total}}…",
+    "fullSize": "原始尺寸",
+    "status": {
+      "waiting": "等待中",
+      "running": "處理中…",
+      "done": "已完成",
+      "edited": "已編輯"
+    },
+    "item": "{{name}}：{{status}}",
+    "tooMany": "一次批次處理最多 {{max}} 張圖片，其餘的未加入。",
+    "skipped": "部分檔案無法開啟，未加入。",
+    "restored": "歡迎回來，已還原你的批次處理。",
+    "closeTitle": "關閉批次處理？",
+    "closeBody": "其中的圖片和編輯將從此裝置刪除。如需保留，請先下載。",
+    "closeConfirm": "關閉批次處理",
+    "shareTitle": "圖片已準備好",
+    "shareBody": "點一下「分享」即可傳送。",
+    "shareFailed": "無法分享圖片。請改用「全部下載」。"
   }
 }

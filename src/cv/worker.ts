@@ -52,6 +52,22 @@ function retune(req: PickRequest): SelectionResult | null {
   return select(req, lastDist);
 }
 
+/** Decode a photo at `width` × `height`, as it was decoded for editing (see decodeImage in openImage.ts). */
+async function decodeAt(source: Blob, width: number, height: number): Promise<Uint8ClampedArray> {
+  const options: ImageBitmapOptions = { imageOrientation: 'from-image', premultiplyAlpha: 'none' };
+  let bitmap = await createImageBitmap(source, options);
+  if (bitmap.width !== width || bitmap.height !== height) {
+    bitmap.close();
+    bitmap = await createImageBitmap(source, { ...options, resizeWidth: width, resizeHeight: height, resizeQuality: 'high' });
+  }
+  const canvas = new OffscreenCanvas(width, height);
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) throw new Error('Canvas 2D is unavailable');
+  ctx.drawImage(bitmap, 0, 0);
+  bitmap.close();
+  return ctx.getImageData(0, 0, width, height).data;
+}
+
 function post(message: CvResponse, transfer: Transferable[] = []) {
   self.postMessage(message, transfer);
 }
@@ -92,6 +108,16 @@ self.onmessage = async (event: MessageEvent<CvRequest>) => {
           }
         }
         value ??= await exportImage(pixels, req.mask, width, height, req.options);
+        break;
+      case 'exportFile':
+        if (req.fullSize) {
+          try {
+            value = await exportFullSize(req.source, req.mask, req.width, req.height, req.options);
+          } catch (err) {
+            console.warn('Full-size export failed; exporting at the edited size.', err);
+          }
+        }
+        value ??= await exportImage(await decodeAt(req.source, req.width, req.height), req.mask, req.width, req.height, req.options, true);
         break;
       case 'blur':
         if (!pixels) throw new Error('No image');

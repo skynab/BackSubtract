@@ -14,7 +14,8 @@
  *   the whole image, and a small disk around the point.
  *
  * Tests can change its behaviour by writing JSON to the "fake-ai" cache at
- * "/config": { downloadMs?: number, fail?: boolean, gpuFails?: boolean }.
+ * "/config": { downloadMs?: number, autoMs?: number, fail?: boolean, gpuFails?: boolean }
+ * (autoMs: how long each Auto run takes).
  * With gpuFails, the models fail "on the GPU" (as WebGPU can in some browsers) until
  * the app asks to avoid it, and each such failure is counted at "/gpu-failures".
  */
@@ -30,6 +31,7 @@ const DIFFERENT = 60;
 
 interface Config {
   downloadMs?: number;
+  autoMs?: number;
   fail?: boolean;
   gpuFails?: boolean;
 }
@@ -95,6 +97,8 @@ const colourDistance = (d: Uint8ClampedArray, i: number, j: number) =>
 async function runAuto(image: ImageBitmap, avoid: Fallback[] = []): Promise<MaskResult> {
   await ensureModel('auto');
   await failIfAsked(avoid);
+  const { autoMs = 0 } = await config();
+  if (autoMs) await sleep(autoMs);
   const { data, width, height } = readPixels(image);
   const matte = new Uint8Array(width * height);
   for (let i = 0; i < matte.length; i++) matte[i] = colourDistance(data, i, 0) > DIFFERENT ? 255 : 0;

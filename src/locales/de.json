@@ -4,6 +4,7 @@
     "title": "Entferne den Hintergrund aus jedem Foto",
     "choose": "Bild auswählen",
     "hint": "oder ein Bild irgendwo ablegen oder einfügen",
+    "many": "Wähle mehrere aus, um alle Hintergründe auf einmal zu entfernen.",
     "privacy": "Deine Bilder verlassen nie dein Gerät."
   },
   "drop": "Zum Öffnen ablegen",
@@ -40,9 +41,11 @@
   },
   "replace": {
     "title": "Neues Bild öffnen?",
+    "titleMany": "Diese Bilder öffnen?",
     "body": "Deine Änderungen an diesem Bild gehen verloren.",
     "cancel": "Abbrechen",
-    "open": "Neues Bild öffnen"
+    "open": "Neues Bild öffnen",
+    "openMany": "Bilder öffnen"
   },
   "notices": {
     "resized": "Großes Bild zum Bearbeiten auf {{max}} px verkleinert. Downloads haben die volle Größe.",
@@ -209,5 +212,34 @@
     "low": "Niedrig",
     "high": "Hoch",
     "motion": "Hintergrund bewegen"
+  },
+  "batch": {
+    "label": "Stapel",
+    "progress": "{{done}} von {{total}} fertig",
+    "add": "Bilder hinzufügen",
+    "back": "Zurück zum Stapel",
+    "close": "Stapel schließen",
+    "run": "Hintergründe entfernen",
+    "runDownload": "Hintergründe entfernen (einmaliger Download, {{size}} MB)",
+    "task": "Hintergründe werden entfernt…",
+    "downloadAll": "Alle herunterladen",
+    "preparing": "Wird vorbereitet: {{done}} von {{total}}…",
+    "fullSize": "Volle Größe",
+    "status": {
+      "waiting": "Wartet",
+      "running": "In Arbeit…",
+      "done": "Fertig",
+      "edited": "Bearbeitet"
+    },
+    "item": "{{name}}: {{status}}",
+    "tooMany": "Ein Stapel fasst bis zu {{max}} Bilder, der Rest wurde weggelassen.",
+    "skipped": "Einige Dateien ließen sich nicht öffnen und wurden weggelassen.",
+    "restored": "Willkommen zurück – dein Stapel wurde wiederhergestellt.",
+    "closeTitle": "Stapel schließen?",
+    "closeBody": "Seine Bilder und Bearbeitungen werden von diesem Gerät entfernt. Lade sie vorher herunter, um sie zu behalten.",
+    "closeConfirm": "Stapel schließen",
+    "shareTitle": "Deine Bilder sind bereit",
+    "shareBody": "Tippe auf „Teilen“, um sie zu senden.",
+    "shareFailed": "Die Bilder konnten nicht geteilt werden. Versuche stattdessen „Alle herunterladen“."
   }
 }

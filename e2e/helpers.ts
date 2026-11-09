@@ -17,6 +17,30 @@ export function testImage(): Buffer {
   return encodePng(IMAGE_W, IMAGE_H, rgba);
 }
 
+/** Change how the stand-in AI worker behaves (it reads this before each step; see src/ml/fake-worker.ts). */
+export async function fakeAi(
+  page: Page,
+  config: { downloadMs?: number; autoMs?: number; fail?: boolean; gpuFails?: boolean },
+): Promise<void> {
+  await page.evaluate(async (c) => {
+    await (await caches.open('fake-ai')).put('/config', new Response(JSON.stringify(c)));
+  }, config);
+}
+
+/** Mark the stand-in's Auto model as already downloaded, as on a later visit. */
+export async function cacheAutoModel(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    await (await caches.open('fake-ai')).put('/model/auto', new Response('ok'));
+  });
+}
+
+export const downloadDialog = (page: Page) => page.getByRole('dialog', { name: 'Download the AI model?' });
+
+/** Agree to the model's first download. */
+export async function confirmDownload(page: Page): Promise<void> {
+  await downloadDialog(page).getByRole('button', { name: 'Download', exact: true }).click();
+}
+
 /** Open the test image through the real "Choose image" button and file picker. */
 export async function openTestImage(page: Page): Promise<void> {
   await page.goto('/');

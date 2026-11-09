@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { answerReplace } from '../session/openImage';
+import { useUI } from '../state/store';
 import { Modal } from './Modal';
 
 /**
@@ -10,6 +11,8 @@ import { Modal } from './Modal';
  */
 export function ReplaceDialog() {
   const { t } = useTranslation();
+  // Several images at once start a batch.
+  const many = useUI((s) => s.replaceMany);
   const openRef = useRef<HTMLButtonElement>(null);
 
   // Enter opens the new image, as a drop most often means to. Opening the modal focuses its
@@ -20,14 +23,14 @@ export function ReplaceDialog() {
   }, []);
 
   return (
-    <Modal title={t('replace.title')} onClose={() => answerReplace(false)}>
+    <Modal title={many ? t('replace.titleMany') : t('replace.title')} onClose={() => answerReplace(false)}>
       <p>{t('replace.body')}</p>
       <div className="modal-actions">
         <button type="button" className="secondary" onClick={() => answerReplace(false)}>
           {t('replace.cancel')}
         </button>
         <button type="button" className="primary" ref={openRef} onClick={() => answerReplace(true)}>
-          {t('replace.open')}
+          {many ? t('replace.openMany') : t('replace.open')}
         </button>
       </div>
     </Modal>

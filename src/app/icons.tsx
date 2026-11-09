@@ -145,6 +145,14 @@ export const GlobeIcon = icon(
 export const HeartIcon = icon(
   <path d="M12 20s-7.5-4.6-7.5-10.1A4.4 4.4 0 0 1 12 7.2a4.4 4.4 0 0 1 7.5 2.7C19.5 15.4 12 20 12 20z" />,
 );
+export const GridIcon = icon(
+  <>
+    <rect x="4" y="4" width="6.5" height="6.5" rx="1.2" />
+    <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2" />
+    <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2" />
+    <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.2" />
+  </>,
+);
 export const CloseIcon = icon(<path d="M6 6l12 12M18 6L6 18" />);
 export const ChevronIcon = icon(<path d="M7 10l5 5 5-5" />);
 export const PlusIcon = icon(<path d="M12 6v12M6 12h12" />);

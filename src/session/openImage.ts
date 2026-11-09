@@ -5,6 +5,12 @@ import { loadSession } from './autosave';
 /** Longest side kept in memory; larger photos are scaled down on open. */
 export const MAX_SIDE = 4096;
 
+/** The size a photo of `width` × `height` is edited at. */
+export function editedSize(width: number, height: number): { width: number; height: number } {
+  const scale = MAX_SIDE / Math.max(width, height);
+  return scale >= 1 ? { width, height } : { width: Math.round(width * scale), height: Math.round(height * scale) };
+}
+
 interface Decoded {
   bitmap: ImageBitmap;
   resized: boolean;
@@ -12,30 +18,28 @@ interface Decoded {
   full: { width: number; height: number };
 }
 
-async function decodeImage(file: Blob): Promise<Decoded> {
+export async function decodeImage(file: Blob): Promise<Decoded> {
   const options: ImageBitmapOptions = { imageOrientation: 'from-image', premultiplyAlpha: 'none' };
   const probe = await createImageBitmap(file, options);
   const full = { width: probe.width, height: probe.height };
-  const scale = MAX_SIDE / Math.max(probe.width, probe.height);
-  if (scale >= 1) return { bitmap: probe, resized: false, full };
+  const size = editedSize(full.width, full.height);
+  if (size.width === full.width && size.height === full.height) return { bitmap: probe, resized: false, full };
 
-  const resizeWidth = Math.round(probe.width * scale);
-  const resizeHeight = Math.round(probe.height * scale);
   probe.close();
-  const bitmap = await createImageBitmap(file, { ...options, resizeWidth, resizeHeight, resizeQuality: 'high' });
+  const bitmap = await createImageBitmap(file, { ...options, resizeWidth: size.width, resizeHeight: size.height, resizeQuality: 'high' });
   return { bitmap, resized: true, full };
 }
 
 /** The answer to "Open a new image?" while it's being asked. */
 let pendingReplace: ((open: boolean) => void) | null = null;
 
-/** Ask (in the app's own dialog) whether a new image may replace the current one and its edits. */
-function askReplace(): Promise<boolean> {
+/** Ask (in the app's own dialog) whether a new image, or several (`many`), may replace the current one and its edits. */
+export function askReplace(many = false): Promise<boolean> {
   // A second drop while asking replaces the first: the newer file is the one to ask about.
   pendingReplace?.(false);
   return new Promise((resolve) => {
     pendingReplace = resolve;
-    useUI.setState({ dialog: 'replace' });
+    useUI.setState({ dialog: 'replace', replaceMany: many });
   });
 }
 
@@ -50,10 +54,13 @@ export function answerReplace(open: boolean): void {
 /** iPhone photos. Some systems report no type for them, so check the name too. */
 export const isHeic = (file: File) => /image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
 
+/** Whether a file looks like an image worth trying to open. */
+export const isImageFile = (file: File) => file.type.startsWith('image/') || isHeic(file);
+
 export async function openImage(file: File): Promise<void> {
   const ui = useUI.getState();
   const heic = isHeic(file);
-  if (!file.type.startsWith('image/') && !heic) {
+  if (!isImageFile(file)) {
     ui.showNotice({ key: 'errors.notImage', tone: 'error' });
     return;
   }
@@ -86,16 +93,4 @@ export async function restoreSession(): Promise<void> {
   } catch {
     // A saved session that can't be reopened is simply skipped.
   }
-}
-
-/** Show the system file picker (which also offers the camera on phones). */
-export function chooseImage(): void {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*,.heic,.heif';
-  input.addEventListener('change', () => {
-    const file = input.files?.[0];
-    if (file) void openImage(file);
-  });
-  input.click();
 }

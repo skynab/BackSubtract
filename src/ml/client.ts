@@ -118,14 +118,16 @@ export function onDownloadProgress(listener: (model: ModelName, loaded: number, 
 /** The longest side sent to the models; they work at about 1024 px internally. */
 const WORK_SIDE = 1024;
 
+/** The size of the copy of a `width` × `height` image that the models are given. */
+export function workSize(width: number, height: number): { width: number; height: number } {
+  const scale = Math.min(1, WORK_SIDE / Math.max(width, height));
+  return { width: Math.round(width * scale), height: Math.round(height * scale) };
+}
+
 /** A downscaled copy of the image for the models. The original stays untouched. */
 export async function workCopy(image: ImageBitmap): Promise<ImageBitmap> {
-  const scale = Math.min(1, WORK_SIDE / Math.max(image.width, image.height));
-  return createImageBitmap(image, {
-    resizeWidth: Math.round(image.width * scale),
-    resizeHeight: Math.round(image.height * scale),
-    resizeQuality: 'high',
-  });
+  const size = workSize(image.width, image.height);
+  return createImageBitmap(image, { resizeWidth: size.width, resizeHeight: size.height, resizeQuality: 'high' });
 }
 
 /**

@@ -92,6 +92,23 @@ export class Editor {
     this.emit({ type: 'history' });
   }
 
+  /** Close the image (e.g. going back to a batch's grid), so its memory is freed and late results for it are ignored. */
+  unload(): void {
+    if (!this.image) return;
+    this.stroke = null;
+    this.image.close();
+    this.image = null;
+    this.source = null;
+    this.fileName = '';
+    this.sourceSize = { width: 0, height: 0 };
+    this.mask = null;
+    this.coverage = null;
+    this.pixelCache = null;
+    this.history.clear();
+    this.emit({ type: 'image' });
+    this.emit({ type: 'history' });
+  }
+
   /**
    * The original image's RGBA pixels, decoded once on first use. When the page is
    * cross-origin isolated they live in shared memory, so workers can read them without a copy.

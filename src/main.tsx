@@ -6,7 +6,7 @@ import { editor } from './editor/editor';
 import { initI18n } from './i18n';
 import { startBackdrop } from './canvas/backdrop';
 import { loadBackgroundImage, startAutosave } from './session/autosave';
-import { restoreSession } from './session/openImage';
+import { restore } from './session/open';
 import { useUI } from './state/store';
 import './tools/controller';
 
@@ -33,7 +33,7 @@ async function restoreBackgroundImage() {
 }
 
 async function start() {
-  await Promise.all([initI18n(), restoreSession(), restoreBackgroundImage()]);
+  await Promise.all([initI18n(), restore(), restoreBackgroundImage()]);
   startBackdrop();
   // Start saving only after restoring, so the restore itself isn't saved straight back.
   startAutosave();

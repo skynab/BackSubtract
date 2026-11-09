@@ -4,6 +4,7 @@
     "title": "Remove the background from any photo",
     "choose": "Choose image",
     "hint": "or drop or paste an image anywhere",
+    "many": "Choose several to remove all their backgrounds at once.",
     "privacy": "Your images never leave your device."
   },
   "drop": "Drop to open",
@@ -40,9 +41,11 @@
   },
   "replace": {
     "title": "Open a new image?",
+    "titleMany": "Open these images?",
     "body": "Your edits to this one will be lost.",
     "cancel": "Cancel",
-    "open": "Open new image"
+    "open": "Open new image",
+    "openMany": "Open images"
   },
   "notices": {
     "resized": "Large image scaled down to {{max}} px for editing. Downloads stay full size.",
@@ -209,5 +212,34 @@
     "low": "Low",
     "high": "High",
     "motion": "Move the background"
+  },
+  "batch": {
+    "label": "Batch",
+    "progress": "{{done}} of {{total}} done",
+    "add": "Add images",
+    "back": "Back to batch",
+    "close": "Close batch",
+    "run": "Remove backgrounds",
+    "runDownload": "Remove backgrounds ({{size}} MB one-time download)",
+    "task": "Removing backgrounds…",
+    "downloadAll": "Download all",
+    "preparing": "Preparing {{done}} of {{total}}…",
+    "fullSize": "Full size",
+    "status": {
+      "waiting": "Waiting",
+      "running": "Working…",
+      "done": "Done",
+      "edited": "Edited"
+    },
+    "item": "{{name}}: {{status}}",
+    "tooMany": "A batch holds up to {{max}} images, so the rest were left out.",
+    "skipped": "Some files couldn't be opened, so they were left out.",
+    "restored": "Welcome back — your batch was restored.",
+    "closeTitle": "Close the batch?",
+    "closeBody": "Its images and edits will be removed from this device. Download them first to keep them.",
+    "closeConfirm": "Close batch",
+    "shareTitle": "Your images are ready",
+    "shareBody": "Tap Share to send them.",
+    "shareFailed": "Couldn't share the images. Try Download all instead."
   }
 }

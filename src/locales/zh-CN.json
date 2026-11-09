@@ -4,6 +4,7 @@
     "title": "一键去除任何照片的背景",
     "choose": "选择图片",
     "hint": "或在任意位置拖放或粘贴图片",
+    "many": "可一次选择多张，批量去除背景。",
     "privacy": "你的图片始终不会离开你的设备。"
   },
   "drop": "松开以打开",
@@ -40,9 +41,11 @@
   },
   "replace": {
     "title": "打开新图片？",
+    "titleMany": "打开这些图片？",
     "body": "对这张图片的修改将会丢失。",
     "cancel": "取消",
-    "open": "打开新图片"
+    "open": "打开新图片",
+    "openMany": "打开图片"
   },
   "notices": {
     "resized": "大图已缩小到 {{max}} 像素以便编辑。下载仍为原始尺寸。",
@@ -209,5 +212,34 @@
     "low": "低",
     "high": "高",
     "motion": "移动背景"
+  },
+  "batch": {
+    "label": "批量处理",
+    "progress": "已完成 {{done}}/{{total}}",
+    "add": "添加图片",
+    "back": "返回批量列表",
+    "close": "关闭批量处理",
+    "run": "批量去除背景",
+    "runDownload": "批量去除背景（一次性下载 {{size}} MB）",
+    "task": "正在去除背景…",
+    "downloadAll": "全部下载",
+    "preparing": "正在准备 {{done}}/{{total}}…",
+    "fullSize": "原始尺寸",
+    "status": {
+      "waiting": "等待中",
+      "running": "处理中…",
+      "done": "已完成",
+      "edited": "已编辑"
+    },
+    "item": "{{name}}：{{status}}",
+    "tooMany": "一次批量处理最多 {{max}} 张图片，其余的未添加。",
+    "skipped": "部分文件无法打开，未添加。",
+    "restored": "欢迎回来，已恢复你的批量处理。",
+    "closeTitle": "关闭批量处理？",
+    "closeBody": "其中的图片和编辑将从此设备删除。如需保留，请先下载。",
+    "closeConfirm": "关闭批量处理",
+    "shareTitle": "图片已准备好",
+    "shareBody": "点按“分享”即可发送。",
+    "shareFailed": "无法分享图片。请改用“全部下载”。"
   }
 }

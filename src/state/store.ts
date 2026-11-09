@@ -105,7 +105,9 @@ interface UIState {
    * 'replace' asks before a new image replaces one with edits (see openImage);
    * 'download' asks before an AI model's first download (see ml/status).
    */
-  dialog: 'donate' | 'about' | 'replace' | 'download' | null;
+  dialog: 'donate' | 'about' | 'replace' | 'download' | 'closeBatch' | 'shareBatch' | null;
+  /** Whether the 'replace' dialog asks about several images (a new batch) rather than one. */
+  replaceMany: boolean;
   /** The AI model the 'download' dialog asks about. */
   downloadModel: ModelName | null;
   setTool: (tool: ToolId) => void;
@@ -155,6 +157,7 @@ export const useUI = create<UIState>()(
       models: {},
       autoRan: false,
       dialog: null,
+      replaceMany: false,
       downloadModel: null,
       setTool: (tool) => {
         if (AVAILABLE_TOOLS.includes(tool)) set({ tool });

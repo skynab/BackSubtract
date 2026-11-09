@@ -1,25 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
-import { chooseTool, DISK, downloadAndReadAlpha, openTestImage, tapImage, testImage, toScreen } from './helpers';
+import { chooseTool, confirmDownload, DISK, downloadAndReadAlpha, downloadDialog, fakeAi, openTestImage, tapImage, testImage, toScreen } from './helpers';
 
 /**
  * The AI tools, against the stand-in AI worker of the e2e build (src/ml/fake-worker.ts):
  * the same messages, progress and caching as the real models, with simple colour rules for results.
  */
 
-/** Change how the stand-in behaves (it reads this before each step). */
-async function fakeAi(page: Page, config: { downloadMs?: number; fail?: boolean; gpuFails?: boolean }): Promise<void> {
-  await page.evaluate(async (c) => {
-    await (await caches.open('fake-ai')).put('/config', new Response(JSON.stringify(c)));
-  }, config);
-}
-
 const autoButton = (page: Page) => page.getByRole('button', { name: /^Remove background|^Run again$/ });
-const downloadDialog = (page: Page) => page.getByRole('dialog', { name: 'Download the AI model?' });
-
-/** Agree to the model's first download. */
-async function confirmDownload(page: Page): Promise<void> {
-  await downloadDialog(page).getByRole('button', { name: 'Download', exact: true }).click();
-}
 
 test('Auto asks first, shows the download, then removes the background', async ({ page }) => {
   await openTestImage(page);

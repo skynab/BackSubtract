@@ -75,6 +75,21 @@ export function blurInWorker(mask: Uint8Array, strength: number, frame: Rect): P
   return call({ type: 'blur', mask: copy, strength, frame }, [copy.buffer]);
 }
 
+/**
+ * Export an image that isn't open (one of a batch), from its file and mask, at the size
+ * the mask is for, or at the file's full size. The mask is handed over to the worker.
+ */
+export function exportFileInWorker(
+  source: Blob,
+  mask: Uint8Array,
+  width: number,
+  height: number,
+  options: ExportOptions,
+  fullSize: boolean,
+): Promise<Blob> {
+  return call({ type: 'exportFile', source, mask, width, height, options, fullSize }, [mask.buffer]);
+}
+
 /** Export the image; passing the original file exports at its full size. */
 export function exportInWorker(mask: Uint8Array, options: ExportOptions, source?: Blob): Promise<Blob> {
   ensureImage();
