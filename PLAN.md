@@ -164,7 +164,7 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 - Strings live in `src/locales/<code>.json` and load through react-i18next. Each language loads only when chosen. Few strings are needed, since the UI is mostly icons with tooltips and accessible labels.
 - **RTL support:** the app sets `dir="rtl"` for Arabic and Hebrew and uses CSS logical properties throughout.
 - Launch set (suggested): en, es, fr, de, pt, zh-CN, ja, ar, hi.
-- Added since: ru, id, ko, bn, zh-TW (14 in all). Chinese is picked by script: Traditional for zh-Hant, Taiwan, Hong Kong and Macau, Simplified otherwise. The picker lists each in its own language, next to related ones. A browser test opens an image on a 375 px and a 320 px phone in every language, in the platform's own font and again in a wide one (Verdana, or DejaVu Sans on Linux, where CI runs), and checks nothing goes off screen and no tool label spills over. On phones tool buttons are at least as wide as their longest word and share the rest equally. Where a row is still too tight, text shortens with an ellipsis rather than overflowing: a long Download label, the language picker, and the view switch's labels. At 360 px and below, the view switch also uses tighter padding and smaller text.
+- Added since: ru, id, ko, bn, zh-TW, he (15 in all). Hebrew is also picked for the old code `iw`, and Indonesian for `in`, which some older Android and Java-based browsers still report. Chinese is picked by script: Traditional for zh-Hant, Taiwan, Hong Kong and Macau, Simplified otherwise. The picker lists each in its own language, next to related ones. A browser test opens an image on a 375 px and a 320 px phone in every language, in the platform's own font and again in a wide one (Verdana, or DejaVu Sans on Linux, where CI runs), and checks nothing goes off screen and no tool label spills over. On phones tool buttons are at least as wide as their longest word and share the rest equally. Where a row is still too tight, text shortens with an ellipsis rather than overflowing: a long Download label, the language picker, and the view switch's labels. At 360 px and below, the view switch also uses tighter padding and smaller text.
 
 ## 7. Performance and compatibility
 
@@ -232,6 +232,7 @@ scripts/          icon and golden-image generators
    - ✅ Vitest unit tests for the mask maths: Keep/Remove combine, recovery after removal, undo diffs, flood fill, colour key, export.
    - ✅ Playwright smoke tests (`npm run test:e2e`) on Desktop Chrome and a Pixel 7 profile, using real touch taps on the phone. They run in the GitHub Pages workflow on every push, and the site is only deployed if they pass. The same tests also run there in Firefox and WebKit, without holding up the deploy until their failures are sorted out. They cover the start screen, language and RTL, About, opening an image, Magic Wand, Color with Keep/Remove, brush, undo/redo, restoring after a reload, and the message when saving fails. Each checks the downloaded PNG's actual transparency. The AI tools are covered too, against a stand-in AI worker swapped in by the `e2e` build mode: it speaks the same protocol, simulates downloads (with progress, caching and cancelling) and returns colour-based masks. The tests cover the download dialog (Download, and Not now for Auto and Select), progress and Cancel, Auto running by itself once downloaded, a restored session not being overwritten, a failing model's message, and Select taps and loops. Each was checked to fail when the behaviour it guards is broken. The real models are still only tried by hand.
    - ✅ Golden images (`golden/*.png`): Magic Wand, Color on a green screen, and an edge-snapping brush stroke, each run on fixed photo-like scenes. They're compared on every `npm test` and are viewable as a visual record; regenerate with `npm run golden:update`. They exposed a green fringe left by colour selections, now fixed by anti-aliasing colour selections against the image.
+6. **Next features** (planned, not started): background options for every format, a touch loupe, and Batch Auto. See section 13.
 
 ## 10. Donations (custom, no third-party donation platform)
 
@@ -282,3 +283,28 @@ Rules going forward:
 - **Editing:** non-destructive hidden mask. Everything is recoverable and the user never manages a mask directly.
 - **Licensing:** permissive licences only (MIT / Apache-2.0 / BSD).
 - **Donations:** custom in-app donate dialog with Stripe Payment Links behind it, and no backend at launch.
+
+## 13. Planned features
+
+Not started. Each keeps to section 1: no new buttons on the main screen, nothing destroyed, nothing uploaded.
+
+### Background options for every format
+- Today PNG and WebP come out transparent and only JPG takes a background colour. Instead, the Download menu gets one **Background** choice for every format: **None** (transparent; not offered for JPG), **Colour** (the existing picker), **Blur** and **Image**. It is remembered between visits, like the format. Mask ignores it.
+- **Blur**: the photo's own background, blurred, like a phone's portrait mode, with one strength slider. Blurring the whole original would smear the subject's colours into a halo around it, so the blur is weighted by the mask (blur of image × removed, divided by blur of removed). Only removed pixels feed it, and the area behind the subject fills in from the background around it. This is possible because nothing is ever deleted: the original background is still there.
+- **Image**: pick a photo from the device. It is scaled to cover the frame and centred, and stays on the device, saved with the session in IndexedDB.
+- Edge colour cleanup still runs first, so soft edges lose the old backdrop's fringe before they meet the new background.
+- While the Download menu is open, the canvas shows the chosen background in place of the checkerboard, so what you see is what you download. Closing the menu brings the checkerboard back, since it is better for spotting missed bits.
+- It works with Trim (the frame past the image's edges gets the colour or image; Blur extends its edge pixels outward), Full size, Copy and Share.
+
+### Touch loupe
+- A finger hides the exact spot it is working on. While one finger is down with the brush, either lasso, the shape tool or a Select loop, a round magnifier (about 120 px) appears above the finger. It shows the image and its removed areas at twice the current zoom, with the brush ring, the lasso line or the shape's corner, and a small crosshair at the touch point.
+- It sits up and to the side of the finger, and moves to the other side near the top or a side of the screen. It goes away when the finger lifts, and while two fingers pinch or pan.
+- Only for touch. A mouse or pen doesn't hide the spot, so they never see it. There is no setting.
+- The WebGL compositor draws it as a second, scissored viewport on the same canvas, so it costs no extra copy of the image.
+
+### Batch Auto
+- Choosing, dropping or pasting several images at once opens a **batch** instead of one image. A single image works as it does today.
+- The batch shows a grid of thumbnails. Auto runs on each in turn, in the one AI worker, and each thumbnail shows its result, or that it is waiting or running. The first run asks about the model download, as Auto always does.
+- Tapping a thumbnail opens that image in the normal editor, to fix it with any tool. A **Back to batch** button returns to the grid with the fix kept.
+- **Download all** saves a zip using the current Download settings (format, background, trim, full size). The zip is store-only (PNG, WebP and JPG are already compressed), written by a few lines of our own code with CRC-32, so it needs no new dependency. Where the system share sheet takes several files (mostly phones), **Share** sends them without a zip.
+- Memory: only thumbnails stay in memory. Each image's original file and mask live in IndexedDB, and an image is loaded fully only while it runs or is open. The batch is saved like a single session, so a refresh doesn't lose it. A batch holds up to 50 images; beyond that, a message says the rest were left out.

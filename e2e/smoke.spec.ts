@@ -11,6 +11,9 @@ test('start screen, language switch and right-to-left layout', async ({ page }) 
 
   await language.selectOption('ar');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await language.selectOption('he');
+  await expect(page.getByRole('heading', { name: 'הסרת הרקע מכל תמונה' })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   await language.selectOption('en');
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
 });
@@ -22,7 +25,7 @@ test('every language fits a small phone: nothing off screen, no tool label spill
   // The e2e build has a placeholder donate link (.env.e2e), so the top bar is as full as on a real site.
   await expect(page.getByRole('button', { name: 'Donate' })).toBeVisible();
   const codes = await page.getByRole('combobox').locator('option').evaluateAll((os) => os.map((o) => (o as HTMLOptionElement).value));
-  expect(codes.length).toBeGreaterThanOrEqual(14);
+  expect(codes.length).toBeGreaterThanOrEqual(15);
   // A typical phone, and the smallest ones (iPhone SE 1st gen and similar). Then all again
   // in a wide font: the same words come out wider on Linux (DejaVu Sans) than in Segoe UI,
   // Roboto or San Francisco, so a layout that only just fits on one machine fails on CI.

@@ -23,6 +23,12 @@ describe('pickLanguage', () => {
       expect(pickLanguage(null, [pref], both, 'en'), pref).toBe('zh-CN');
     }
   });
+  it('understands the old codes for Hebrew and Indonesian', () => {
+    const more = [...supported, 'he', 'id'];
+    expect(pickLanguage(null, ['iw-IL'], more, 'en')).toBe('he');
+    expect(pickLanguage(null, ['iw'], more, 'en')).toBe('he');
+    expect(pickLanguage(null, ['in-ID'], more, 'en')).toBe('id');
+  });
   it('falls back', () => {
     expect(pickLanguage(null, ['de-DE'], supported, 'en')).toBe('en');
   });
@@ -32,6 +38,7 @@ describe('isRtl', () => {
   it('detects right-to-left languages', () => {
     expect(isRtl('ar')).toBe(true);
     expect(isRtl('he-IL')).toBe(true);
+    expect(isRtl('iw')).toBe(true);
     expect(isRtl('en')).toBe(false);
   });
 });

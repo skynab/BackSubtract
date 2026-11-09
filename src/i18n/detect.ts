@@ -1,6 +1,12 @@
 const RTL_LANGUAGES = new Set(['ar', 'he', 'fa', 'ur']);
 
-const base = (code: string) => code.toLowerCase().split('-')[0];
+/** Old ISO codes some browsers still report (older Android and Java-based ones): iw for Hebrew, in for Indonesian. */
+const LEGACY: Record<string, string> = { iw: 'he', in: 'id' };
+
+const base = (code: string) => {
+  const b = code.toLowerCase().split('-')[0];
+  return LEGACY[b] ?? b;
+};
 
 const TRADITIONAL_REGIONS = ['tw', 'hk', 'mo'];
 
