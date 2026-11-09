@@ -1,4 +1,5 @@
 /** Messages between the app and the ML worker. */
+import type { Fallback } from './fallback';
 
 export type ModelName = 'auto' | 'select';
 
@@ -21,20 +22,16 @@ export interface Proposals extends MaskResult {
   scores: number[];
 }
 
-export interface AutoResult extends MaskResult {
-  /** The best model failed on this device and a more compatible one was used; remember that. */
-  fellBack: boolean;
-}
-
 export type Request =
-  /** avoidBirefnet: BiRefNet failed here on an earlier visit, so use the compatible model. */
-  | { id: number; type: 'info'; model: ModelName; avoidBirefnet?: boolean }
-  | { id: number; type: 'auto'; image: ImageBitmap; avoidBirefnet?: boolean }
-  | { id: number; type: 'encode'; image: ImageBitmap }
+  /** avoid: what failed here on an earlier visit, so isn't tried again. */
+  | { id: number; type: 'info'; model: ModelName; avoid?: Fallback[] }
+  | { id: number; type: 'auto'; image: ImageBitmap; avoid?: Fallback[] }
+  | { id: number; type: 'encode'; image: ImageBitmap; avoid?: Fallback[] }
   /** Points are in the pixel coordinates of the last encoded image; label 1 = object, 0 = not object. */
   | { id: number; type: 'decode'; points: [number, number][]; labels: number[] };
 
 export type Response =
   | { id: number; type: 'result'; value: unknown }
-  | { id: number; type: 'error'; message: string }
+  /** fallback: what to avoid in a retry that might work. */
+  | { id: number; type: 'error'; message: string; fallback?: Fallback }
   | { type: 'progress'; model: ModelName; loaded: number; total: number };

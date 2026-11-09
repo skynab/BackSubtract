@@ -13,7 +13,8 @@ import {
   type PreTrainedModel,
   type Processor,
 } from '@huggingface/transformers';
-import type { AutoResult, ModelInfo, ModelName, Proposals, Request, Response } from './protocol';
+import { type Fallback, ModelError } from './fallback';
+import type { MaskResult, ModelInfo, ModelName, Proposals, Request, Response } from './protocol';
 
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -38,10 +39,24 @@ interface Setup {
   storageBuffers: number;
 }
 
-let setupPromise: Promise<Setup> | null = null;
+/**
+ * What failed on this device, as the app tells it with each request: BiRefNet, so IS-Net
+ * is used instead, or the GPU, so the models run on the CPU instead (see client.ts).
+ */
+const failed = new Set<Fallback>();
 
+function avoid(fallbacks: Fallback[] = []) {
+  for (const f of fallbacks) failed.add(f);
+}
+
+const CPU: Setup = { device: 'wasm', fp16: false, storageBuffers: 0 };
+
+let gpuPromise: Promise<Setup> | null = null;
+
+/** The GPU if the browser offers one and the models haven't failed on it, otherwise the CPU. */
 function setup(): Promise<Setup> {
-  setupPromise ??= (async () => {
+  if (failed.has('gpu')) return Promise.resolve(CPU);
+  gpuPromise ??= (async () => {
     try {
       const adapter = await (navigator as Navigator & { gpu?: GPU }).gpu?.requestAdapter();
       if (adapter) {
@@ -54,16 +69,13 @@ function setup(): Promise<Setup> {
     } catch {
       // Fall through to WASM.
     }
-    return { device: 'wasm', fp16: false, storageBuffers: 0 };
+    return CPU;
   })();
-  return setupPromise;
+  return gpuPromise;
 }
 
-/** Set when BiRefNet failed on this device (now or on an earlier visit), so IS-Net is used instead. */
-let birefnetFailed = false;
-
 const useBirefnet = (s: Setup) =>
-  !birefnetFailed && s.device === 'webgpu' && s.fp16 && s.storageBuffers >= BIREFNET_STORAGE_BUFFERS;
+  !failed.has('birefnet') && s.device === 'webgpu' && s.fp16 && s.storageBuffers >= BIREFNET_STORAGE_BUFFERS;
 
 interface ModelFiles {
   id: string;
@@ -144,20 +156,23 @@ env.fetch = async (input, init) => {
   return new globalThis.Response(counted, { status: response.status, statusText: response.statusText, headers: response.headers });
 };
 
-async function info(model: ModelName, avoidBirefnet?: boolean): Promise<ModelInfo> {
-  if (avoidBirefnet) birefnetFailed = true;
-  const s = await setup();
-  const f = files(model, s);
-  let cached = false;
+async function isCached(f: ModelFiles): Promise<boolean> {
   try {
     const cache = await caches.open(env.cacheKey);
     const hits = await Promise.all(f.paths.map((p) => cache.match(`${env.remoteHost}${f.id}/resolve/main/${p}`)));
-    cached = hits.every(Boolean);
+    return hits.every(Boolean);
   } catch {
     // No Cache API (e.g. some private modes): treat as not downloaded.
+    return false;
   }
+}
+
+async function info(model: ModelName, fallbacks?: Fallback[]): Promise<ModelInfo> {
+  avoid(fallbacks);
+  const s = await setup();
+  const f = files(model, s);
   const runtimeBytes = (await isRuntimeCached()) ? 0 : RUNTIME_BYTES;
-  return { device: s.device, bytes: f.bytes + runtimeBytes, cached };
+  return { device: s.device, bytes: f.bytes + runtimeBytes, cached: await isCached(f) };
 }
 
 function post(message: Response, transfer: Transferable[] = []) {
@@ -188,9 +203,11 @@ async function trackProgress(model: ModelName, f: ModelFiles) {
   };
 }
 
-const loaded = new Map<string, Promise<{ model: PreTrainedModel; processor: Processor }>>();
+type Loaded = { model: PreTrainedModel; processor: Processor };
 
-function load(name: ModelName, f: ModelFiles) {
+const loaded = new Map<string, Promise<Loaded>>();
+
+function load(name: ModelName, f: ModelFiles): Promise<Loaded> {
   let p = loaded.get(f.id);
   if (!p) {
     p = (async () => {
@@ -213,8 +230,24 @@ function load(name: ModelName, f: ModelFiles) {
   return p;
 }
 
-async function loadSelect() {
-  return load('select', files('select', await setup()));
+/**
+ * Loads and runs a model with the files that suit this device. If it fails once they're
+ * downloaded (a failed download isn't the device's doing), the error names the fallback
+ * that might work: IS-Net for BiRefNet, which can hit GPU limits that aren't visible up
+ * front, or the CPU for the GPU, since WebGPU differs between browsers (ONNX Runtime's is
+ * tested mostly in Chrome's). The app tries that in a fresh worker, as ONNX Runtime can be
+ * left unusable by a failure on the GPU.
+ */
+async function runModel<T>(name: ModelName, run: (f: ModelFiles, loaded: Loaded) => Promise<T>): Promise<T> {
+  const s = await setup();
+  const f = files(name, s);
+  try {
+    return await run(f, await load(name, f));
+  } catch (err) {
+    const downloaded = (await isCached(f)) && (await isRuntimeCached());
+    const fallback = !downloaded ? undefined : f.id === BIREFNET_ID ? 'birefnet' : s.device === 'webgpu' ? 'gpu' : undefined;
+    throw new ModelError(err instanceof Error ? err.message : String(err), fallback);
+  }
 }
 
 function toRawImage(image: ImageBitmap): RawImage {
@@ -228,9 +261,7 @@ function toRawImage(image: ImageBitmap): RawImage {
 
 const asFloat32 = (t: Tensor) => (t.type === 'float32' ? t : t.to('float32'));
 
-async function predictMatte(raw: RawImage, s: Setup): Promise<Uint8Array> {
-  const f = files('auto', s);
-  const { model, processor } = await load('auto', f);
+async function predictMatte(raw: RawImage, f: ModelFiles, { model, processor }: Loaded): Promise<Uint8Array> {
   const { pixel_values } = await processor(raw);
   let matte: RawImage;
   if (f.id === BIREFNET_ID) {
@@ -262,49 +293,42 @@ async function predictMatte(raw: RawImage, s: Setup): Promise<Uint8Array> {
   return new Uint8Array(resized.data);
 }
 
-async function runAuto(image: ImageBitmap, avoidBirefnet?: boolean): Promise<AutoResult> {
-  if (avoidBirefnet) birefnetFailed = true;
-  const s = await setup();
+async function runAuto(image: ImageBitmap, fallbacks?: Fallback[]): Promise<MaskResult> {
+  avoid(fallbacks);
   const raw = toRawImage(image);
-  const result = (data: Uint8Array, fellBack: boolean) => ({ data, width: raw.width, height: raw.height, fellBack });
-  try {
-    return result(await predictMatte(raw, s), false);
-  } catch (err) {
-    if (!useBirefnet(s)) throw err;
-    // BiRefNet can hit GPU limits that aren't visible up front; switch to IS-Net for good.
-    console.warn('BiRefNet failed on this device; switching to IS-Net.', err);
-    birefnetFailed = true;
-    loaded.delete(BIREFNET_ID);
-    return result(await predictMatte(raw, s), true);
-  }
+  const data = await runModel('auto', (f, model) => predictMatte(raw, f, model));
+  return { data, width: raw.width, height: raw.height };
 }
 
-/** The encoded image for Select: computed once per image, reused for every tap. */
+/** The encoded image for Select: computed once per image, reused for every tap with the model that encoded it. */
 let encoded: {
+  loaded: Loaded;
   embeddings: Record<string, Tensor>;
   originalSize: [number, number];
   reshapedSize: [number, number];
   inputs: { original_sizes: unknown; reshaped_input_sizes: unknown };
 } | null = null;
 
-async function encode(image: ImageBitmap): Promise<boolean> {
+async function encode(image: ImageBitmap, fallbacks?: Fallback[]): Promise<boolean> {
   encoded = null;
-  const { model, processor } = await loadSelect();
+  avoid(fallbacks);
   const raw = toRawImage(image);
-  const inputs = await processor(raw);
-  const embeddings = await (model as SamModel).get_image_embeddings(inputs);
-  encoded = {
-    embeddings,
-    originalSize: inputs.original_sizes[0],
-    reshapedSize: inputs.reshaped_input_sizes[0],
-    inputs: { original_sizes: inputs.original_sizes, reshaped_input_sizes: inputs.reshaped_input_sizes },
-  };
+  encoded = await runModel('select', async (_, loaded) => {
+    const inputs = await loaded.processor(raw);
+    return {
+      loaded,
+      embeddings: await (loaded.model as SamModel).get_image_embeddings(inputs),
+      originalSize: inputs.original_sizes[0],
+      reshapedSize: inputs.reshaped_input_sizes[0],
+      inputs: { original_sizes: inputs.original_sizes, reshaped_input_sizes: inputs.reshaped_input_sizes },
+    };
+  });
   return true;
 }
 
 async function decode(points: [number, number][], labels: number[]): Promise<Proposals> {
   if (!encoded) throw new Error('No image encoded');
-  const { model, processor } = await loadSelect();
+  const { model, processor } = encoded.loaded;
   const [oh, ow] = encoded.originalSize;
   const [rh, rw] = encoded.reshapedSize;
   const scaled = points.flatMap(([x, y]) => [(x * rw) / ow, (y * rh) / oh]);
@@ -329,13 +353,13 @@ self.onmessage = async (event: MessageEvent<Request>) => {
     let value: unknown;
     switch (req.type) {
       case 'info':
-        value = await info(req.model, req.avoidBirefnet);
+        value = await info(req.model, req.avoid);
         break;
       case 'auto':
-        value = await runAuto(req.image, req.avoidBirefnet);
+        value = await runAuto(req.image, req.avoid);
         break;
       case 'encode':
-        value = await encode(req.image);
+        value = await encode(req.image, req.avoid);
         break;
       case 'decode':
         value = await decode(req.points, req.labels);
@@ -344,6 +368,7 @@ self.onmessage = async (event: MessageEvent<Request>) => {
     const buffer = (value as { data?: Uint8Array } | null)?.data?.buffer;
     post({ id: req.id, type: 'result', value }, buffer ? [buffer as ArrayBuffer] : []);
   } catch (err) {
-    post({ id: req.id, type: 'error', message: err instanceof Error ? err.message : String(err) });
+    const message = err instanceof Error ? err.message : String(err);
+    post({ id: req.id, type: 'error', message, fallback: err instanceof ModelError ? err.fallback : undefined });
   }
 };

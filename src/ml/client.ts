@@ -1,4 +1,5 @@
-import type { AutoResult, MaskResult, ModelInfo, ModelName, Proposals, Request, Response } from './protocol';
+import { type Fallback, ModelError, withFallbacks } from './fallback';
+import type { MaskResult, ModelInfo, ModelName, Proposals, Request, Response } from './protocol';
 
 type Pending = { resolve: (value: unknown) => void; reject: (error: Error) => void };
 type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never;
@@ -70,7 +71,7 @@ function getWorker(): Worker {
       if (!p) return;
       pending.delete(msg.id);
       if (msg.type === 'result') p.resolve(msg.value);
-      else p.reject(new Error(msg.message));
+      else p.reject(new ModelError(msg.message, msg.fallback));
     };
   }
   return worker;
@@ -84,18 +85,23 @@ function call<T>(req: DistributiveOmit<Request, 'id'>, transfer: Transferable[] 
   });
 }
 
-/**
- * Stop whatever the AI worker is doing, e.g. a model download on a limited data plan.
- * The worker is shut down, which ends its downloads (nothing half-downloaded is kept),
- * and a fresh one starts on the next AI call. Pending calls fail with CancelledError.
- */
-export function cancelModelWork(): void {
+/** Shut the worker down, failing its pending calls with `error`. A fresh one starts on the next AI call. */
+function stopWorker(error: () => Error): void {
   if (!worker) return;
   worker.terminate();
   worker = null;
-  for (const p of pending.values()) p.reject(new CancelledError());
+  for (const p of pending.values()) p.reject(error());
   pending.clear();
   for (const l of resetListeners) l();
+}
+
+/**
+ * Stop whatever the AI worker is doing, e.g. a model download on a limited data plan.
+ * The worker is shut down, which ends its downloads (nothing half-downloaded is kept).
+ * Pending calls fail with CancelledError.
+ */
+export function cancelModelWork(): void {
+  stopWorker(() => new CancelledError());
 }
 
 /** Called when the worker is shut down, so anything it held (e.g. Select's encoded image) is gone. */
@@ -122,32 +128,59 @@ export async function workCopy(image: ImageBitmap): Promise<ImageBitmap> {
   });
 }
 
-const FALLBACK_KEY = 'backsubtract.autoFallback';
+/**
+ * What failed on this device on an earlier visit, so the worker doesn't try it again:
+ * the best background model (BiRefNet), or running the models on the GPU.
+ */
+const FALLBACK_KEYS: Record<Fallback, string> = {
+  birefnet: 'backsubtract.autoFallback',
+  gpu: 'backsubtract.gpuFallback',
+};
 
-/** Whether the best background model failed on this device before (remembered across visits). */
-function avoidBirefnet(): boolean {
+function avoided(): Fallback[] {
   try {
-    return localStorage.getItem(FALLBACK_KEY) === '1';
+    return (Object.keys(FALLBACK_KEYS) as Fallback[]).filter((f) => localStorage.getItem(FALLBACK_KEYS[f]) === '1');
   } catch {
-    return false;
+    return [];
   }
 }
 
-export const modelInfo = (model: ModelName) => call<ModelInfo>({ type: 'info', model, avoidBirefnet: avoidBirefnet() });
-
-export async function removeBackground(image: ImageBitmap): Promise<MaskResult> {
-  const result = await call<AutoResult>({ type: 'auto', image, avoidBirefnet: avoidBirefnet() }, [image]);
-  if (result.fellBack) {
-    try {
-      localStorage.setItem(FALLBACK_KEY, '1');
-    } catch {
-      // Not remembered; it will fall back again next time.
-    }
+function rememberFallback(fallback: Fallback): void {
+  try {
+    localStorage.setItem(FALLBACK_KEYS[fallback], '1');
+  } catch {
+    // Not remembered; it will fall back again next time.
   }
-  return result;
 }
 
-export const encodeImage = (image: ImageBitmap) => call<boolean>({ type: 'encode', image }, [image]);
+export const modelInfo = (model: ModelName) => call<ModelInfo>({ type: 'info', model, avoid: avoided() });
+
+/**
+ * Run a model on an image, and when it fails in a way a more compatible option might
+ * not (see runModel in worker.ts), try again with that option avoided, in a fresh worker.
+ * A fallback is remembered once a try works, so a passing problem (e.g. offline) isn't
+ * held against the device. Each try gets its own copy of the image, as sending one to
+ * the worker gives it away.
+ */
+async function runOnImage<T>(image: ImageBitmap, send: (copy: ImageBitmap, avoid: Fallback[]) => Promise<T>): Promise<T> {
+  try {
+    const { value, fellBack } = await withFallbacks(
+      avoided(),
+      async (avoid) => send(await createImageBitmap(image), avoid),
+      () => stopWorker(() => new Error('The AI worker was restarted')),
+    );
+    fellBack.forEach(rememberFallback);
+    return value;
+  } finally {
+    image.close();
+  }
+}
+
+export const removeBackground = (image: ImageBitmap) =>
+  runOnImage(image, (copy, avoid) => call<MaskResult>({ type: 'auto', image: copy, avoid }, [copy]));
+
+export const encodeImage = (image: ImageBitmap) =>
+  runOnImage(image, (copy, avoid) => call<boolean>({ type: 'encode', image: copy, avoid }, [copy]));
 
 export const segment = (points: [number, number][], labels: number[]) =>
   call<Proposals>({ type: 'decode', points, labels });

@@ -7,7 +7,7 @@ import { chooseTool, DISK, downloadAndReadAlpha, openTestImage, tapImage, testIm
  */
 
 /** Change how the stand-in behaves (it reads this before each step). */
-async function fakeAi(page: Page, config: { downloadMs?: number; fail?: boolean }): Promise<void> {
+async function fakeAi(page: Page, config: { downloadMs?: number; fail?: boolean; gpuFails?: boolean }): Promise<void> {
   await page.evaluate(async (c) => {
     await (await caches.open('fake-ai')).put('/config', new Response(JSON.stringify(c)));
   }, config);
@@ -155,6 +155,36 @@ test('when the model fails, a message says so and nothing changes', async ({ pag
   await confirmDownload(page);
   await expect(page.getByText("The AI model couldn't run. Check your connection and try again.")).toBeVisible({ timeout: 10_000 });
   await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled();
+});
+
+test('when the model fails on the GPU, it runs on the CPU instead, and the GPU is not tried again', async ({ page }) => {
+  const gpuFailures = () =>
+    page.evaluate(async () => Number((await (await (await caches.open('fake-ai')).match('/gpu-failures'))?.text()) ?? 0));
+  await openTestImage(page);
+  // The stand-in, like ONNX Runtime, can't run anything after the failure: this works only in a fresh worker.
+  await fakeAi(page, { downloadMs: 100, gpuFails: true });
+  await autoButton(page).click();
+  await confirmDownload(page);
+  await expect(page.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText("The AI model couldn't run.", { exact: false })).toBeHidden();
+  const [corner, centre] = await downloadAndReadAlpha(page, [[10, 10], [DISK.x, DISK.y]]);
+  expect(corner).toBe(0);
+  expect(centre).toBe(255);
+  expect(await gpuFailures()).toBe(1);
+
+  // Remembered, even after a reload: Select goes straight to the CPU too.
+  await page.waitForTimeout(1500); // autosave
+  await page.reload();
+  await expect(page.getByText('Welcome back — your last image was restored.')).toBeVisible();
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled();
+  await chooseTool(page, 'Select');
+  await tapImage(page, DISK.x, DISK.y);
+  await confirmDownload(page);
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeEnabled({ timeout: 10_000 });
+  const [cornerAfterSelect] = await downloadAndReadAlpha(page, [[10, 10]]);
+  expect(cornerAfterSelect).toBe(0);
+  expect(await gpuFailures()).toBe(1);
 });
 
 test('Select: a tap on the object cuts it out', async ({ page }) => {

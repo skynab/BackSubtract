@@ -14,9 +14,12 @@
  *   the whole image, and a small disk around the point.
  *
  * Tests can change its behaviour by writing JSON to the "fake-ai" cache at
- * "/config": { downloadMs?: number, fail?: boolean }.
+ * "/config": { downloadMs?: number, fail?: boolean, gpuFails?: boolean }.
+ * With gpuFails, the models fail "on the GPU" (as WebGPU can in some browsers) until
+ * the app asks to avoid it, and each such failure is counted at "/gpu-failures".
  */
-import type { AutoResult, ModelInfo, ModelName, Proposals, Request, Response } from './protocol';
+import { type Fallback, ModelError } from './fallback';
+import type { MaskResult, ModelInfo, ModelName, Proposals, Request, Response } from './protocol';
 
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -28,6 +31,7 @@ const DIFFERENT = 60;
 interface Config {
   downloadMs?: number;
   fail?: boolean;
+  gpuFails?: boolean;
 }
 
 async function config(): Promise<Config> {
@@ -59,8 +63,21 @@ async function ensureModel(model: ModelName): Promise<void> {
   await (await caches.open(CACHE)).put(modelKey(model), new globalThis.Response('ok'));
 }
 
-async function failIfAsked(): Promise<void> {
-  if ((await config()).fail) throw new Error('Fake model failure (requested by the test)');
+/** Set after a "GPU" failure: like ONNX Runtime after a real one, this worker can't run anything more. */
+let broken = false;
+
+/** Fail if the test asked. `avoid` is given for the steps that use the GPU; Select's decoding always runs on the CPU. */
+async function failIfAsked(avoid?: Fallback[]): Promise<void> {
+  if (broken) throw new Error('Fake runtime left unusable by the GPU failure');
+  const { fail, gpuFails } = await config();
+  if (gpuFails && avoid && !avoid.includes('gpu')) {
+    broken = true;
+    const cache = await caches.open(CACHE);
+    const count = Number((await (await cache.match('/gpu-failures'))?.text()) ?? 0);
+    await cache.put('/gpu-failures', new globalThis.Response(String(count + 1)));
+    throw new ModelError('Fake GPU failure (requested by the test)', 'gpu');
+  }
+  if (fail) throw new Error('Fake model failure (requested by the test)');
 }
 
 function readPixels(image: ImageBitmap): { data: Uint8ClampedArray; width: number; height: number } {
@@ -75,20 +92,20 @@ function readPixels(image: ImageBitmap): { data: Uint8ClampedArray; width: numbe
 const colourDistance = (d: Uint8ClampedArray, i: number, j: number) =>
   Math.hypot(d[i * 4] - d[j * 4], d[i * 4 + 1] - d[j * 4 + 1], d[i * 4 + 2] - d[j * 4 + 2]);
 
-async function runAuto(image: ImageBitmap): Promise<AutoResult> {
+async function runAuto(image: ImageBitmap, avoid: Fallback[] = []): Promise<MaskResult> {
   await ensureModel('auto');
-  await failIfAsked();
+  await failIfAsked(avoid);
   const { data, width, height } = readPixels(image);
   const matte = new Uint8Array(width * height);
   for (let i = 0; i < matte.length; i++) matte[i] = colourDistance(data, i, 0) > DIFFERENT ? 255 : 0;
-  return { data: matte, width, height, fellBack: false };
+  return { data: matte, width, height };
 }
 
 let encoded: { data: Uint8ClampedArray; width: number; height: number } | null = null;
 
-async function encode(image: ImageBitmap): Promise<boolean> {
+async function encode(image: ImageBitmap, avoid: Fallback[] = []): Promise<boolean> {
   await ensureModel('select');
-  await failIfAsked();
+  await failIfAsked(avoid);
   encoded = readPixels(image);
   return true;
 }
@@ -147,10 +164,10 @@ self.onmessage = async (event: MessageEvent<Request>) => {
         value = await info(req.model);
         break;
       case 'auto':
-        value = await runAuto(req.image);
+        value = await runAuto(req.image, req.avoid);
         break;
       case 'encode':
-        value = await encode(req.image);
+        value = await encode(req.image, req.avoid);
         break;
       case 'decode':
         value = await decode(req.points, req.labels);
@@ -159,6 +176,7 @@ self.onmessage = async (event: MessageEvent<Request>) => {
     const buffer = (value as { data?: Uint8Array } | null)?.data?.buffer;
     post({ id: req.id, type: 'result', value }, buffer ? [buffer as ArrayBuffer] : []);
   } catch (err) {
-    post({ id: req.id, type: 'error', message: err instanceof Error ? err.message : String(err) });
+    const message = err instanceof Error ? err.message : String(err);
+    post({ id: req.id, type: 'error', message, fallback: err instanceof ModelError ? err.fallback : undefined });
   }
 };
