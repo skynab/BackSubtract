@@ -74,6 +74,17 @@ test('every language fits a small phone: nothing off screen, no tool label spill
   }
 });
 
+test("a first visit isn't reloaded by itself where the host sends the isolation headers", async ({ page }) => {
+  // In a browser without COEP `credentialless` (WebKit) the page is never isolated, and it
+  // used to reload as the service worker took over: whatever was under way was lost.
+  let loads = 0;
+  page.on('load', () => loads++);
+  await page.goto('/');
+  await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+  await page.waitForTimeout(500);
+  expect(loads).toBe(1);
+});
+
 test('About opens from the app name and closes with Escape', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'BackSubtract' }).click();

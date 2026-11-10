@@ -13,13 +13,33 @@ const resetListeners = new Set<() => void>();
 const ISOLATION_RELOAD_KEY = 'backsubtract.isolationReload';
 
 /**
+ * Whether the host sends the isolation headers itself, from a HEAD request for this page.
+ * The service worker never answers HEAD requests (Workbox routes only GET), so this is
+ * the host's own answer even once the worker has taken over.
+ */
+async function hostSendsIsolation(): Promise<boolean> {
+  try {
+    const response = await fetch(location.href, { method: 'HEAD', cache: 'no-store' });
+    return response.headers.has('cross-origin-embedder-policy');
+  } catch {
+    return true; // Can't tell (offline?): don't reload on a guess.
+  }
+}
+
+/**
  * The AI runtime's WebAssembly uses shared memory, which Firefox only allows in a
  * cross-origin isolated page. Where the host can't send the isolation headers (GitHub
  * Pages), the service worker adds them (public/sw-isolation.js), but only to pages it
  * serves. So reload once it's ready if it didn't serve this one (the first visit, or a
- * hard refresh, which bypasses it). A reload that didn't help (no `credentialless`
- * support, as in Safari) isn't tried again. That's remembered in localStorage, since
- * isolated and non-isolated pages don't share sessionStorage.
+ * hard refresh, which bypasses it).
+ *
+ * Only where the host leaves the headers out, though. Where it sends them (Netlify,
+ * Cloudflare Pages, the dev and preview servers), or the service worker served the page
+ * with them, a page that still isn't isolated is in a browser without `credentialless`
+ * (Safari). A reload can't help there, and it would land at an unpredictable moment, a
+ * second or so in, throwing away whatever the person had started, such as choosing a
+ * photo. A reload that didn't help isn't tried again either. That's remembered in
+ * localStorage, since isolated and non-isolated pages don't share sessionStorage.
  */
 function reloadIntoIsolation(): void {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
@@ -31,20 +51,21 @@ function reloadIntoIsolation(): void {
     return; // No storage: can't remember having tried, so don't try.
   }
   const sw = navigator.serviceWorker;
-  let reloading = false;
-  const reload = () => {
-    if (reloading) return;
-    reloading = true;
+  if (sw.controller) return;
+  const tookOver = new Promise<void>((resolve) => {
+    sw.addEventListener('controllerchange', () => resolve(), { once: true });
+    void sw.ready.then(() => {
+      if (!sw.controller) resolve();
+    });
+  });
+  void Promise.all([hostSendsIsolation(), tookOver]).then(([hostIsolates]) => {
+    if (hostIsolates) return;
     try {
       localStorage.setItem(ISOLATION_RELOAD_KEY, '1');
     } catch {
       return;
     }
     location.reload();
-  };
-  sw.addEventListener('controllerchange', reload);
-  void sw.ready.then(() => {
-    if (!sw.controller) reload();
   });
 }
 
