@@ -1,7 +1,8 @@
 :root {
   --bg: #ffffff;
   --fg: #18181b;
-  --muted: #6b6b76;
+  /* At least 4.5:1 (WCAG AA) on every light background here, --surface-hover included. */
+  --muted: #64646e;
   --line: #e4e4e9;
   --surface: #f4f4f6;
   --surface-hover: #ebebef;

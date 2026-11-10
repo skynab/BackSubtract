@@ -29,6 +29,8 @@ Before adding a model or library, check its license **and the license of the mod
 | Vite, @vitejs/plugin-react | MIT |
 | TypeScript | Apache-2.0 |
 | Vitest | MIT |
+| Playwright | Apache-2.0 |
+| axe-core, @axe-core/playwright (accessibility checks in the browser tests) | MPL-2.0; a test tool only, never bundled or distributed with the site |
 
 ## Deliberately not used
 

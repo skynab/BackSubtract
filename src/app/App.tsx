@@ -29,6 +29,8 @@ export function App() {
     <div className="app">
       <TopBar />
       <main className="stage">
+        {/* A heading for screen readers to find the editor or the grid by; the start screen shows its own. */}
+        {(hasImage || grid) && <h1 className="sr-only">{hasImage ? t('viewer.label') : t('batch.label')}</h1>}
         {hasImage ? <Viewer /> : grid ? <BatchView /> : <DropZone />}
         {dragging && <div className="drop-overlay">{t('drop')}</div>}
         {/* The grid shows it in its own header, rather than over the first row of images. */}
