@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test --project=desktop --project=mobile",
     "test:e2e:browsers": "playwright test --project=firefox --project=webkit",
+    "test:models": "playwright test --config playwright.models.config.ts",
     "golden:update": "node scripts/update-golden.mjs"
   },
   "dependencies": {

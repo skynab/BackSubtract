@@ -6,3 +6,4 @@ test-results
 playwright-report
 dist-e2e
 dist-pages
+dist-models

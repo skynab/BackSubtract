@@ -14,10 +14,11 @@ npm test         # unit tests + golden-image comparisons
 npm run golden:update  # regenerate golden/*.png after an intended change (look at them first!)
 npm run test:e2e # browser tests (desktop + phone), against a fresh test build
 npm run test:e2e:browsers  # the same tests in Firefox and WebKit (best on Linux or macOS)
+npm run test:models  # Auto and Select with the real AI models (downloads about 190 MB)
 npm run build    # type-check and build to dist/
 ```
 
-The first time, install the browser for the e2e tests with `npx playwright install chromium` (and `npx playwright install firefox webkit` for `test:e2e:browsers`). Run Firefox and WebKit on Linux or macOS, or leave them to CI: Playwright's Windows build of WebKit has no `OffscreenCanvas`, which the app needs and Safari has had since 16.4, so nearly every test fails there for a reason Safari users never meet. The e2e tests build in `e2e` mode (into `dist-e2e/`, so `dist/` is never touched): the real app, except that the AI worker is a stand-in (`src/ml/fake-worker.ts`) that simulates the model downloads and returns simple colour-based results. That covers everything around the AI tools without downloading over 100 MB of models on every run; the real models still need trying by hand.
+The first time, install the browser for the e2e tests with `npx playwright install chromium` (and `npx playwright install firefox webkit` for `test:e2e:browsers`). Run Firefox and WebKit on Linux or macOS, or leave them to CI: Playwright's Windows build of WebKit has no `OffscreenCanvas`, which the app needs and Safari has had since 16.4, so nearly every test fails there for a reason Safari users never meet. The e2e tests build in `e2e` mode (into `dist-e2e/`, so `dist/` is never touched): the real app, except that the AI worker is a stand-in (`src/ml/fake-worker.ts`) that simulates the model downloads and returns simple colour-based results. That covers everything around the AI tools without downloading over 100 MB of models on every run. `npm run test:models` covers the real ones: it builds the real app (into `dist-models/`), runs Auto and Select on the CPU on a test photo, checks they cut out its subject, and checks every model file is still on Hugging Face at the commit and size in `src/ml/models.ts`. `.github/workflows/models.yml` runs it every Monday, on pushes that touch the AI code or the lockfile, and by hand from the Actions tab; it never holds up a deploy.
 
 `npm run preview` serves the production build (with the offline service worker) at http://localhost:4173.
 

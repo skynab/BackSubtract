@@ -79,32 +79,29 @@ interface ModelFiles {
   dtype: unknown;
   device: unknown;
   paths: string[];
-  /** Size of those files at the repository's fixed commit, as listed on Hugging Face. */
+  /** Size of those files at the repository's fixed commit (models.ts). */
   bytes: number;
+}
+
+function modelFiles(repo: Repo, dtype: unknown, device: unknown, paths: string[]): ModelFiles {
+  return { repo, dtype, device, paths, bytes: paths.reduce((sum, p) => sum + repo.sizes[p], 0) };
 }
 
 /** Which model and ONNX files to use on this device. */
 function files(model: ModelName, s: Setup): ModelFiles {
   if (model === 'auto') {
-    if (useBirefnet(s)) {
-      return { repo: BIREFNET, dtype: 'fp16', device: 'webgpu', paths: ['onnx/model_fp16.onnx'], bytes: 114_538_221 };
-    }
+    if (useBirefnet(s)) return modelFiles(BIREFNET, 'fp16', 'webgpu', ['onnx/model_fp16.onnx']);
     return s.fp16
-      ? { repo: ISNET, dtype: 'fp16', device: s.device, paths: ['onnx/model_fp16.onnx'], bytes: 88_152_708 }
-      : { repo: ISNET, dtype: 'fp32', device: s.device, paths: ['onnx/model.onnx'], bytes: 176_149_806 };
+      ? modelFiles(ISNET, 'fp16', s.device, ['onnx/model_fp16.onnx'])
+      : modelFiles(ISNET, 'fp32', s.device, ['onnx/model.onnx']);
   }
   // The small prompt decoder runs on WASM everywhere; it's quick and WebGPU gains little for it.
-  return {
-    repo: SELECT,
-    dtype: { vision_encoder: s.fp16 ? 'fp16' : 'q8', prompt_encoder_mask_decoder: 'q8' },
-    device: { vision_encoder: s.device, prompt_encoder_mask_decoder: 'wasm' },
-    paths: [
-      s.fp16 ? 'onnx/vision_encoder_fp16.onnx' : 'onnx/vision_encoder_quantized.onnx',
-      'onnx/prompt_encoder_mask_decoder_quantized.onnx',
-    ],
-    // The vision encoder, then the prompt decoder.
-    bytes: (s.fp16 ? 12_170_657 : 8_882_165) + 4_903_810,
-  };
+  return modelFiles(
+    SELECT,
+    { vision_encoder: s.fp16 ? 'fp16' : 'q8', prompt_encoder_mask_decoder: 'q8' },
+    { vision_encoder: s.device, prompt_encoder_mask_decoder: 'wasm' },
+    [s.fp16 ? 'onnx/vision_encoder_fp16.onnx' : 'onnx/vision_encoder_quantized.onnx', 'onnx/prompt_encoder_mask_decoder_quantized.onnx'],
+  );
 }
 
 /**

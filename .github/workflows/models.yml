@@ -1,0 +1,45 @@
+# Runs Auto and Select with the real AI models (npm run test:models), which every other
+# browser test replaces with a stand-in. It catches a model, Transformers.js or ONNX
+# Runtime change that breaks them, and a model file that's gone or changed size.
+# It never holds up the Pages deploy. The models are downloaded afresh on every run, on
+# purpose: that's the path users take, from Hugging Face and jsDelivr.
+name: AI models
+
+on:
+  schedule:
+    # Mondays at 06:17 UTC.
+    - cron: '17 6 * * 1'
+  # Also runnable by hand from the Actions tab.
+  workflow_dispatch:
+  push:
+    branches: [dev]
+    paths:
+      - package-lock.json
+      - src/ml/**
+      - e2e-models/**
+      - playwright.models.config.ts
+      - .github/workflows/models.yml
+
+permissions:
+  contents: read
+
+jobs:
+  models:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:models
+      # Traces of the failed tests; open one with `npx playwright show-trace <trace.zip>`.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: models-results
+          path: test-results
+          retention-days: 7
