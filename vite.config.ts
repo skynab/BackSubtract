@@ -111,8 +111,8 @@ export default defineConfig(({ mode }) => {
   optimizeDeps: { include: ['@huggingface/transformers'] },
   test: {
     environment: 'node',
-    // Browser tests run separately with Playwright (npm run test:e2e).
-    exclude: ['e2e/**', 'node_modules/**'],
+    // Browser tests run separately with Playwright (npm run test:e2e, npm run test:models).
+    exclude: ['e2e/**', 'e2e-models/**', 'node_modules/**'],
   },
   };
 });
