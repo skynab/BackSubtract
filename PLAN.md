@@ -186,7 +186,8 @@ This tool merges the earlier "Tap object" and "Draw around" ideas into one butto
 
 - Detect **WebGPU**, and fall back to WASM with SIMD and threads. ONNX Runtime's WASM uses shared memory (`SharedArrayBuffer`), which needs a cross-origin isolated page: without it, Firefox won't run it at all and other browsers run it on one thread instead of several. `public/_headers` sets COOP `same-origin` and COEP `credentialless` on Netlify and Cloudflare Pages. GitHub Pages can't set headers, so there the app's own service worker adds them (`public/sw-isolation.js`) instead of the `coi-serviceworker` shim. Safari doesn't support `credentialless`, so it isn't isolated on any host.
 - **WebGPU that fails falls back to the CPU.** Firefox and Safari now offer WebGPU too, but ONNX Runtime's WebGPU support is tested mostly in Chrome, and a model can fail there in ways that can't be checked up front, such as a device that can't be created or a shader the browser rejects. When Auto or Select fails on the GPU (or BiRefNet fails), the app restarts the AI worker and tries again without it, because ONNX Runtime can be left unusable after a GPU failure. It remembers the fallback for later visits (`backsubtract.gpuFallback` and `backsubtract.autoFallback` in localStorage), but only once the retry works, so an offline attempt never counts against the device. Falling back can mean a second download (Auto: IS-Net at fp32, 176 MB).
-- **Lazy-load** each model the first time its tool is used, with a progress bar, e.g. "Downloading AI model… 34 / 88 MB (one time)". Models stay in the browser's Cache API. Agreeing to a download also asks the browser to keep the site's data (`navigator.storage.persist()`), so the models and the saved session aren't cleared when the device runs low on space. Chrome and Safari decide by themselves; Firefox asks the user, which is why it's asked only at that moment.
+- **Lazy-load** each model the first time its tool is used, with a progress bar, e.g. "Downloading AI model… 34 / 88 MB (one time)". Models stay in the browser's Cache API.
+- **Each model is fixed to one commit** of its Hugging Face repository (`src/ml/models.ts`), so the app always downloads the files it was tested with, and the sizes it shows before asking stay true whatever the repositories' owners push later. Moving to a newer commit is a deliberate change, made together with the sizes in `src/ml/worker.ts`. The AI worker deletes cached files of these models from any other commit when it starts (including the copies from `main` that earlier versions downloaded), since they can be over 100 MB and the browser won't clear them once it has agreed to keep the site's data. Agreeing to a download also asks the browser to keep the site's data (`navigator.storage.persist()`), so the models and the saved session aren't cleared when the device runs low on space. Chrome and Safari decide by themselves; Firefox asks the user, which is why it's asked only at that moment.
 - Prefer **half-precision or quantised models**. Quality background models are about 90–115 MB, more than the original 50 MB target, so Auto asks before its first download.
 - The ONNX Runtime WASM file is about 27 MB. Transformers.js loads it from jsDelivr (about 4.7 MB compressed) and caches it, so it isn't part of the site: `vite.config.ts` keeps Vite from copying in onnxruntime-web's unused local fallback. The build is about 1 MB, and any static host works, Cloudflare Pages (25 MiB per-file limit) included. Earlier versions also kept a second copy in an `ai-runtime` service worker cache; `public/sw-cleanup.js` deletes it.
 - Images are decoded with `createImageBitmap`, and EXIF orientation is honoured.
@@ -202,8 +203,8 @@ src/
   editor/         The open image, its mask and undo history; history memory budget
   canvas/         Viewer (zoom/pan, gestures), WebGL compositor, checkerboard, touch loupe,
                   the download's background and frame shown while its menu is open
-  ml/             AI worker (Transformers.js: Auto and Select models), its client,
-                  download status, and the e2e stand-in worker
+  ml/             AI worker (Transformers.js: Auto and Select models), the models' fixed
+                  commits, its client, download status, and the e2e stand-in worker
   cv/             Image worker: Magic Wand, Color, Edges and export encoding
   tools/
     controller.ts Starts AI work at the right moments (Auto on open, Select's encoding)
@@ -295,7 +296,7 @@ The site is free, with optional donations. Accepting donations can count as comm
 | @imgly/background-removal | AGPL-3.0 | ❌ Excluded (copyleft; conflicts with Apache-2.0) |
 
 Rules going forward:
-- Before adding any model or library, check its licence **and the licence of the model weights**. Weights are sometimes licensed differently from the code, and some are trained on datasets with their own restrictions.
+- Before adding any model or library, check its licence **and the licence of the model weights**. Weights are sometimes licensed differently from the code, and some are trained on datasets with their own restrictions. Check again before moving a model to a newer commit: a repository's licence can change too.
 - List every model and dependency with its licence in a `THIRD_PARTY_LICENSES.md` file, linked from the About / Support page.
 
 ## 12. Decisions log

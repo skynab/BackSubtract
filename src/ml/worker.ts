@@ -14,6 +14,7 @@ import {
   type Processor,
 } from '@huggingface/transformers';
 import { type Fallback, ModelError } from './fallback';
+import { BIREFNET, fileUrl, isOtherRevision, ISNET, type Repo, SELECT } from './models';
 import type { MaskResult, ModelInfo, ModelName, Proposals, Request, Response } from './protocol';
 
 declare const self: DedicatedWorkerGlobalScope;
@@ -21,13 +22,9 @@ declare const self: DedicatedWorkerGlobalScope;
 env.allowLocalModels = false;
 
 /**
- * Background removal. BiRefNet-lite (MIT) gives the best edges but needs a GPU that
- * allows 17+ storage buffers per shader; IS-Net (DIS, Apache-2.0 weights) runs anywhere.
+ * Background removal. BiRefNet-lite gives the best edges but needs a GPU that allows 17+
+ * storage buffers per shader; IS-Net runs anywhere. Each is fixed to one commit (models.ts).
  */
-const BIREFNET_ID = 'onnx-community/BiRefNet_lite-ONNX';
-const ISNET_ID = 'imgly/isnet-general-onnx';
-/** Segment Anything: SlimSAM-77 (Apache-2.0). */
-const SELECT_ID = 'Xenova/slimsam-77-uniform';
 const BIREFNET_STORAGE_BUFFERS = 17;
 
 type Device = 'webgpu' | 'wasm';
@@ -78,11 +75,11 @@ const useBirefnet = (s: Setup) =>
   !failed.has('birefnet') && s.device === 'webgpu' && s.fp16 && s.storageBuffers >= BIREFNET_STORAGE_BUFFERS;
 
 interface ModelFiles {
-  id: string;
+  repo: Repo;
   dtype: unknown;
   device: unknown;
   paths: string[];
-  /** Size of those files, as listed on Hugging Face. */
+  /** Size of those files at the repository's fixed commit, as listed on Hugging Face. */
   bytes: number;
 }
 
@@ -90,15 +87,15 @@ interface ModelFiles {
 function files(model: ModelName, s: Setup): ModelFiles {
   if (model === 'auto') {
     if (useBirefnet(s)) {
-      return { id: BIREFNET_ID, dtype: 'fp16', device: 'webgpu', paths: ['onnx/model_fp16.onnx'], bytes: 114_538_221 };
+      return { repo: BIREFNET, dtype: 'fp16', device: 'webgpu', paths: ['onnx/model_fp16.onnx'], bytes: 114_538_221 };
     }
     return s.fp16
-      ? { id: ISNET_ID, dtype: 'fp16', device: s.device, paths: ['onnx/model_fp16.onnx'], bytes: 88_152_708 }
-      : { id: ISNET_ID, dtype: 'fp32', device: s.device, paths: ['onnx/model.onnx'], bytes: 176_149_806 };
+      ? { repo: ISNET, dtype: 'fp16', device: s.device, paths: ['onnx/model_fp16.onnx'], bytes: 88_152_708 }
+      : { repo: ISNET, dtype: 'fp32', device: s.device, paths: ['onnx/model.onnx'], bytes: 176_149_806 };
   }
   // The small prompt decoder runs on WASM everywhere; it's quick and WebGPU gains little for it.
   return {
-    id: SELECT_ID,
+    repo: SELECT,
     dtype: { vision_encoder: s.fp16 ? 'fp16' : 'q8', prompt_encoder_mask_decoder: 'q8' },
     device: { vision_encoder: s.device, prompt_encoder_mask_decoder: 'wasm' },
     paths: [
@@ -159,13 +156,32 @@ env.fetch = async (input, init) => {
 async function isCached(f: ModelFiles): Promise<boolean> {
   try {
     const cache = await caches.open(env.cacheKey);
-    const hits = await Promise.all(f.paths.map((p) => cache.match(`${env.remoteHost}${f.id}/resolve/main/${p}`)));
+    const hits = await Promise.all(f.paths.map((p) => cache.match(fileUrl(env.remoteHost, f.repo, p))));
     return hits.every(Boolean);
   } catch {
     // No Cache API (e.g. some private modes): treat as not downloaded.
     return false;
   }
 }
+
+/**
+ * Deletes cached files of these models from other commits, which nothing will read again:
+ * after a model moves to a newer commit, or the copies from `main` that versions before
+ * the models were fixed downloaded. They can be 100 MB or more, and the browser won't
+ * clear them on its own once it has agreed to keep the site's data.
+ */
+async function dropOtherRevisions() {
+  try {
+    const cache = await caches.open(env.cacheKey);
+    for (const request of await cache.keys()) {
+      if (isOtherRevision(env.remoteHost, request.url)) await cache.delete(request);
+    }
+  } catch {
+    // No Cache API: nothing was downloaded to clean up.
+  }
+}
+
+void dropOtherRevisions();
 
 async function info(model: ModelName, fallbacks?: Fallback[]): Promise<ModelInfo> {
   avoid(fallbacks);
@@ -208,15 +224,17 @@ type Loaded = { model: PreTrainedModel; processor: Processor };
 const loaded = new Map<string, Promise<Loaded>>();
 
 function load(name: ModelName, f: ModelFiles): Promise<Loaded> {
-  let p = loaded.get(f.id);
+  const { id, revision } = f.repo;
+  let p = loaded.get(id);
   if (!p) {
     p = (async () => {
-      const options = { dtype: f.dtype, device: f.device, progress_callback: await trackProgress(name, f) } as never;
+      const progress_callback = await trackProgress(name, f);
+      const options = { dtype: f.dtype, device: f.device, revision, progress_callback } as never;
       const Model = name === 'auto' ? AutoModel : SamModel;
       try {
         const [model, processor] = await Promise.all([
-          Model.from_pretrained(f.id, options),
-          AutoProcessor.from_pretrained(f.id),
+          Model.from_pretrained(id, options),
+          AutoProcessor.from_pretrained(id, { revision }),
         ]);
         return { model, processor };
       } finally {
@@ -224,8 +242,8 @@ function load(name: ModelName, f: ModelFiles): Promise<Loaded> {
       }
     })();
     // If loading fails (e.g. offline), allow a retry next time.
-    p.catch(() => loaded.delete(f.id));
-    loaded.set(f.id, p);
+    p.catch(() => loaded.delete(id));
+    loaded.set(id, p);
   }
   return p;
 }
@@ -245,7 +263,7 @@ async function runModel<T>(name: ModelName, run: (f: ModelFiles, loaded: Loaded)
     return await run(f, await load(name, f));
   } catch (err) {
     const downloaded = (await isCached(f)) && (await isRuntimeCached());
-    const fallback = !downloaded ? undefined : f.id === BIREFNET_ID ? 'birefnet' : s.device === 'webgpu' ? 'gpu' : undefined;
+    const fallback = !downloaded ? undefined : f.repo === BIREFNET ? 'birefnet' : s.device === 'webgpu' ? 'gpu' : undefined;
     throw new ModelError(err instanceof Error ? err.message : String(err), fallback);
   }
 }
@@ -264,7 +282,7 @@ const asFloat32 = (t: Tensor) => (t.type === 'float32' ? t : t.to('float32'));
 async function predictMatte(raw: RawImage, f: ModelFiles, { model, processor }: Loaded): Promise<Uint8Array> {
   const { pixel_values } = await processor(raw);
   let matte: RawImage;
-  if (f.id === BIREFNET_ID) {
+  if (f.repo === BIREFNET) {
     const { output_image } = await model({ input_image: pixel_values });
     matte = RawImage.fromTensor(asFloat32(output_image[0]).sigmoid().mul(255).to('uint8'));
   } else {
