@@ -3,7 +3,7 @@ import type { Edit } from '../mask/history';
 import { useBatch } from '../batch/state';
 import { saveMask } from '../batch/storage';
 import { useUI } from '../state/store';
-import { withStore } from './db';
+import { type StoredBytes, storable, unstored, withStore } from './db';
 
 /**
  * Saves the work in progress to IndexedDB, on this device only, so a refresh or
@@ -28,10 +28,14 @@ export interface SavedSession {
   edits: Edit[];
 }
 
+/** As stored: the file may be its bytes (see storable in db.ts). */
+type StoredSession = Omit<SavedSession, 'file'> & { file: Blob | StoredBytes };
+
 export async function loadSession(): Promise<SavedSession | null> {
   try {
-    const saved = await withStore<SavedSession | undefined>('readonly', (s) => s.get(KEY));
-    return saved?.version === 1 ? saved : null;
+    const saved = await withStore<StoredSession | undefined>('readonly', (s) => s.get(KEY));
+    const file = unstored(saved?.file);
+    return saved?.version === 1 && file ? { ...saved, file } : null;
   } catch {
     return null;
   }
@@ -42,7 +46,8 @@ const BACKGROUND_KEY = 'background';
 
 export async function saveBackgroundImage(file: Blob): Promise<void> {
   try {
-    await withStore('readwrite', (s) => s.put(file, BACKGROUND_KEY));
+    const value = await storable(file);
+    await withStore('readwrite', (s) => s.put(value, BACKGROUND_KEY));
   } catch (err) {
     // It still works until the page closes; it just won't be there next visit.
     console.warn('Saving the background image failed', err);
@@ -51,8 +56,7 @@ export async function saveBackgroundImage(file: Blob): Promise<void> {
 
 export async function loadBackgroundImage(): Promise<Blob | null> {
   try {
-    const saved = await withStore<unknown>('readonly', (s) => s.get(BACKGROUND_KEY));
-    return saved instanceof Blob ? saved : null;
+    return unstored(await withStore<unknown>('readonly', (s) => s.get(BACKGROUND_KEY))) ?? null;
   } catch {
     return null;
   }
@@ -78,9 +82,9 @@ async function save(): Promise<void> {
     await saveMask(open, { mask: mask.data.slice(), edits: editor.history.newest(BATCH_HISTORY_BYTES) });
     return;
   }
-  const session: SavedSession = {
+  const session: StoredSession = {
     version: 1,
-    file: source,
+    file: await storable(source),
     fileName: editor.fileName,
     width: mask.width,
     height: mask.height,

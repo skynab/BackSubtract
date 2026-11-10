@@ -1,5 +1,5 @@
 import type { Edit } from '../mask/history';
-import { withStore } from '../session/db';
+import { storable, unstored, withStore } from '../session/db';
 import { useUI } from '../state/store';
 import type { SavedItem } from './state';
 
@@ -39,7 +39,9 @@ let clearing: Promise<void> = Promise.resolve();
 async function put(key: string, value: unknown): Promise<void> {
   await clearing;
   try {
-    await withStore('readwrite', (s) => s.put(value, key));
+    // A photo or thumbnail is stored as IndexedDB here can keep it (see storable in db.ts).
+    const stored = value instanceof Blob ? await storable(value) : value;
+    await withStore('readwrite', (s) => s.put(stored, key));
     memory.delete(key);
   } catch (err) {
     memory.set(key, value);
@@ -72,8 +74,7 @@ export async function loadIndex(): Promise<BatchIndex | null> {
 }
 
 export async function loadFile(id: string): Promise<Blob | null> {
-  const file = await get<unknown>(fileKey(id));
-  return file instanceof Blob ? file : null;
+  return unstored(await get<unknown>(fileKey(id))) ?? null;
 }
 
 export async function loadMask(id: string): Promise<SavedMask | null> {
@@ -82,8 +83,7 @@ export async function loadMask(id: string): Promise<SavedMask | null> {
 }
 
 export async function loadThumb(id: string): Promise<Blob | null> {
-  const thumb = await get<unknown>(thumbKey(id));
-  return thumb instanceof Blob ? thumb : null;
+  return unstored(await get<unknown>(thumbKey(id))) ?? null;
 }
 
 /** Remove everything a batch stored. Saving and loading wait until it's done. */
