@@ -34,7 +34,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      # Chromium and the system libraries it needs. If that fails it tries once more after
+      # 30 seconds: the runner sometimes can't reach Ubuntu's package servers for a moment.
+      - run: |
+          npx playwright install --with-deps chromium ||
+            { sleep 30; npx playwright install --with-deps chromium; }
       - run: npm run test:models
       # Traces of the failed tests; open one with `npx playwright show-trace <trace.zip>`.
       - uses: actions/upload-artifact@v7

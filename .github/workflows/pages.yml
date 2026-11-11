@@ -53,8 +53,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # Chromium, plus the system libraries and fonts it needs on Linux.
-      - run: npx playwright install --with-deps chromium
+      # Chromium, plus the system libraries and fonts it needs on Linux. If that fails it
+      # tries once more after 30 seconds: the runner sometimes can't reach Ubuntu's
+      # package servers for a moment.
+      - run: |
+          npx playwright install --with-deps chromium ||
+            { sleep 30; npx playwright install --with-deps chromium; }
       - run: npm run test:e2e
       # Traces of the failed tests; open one with `npx playwright show-trace <trace.zip>`.
       - uses: actions/upload-artifact@v7
@@ -79,7 +83,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps firefox webkit
+      # Tried twice, as in the e2e job.
+      - run: |
+          npx playwright install --with-deps firefox webkit ||
+            { sleep 30; npx playwright install --with-deps firefox webkit; }
       - run: xvfb-run --auto-servernum npm run test:e2e:browsers
       - uses: actions/upload-artifact@v7
         if: failure()
