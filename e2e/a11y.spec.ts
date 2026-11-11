@@ -98,10 +98,14 @@ test('Tab reaches every control in order, each showing a focus ring', async ({ p
     'Safari moves Tab only between form fields unless "Press Tab to highlight each item" is on, and Playwright\'s WebKit skips buttons too',
   );
   await openTestImage(page);
-  // From the first control on the page.
+  // From the first control on the page, reached with the keyboard so its focus ring shows.
+  // (Shift+Tab from it would leave the page in Firefox.)
   await page.getByRole('button', { name: 'BackSubtract' }).focus();
+  await page.keyboard.press('Tab');
   await page.keyboard.press('Shift+Tab');
-  const names: string[] = [];
+  const first = await focused(page);
+  expect(first.ring, 'focus ring on BackSubtract').toBe(true);
+  const names: string[] = [first.name];
   for (let i = 0; i < 40; i++) {
     await page.keyboard.press('Tab');
     const { name, ring } = await focused(page);

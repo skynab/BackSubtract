@@ -55,8 +55,10 @@ test('agreeing to a download asks the browser to keep the site data, and "Not no
   await page.addInitScript(() => {
     const w = window as unknown as { persistAsked: number };
     w.persistAsked = 0;
-    navigator.storage.persisted = async () => false;
-    navigator.storage.persist = async () => {
+    // On the prototype: WebKit can drop navigator.storage's wrapper object, and anything
+    // set on it, and hand out a fresh one later.
+    StorageManager.prototype.persisted = async () => false;
+    StorageManager.prototype.persist = async () => {
       w.persistAsked++;
       return true;
     };

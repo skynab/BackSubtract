@@ -296,8 +296,10 @@ test('dropped images join the open batch; non-images and anything past 50 are le
   await choose(page, 'Add images', many);
   await expect(page.getByText('A batch holds up to 50 images, so the rest were left out.')).toBeVisible();
   await expect(tiles(page)).toHaveCount(50, { timeout: 20_000 });
-  await expect(tile(page, 'n46.png')).toBeVisible();
-  await expect(tile(page, 'n47.png')).toHaveCount(0);
+  // 47 of the 48 join the 3 already there. Which one is left out depends on the order the
+  // browser hands over the picked files, which WebKit doesn't keep.
+  for (const name of ['cat.png', 'dog.png', 'bird.png']) await expect(tile(page, name)).toBeVisible();
+  await expect(page.getByRole('button', { name: /^n\d+\.png: / })).toHaveCount(47);
 });
 
 test('Share sends each image as a file, with one more tap if preparing took too long', async ({ page }) => {

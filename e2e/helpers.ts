@@ -51,8 +51,22 @@ export async function expectWebGl2(page: Page): Promise<void> {
   expect(ok, 'WebGL2 is unavailable in this browser, so the editor cannot work').toBe(true);
 }
 
+const isWebKit = (page: Page) => page.context().browser()?.browserType().name() === 'webkit';
+
+/**
+ * In WebKit, keep the editor's WebGL drawing readable after it's shown, so screenColor
+ * can read the canvas itself (see there). Only the tests' copy of the page does this.
+ */
+function keepCanvasPixels() {
+  const getContext = HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, options?: object) {
+    return getContext.call(this, type, type === 'webgl2' ? { ...options, preserveDrawingBuffer: true } : options);
+  } as typeof getContext;
+}
+
 /** Open the test image through the real "Choose image" button and file picker. */
 export async function openTestImage(page: Page): Promise<void> {
+  if (isWebKit(page)) await page.addInitScript(keepCanvasPixels);
   await page.goto('/');
   await expectWebGl2(page);
   const chooser = page.waitForEvent('filechooser');
@@ -119,10 +133,31 @@ export async function downloadAndReadAlpha(page: Page, points: [number, number][
   return (await download(page, points)).pixels.map((p) => p[3]);
 }
 
-/** The on-screen RGB colour at an image pixel, read from a screenshot of the page. */
+/**
+ * The on-screen RGB colour at an image pixel, read from a screenshot of the page.
+ *
+ * In WebKit it's read from the editor's canvas instead. Playwright's WebKit screenshots a
+ * WebGL canvas that redraws only when something changes one frame late on Linux (and not
+ * at all on Windows), though the canvas holds the right picture: a hover preview or a
+ * new background colour never showed up in its screenshots, the frame before it did.
+ */
 export async function screenColor(page: Page, x: number, y: number): Promise<[number, number, number]> {
   const p = await toScreen(page, x, y);
-  return screenColorAt(page, p.x, p.y);
+  if (!isWebKit(page)) return screenColorAt(page, p.x, p.y);
+  return page.evaluate(async ({ x, y }) => {
+    const canvas = document.querySelector<HTMLCanvasElement>('canvas[role="img"]')!;
+    const box = canvas.getBoundingClientRect();
+    const scale = canvas.width / box.width;
+    const image = new Image();
+    image.src = canvas.toDataURL();
+    await image.decode();
+    const pixel = document.createElement('canvas');
+    pixel.width = pixel.height = 1;
+    const ctx = pixel.getContext('2d')!;
+    ctx.drawImage(image, Math.floor((x - box.left) * scale), Math.floor((y - box.top) * scale), 1, 1, 0, 0, 1, 1);
+    const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+    return [r, g, b] as [number, number, number];
+  }, p);
 }
 
 /** The on-screen RGB colour at a page position, read from a screenshot of the page. */
